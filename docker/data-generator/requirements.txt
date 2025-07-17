@@ -1,0 +1,9 @@
+# Additional dependencies for data generation
+faker==19.6.2
+kafka-python==2.0.2
+
+# For streaming to Kafka
+confluent-kafka==2.3.0
+
+# For S3 uploads
+s3fs==2023.12.0

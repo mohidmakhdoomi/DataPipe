@@ -1,0 +1,60 @@
+name: 'data_pipeline'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'data_pipeline'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+models:
+  data_pipeline:
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ["staging"]
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+      +tags: ["intermediate"]
+    marts:
+      +materialized: table
+      +schema: marts
+      +tags: ["marts"]
+
+# Configuring seeds
+seeds:
+  data_pipeline:
+    +schema: raw
+    +tags: ["seeds"]
+
+# Configuring snapshots
+snapshots:
+  data_pipeline:
+    +target_schema: snapshots
+    +tags: ["snapshots"]
+
+# Global configurations
+vars:
+  # Date range for incremental models
+  start_date: '2024-01-01'
+  
+  # Business logic variables
+  high_value_threshold: 500
+  churn_risk_days: 90
+  active_user_days: 30
+
+# Documentation
+docs-paths: ["docs"]

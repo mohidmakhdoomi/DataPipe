@@ -1,0 +1,8 @@
+faker==19.6.2
+pandas==2.1.1
+numpy==1.24.3
+kafka-python==2.0.2
+psycopg2-binary==2.9.7
+python-dotenv==1.0.0
+pydantic==2.4.2
+click==8.1.7

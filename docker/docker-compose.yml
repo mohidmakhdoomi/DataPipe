@@ -1,0 +1,206 @@
+version: '3.8'
+
+services:
+  # Base image (built first)
+  base:
+    build:
+      context: ./base
+      dockerfile: Dockerfile
+    image: data-pipeline/base:latest
+    command: ["echo", "Base image built successfully"]
+
+  # PostgreSQL for transactional data
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: transactions_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+
+  # Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ClickHouse for real-time analytics
+  clickhouse:
+    build:
+      context: ./clickhouse
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+    environment:
+      CLICKHOUSE_DB: analytics
+      CLICKHOUSE_USER: analytics_user
+      CLICKHOUSE_PASSWORD: analytics_password
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Data Generator Service
+  data-generator:
+    build:
+      context: ./data-generator
+      dockerfile: Dockerfile
+    depends_on:
+      - base
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: transactions_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      NUM_USERS: 1000
+      NUM_PRODUCTS: 500
+      DAYS_OF_DATA: 30
+    volumes:
+      - data_output:/app/output
+    command: ["python", "generator.py", "--users", "1000", "--products", "500", "--days", "30"]
+
+  # Kafka Tools (Producers/Consumers)
+  kafka-tools:
+    build:
+      context: ./kafka-tools
+      dockerfile: Dockerfile
+    depends_on:
+      - base
+      - kafka
+      - data-generator
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      BATCH_SIZE: 100
+      INTERVAL_SECONDS: 60
+    volumes:
+      - data_output:/app/data:ro
+
+  # dbt for transformations
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    depends_on:
+      - base
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: transactions_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    volumes:
+      - dbt_output:/app/dbt_project/target
+    command: ["dbt", "debug"]
+
+  # Airflow components
+  airflow-init:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres_password@postgres/transactions_db
+      AIRFLOW__CORE__FERNET_KEY: 'your-fernet-key-here-32-chars-long'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your-secret-key-here'
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin
+      "
+
+  airflow-webserver:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    depends_on:
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres_password@postgres/transactions_db
+      AIRFLOW__CORE__FERNET_KEY: 'your-fernet-key-here-32-chars-long'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your-secret-key-here'
+    ports:
+      - "8080:8080"
+    volumes:
+      - airflow_logs:/opt/airflow/logs
+    command: airflow webserver
+
+  airflow-scheduler:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    depends_on:
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:postgres_password@postgres/transactions_db
+      AIRFLOW__CORE__FERNET_KEY: 'your-fernet-key-here-32-chars-long'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'your-secret-key-here'
+    volumes:
+      - airflow_logs:/opt/airflow/logs
+    command: airflow scheduler
+
+volumes:
+  postgres_data:
+  zookeeper_data:
+  zookeeper_logs:
+  kafka_data:
+  clickhouse_data:
+  clickhouse_logs:
+  data_output:
+  dbt_output:
+  airflow_logs:
+
+networks:
+  default:
+    name: data-pipeline-network

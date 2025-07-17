@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-pipeline
+  labels:
+    name: data-pipeline
+    environment: dev
+    team: data-engineering
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-storage
+  labels:
+    name: data-storage
+    environment: dev
+    team: data-engineering
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-pipeline-system
+  labels:
+    name: data-pipeline-system
+    environment: dev
+    team: data-engineering

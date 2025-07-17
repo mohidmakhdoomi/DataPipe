@@ -1,0 +1,34 @@
+# Override file for development
+# This file is automatically loaded by docker-compose
+# Use this for local development customizations
+
+version: '3.8'
+
+services:
+  # Development overrides
+  data-generator:
+    volumes:
+      - ../data-generators:/app:ro  # Mount local code for development
+    environment:
+      - NUM_USERS=100  # Smaller dataset for dev
+      - NUM_PRODUCTS=50
+      - DAYS_OF_DATA=7
+    
+  kafka-tools:
+    volumes:
+      - ../data-generators:/app/data-generators:ro
+    environment:
+      - BATCH_SIZE=10  # Smaller batches for dev
+      - INTERVAL_SECONDS=30
+    
+  dbt:
+    volumes:
+      - ../dbt:/app/dbt_project:rw  # Mount local dbt project
+    
+  airflow-webserver:
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags:ro  # Mount local DAGs
+    
+  airflow-scheduler:
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags:ro

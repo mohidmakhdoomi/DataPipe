@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  namespace: data-pipeline
+  labels:
+    app: airflow
+    component: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow
+        component: scheduler
+    spec:
+      initContainers:
+      - name: airflow-init
+        image: data-pipeline/airflow:latest
+        command:
+        - bash
+        - -c
+        - |
+          airflow db init
+          airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - configMapRef:
+            name: data-pipeline-config
+        env:
+        - name: AIRFLOW__CORE__FERNET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: airflow-secret
+              key: fernet-key
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: airflow-secret
+              key: secret-key
+        volumeMounts:
+        - name: airflow-logs
+          mountPath: /opt/airflow/logs
+      containers:
+      - name: airflow-scheduler
+        image: data-pipeline/airflow:latest
+        command: ["airflow", "scheduler"]
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        - configMapRef:
+            name: data-pipeline-config
+        env:
+        - name: AIRFLOW__CORE__FERNET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: airflow-secret
+              key: fernet-key
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: airflow-secret
+              key: secret-key
+        volumeMounts:
+        - name: airflow-logs
+          mountPath: /opt/airflow/logs
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "airflow jobs check --job-type SchedulerJob --hostname $(hostname)"
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "airflow jobs check --job-type SchedulerJob --hostname $(hostname)"
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: airflow-logs
+        persistentVolumeClaim:
+          claimName: airflow-logs

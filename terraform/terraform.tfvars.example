@@ -1,0 +1,24 @@
+# AWS Configuration
+aws_region = "us-west-2"
+environment = "dev"
+project_name = "data-pipeline"
+
+# VPC Configuration
+vpc_cidr = "10.0.0.0/16"
+private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnets = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+# EKS Configuration
+eks_cluster_version = "1.28"
+eks_node_instance_types = ["t3.medium"]
+eks_node_desired_capacity = 2
+eks_node_max_capacity = 5
+eks_node_min_capacity = 1
+
+# RDS Configuration
+rds_instance_class = "db.t3.micro"
+rds_allocated_storage = 20
+
+# MSK Configuration
+kafka_instance_type = "kafka.t3.small"
+kafka_ebs_volume_size = 100

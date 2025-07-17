@@ -1,0 +1,42 @@
+# Airflow providers
+apache-airflow-providers-postgres==5.7.1
+apache-airflow-providers-amazon==8.13.0
+apache-airflow-providers-http==4.6.0
+apache-airflow-providers-snowflake==5.1.0
+apache-airflow-providers-ftp==3.5.2
+apache-airflow-providers-ssh==3.8.0
+
+# dbt integration with Snowflake support
+dbt-core==1.7.0
+dbt-postgres==1.7.0
+dbt-snowflake==1.7.0
+
+# Database drivers
+psycopg2-binary==2.9.7
+snowflake-connector-python==3.6.0
+
+# Kafka integration
+kafka-python==2.0.2
+confluent-kafka==2.3.0
+
+# Data processing
+pandas==2.1.1
+numpy==1.24.3
+pyarrow==14.0.1
+
+# AWS integration
+boto3==1.34.0
+s3fs==2023.12.0
+
+# HTTP requests
+requests==2.31.0
+
+# Monitoring and alerting
+slack-sdk==3.26.0
+
+# Data quality
+great-expectations==0.18.0
+
+# Additional utilities
+python-dotenv==1.0.0
+pydantic==2.4.2
