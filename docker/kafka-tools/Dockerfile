@@ -3,14 +3,18 @@ FROM data-pipeline/base:latest
 LABEL description="Kafka tools for data streaming"
 
 # Install Kafka Python client and additional tools
-COPY requirements.txt /tmp/requirements.txt
+USER root
+COPY docker/kafka-tools/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
+USER appuser
 
 # Copy Kafka tools and scripts
-COPY --chown=appuser:appuser scripts/ /app/scripts/
-COPY --chown=appuser:appuser producers/ /app/producers/
-COPY --chown=appuser:appuser consumers/ /app/consumers/
+COPY --chown=appuser:appuser docker/kafka-tools/scripts/ /app/scripts/
+COPY --chown=appuser:appuser docker/kafka-tools/producers/ /app/producers/
+
+# Create consumers directory (for future use)
+RUN mkdir -p /app/consumers && chown appuser:appuser /app/consumers
 
 # Make scripts executable
 RUN chmod +x /app/scripts/*.py

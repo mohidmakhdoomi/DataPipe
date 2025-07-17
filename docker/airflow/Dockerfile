@@ -11,17 +11,16 @@ RUN apt-get update && apt-get install -y \
 USER airflow
 
 # Install additional Python packages
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
-    rm /tmp/requirements.txt
+COPY docker/airflow/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Copy DAGs, plugins, and config
-COPY --chown=airflow:root dags/ /opt/airflow/dags/
-COPY --chown=airflow:root plugins/ /opt/airflow/plugins/
-COPY --chown=airflow:root config/ /opt/airflow/config/
+COPY --chown=airflow:root airflow/dags/ /opt/airflow/dags/
+COPY --chown=airflow:root airflow/plugins/ /opt/airflow/plugins/
+COPY --chown=airflow:root airflow/config/ /opt/airflow/config/
 
 # Copy dbt project for transformations
-COPY --chown=airflow:root ../../dbt/ /opt/airflow/dbt/
+COPY --chown=airflow:root dbt/ /opt/airflow/dbt/
 
 # Set environment variables
 ENV AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=false

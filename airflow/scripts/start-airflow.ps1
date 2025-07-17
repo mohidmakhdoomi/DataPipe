@@ -12,11 +12,26 @@ try {
     exit 1
 }
 
-# Check if .env file exists
-if (-not (Test-Path ".env")) {
-    Write-Host "Creating .env file from template..." -ForegroundColor Yellow
-    Copy-Item ".env.example" ".env"
-    Write-Host "Created .env file. You can customize it if needed." -ForegroundColor Green
+# Check if .env file exists in airflow directory
+if (-not (Test-Path "airflow\.env")) {
+    if (Test-Path "airflow\.env.example") {
+        Write-Host "Creating airflow\.env file from template..." -ForegroundColor Yellow
+        Copy-Item "airflow\.env.example" "airflow\.env"
+        Write-Host "Created airflow\.env file. You can customize it if needed." -ForegroundColor Green
+    } else {
+        Write-Host "Warning: airflow\.env.example not found. Please create .env files manually." -ForegroundColor Yellow
+    }
+}
+
+# Check if docker .env file exists
+if (-not (Test-Path "docker\.env")) {
+    if (Test-Path "docker\.env.example") {
+        Write-Host "Creating docker\.env file from template..." -ForegroundColor Yellow
+        Copy-Item "docker\.env.example" "docker\.env"
+        Write-Host "Created docker\.env file. You can customize it if needed." -ForegroundColor Green
+    } else {
+        Write-Host "Warning: docker\.env.example not found. Please create .env files manually." -ForegroundColor Yellow
+    }
 }
 
 # Create required directories
@@ -35,7 +50,19 @@ Write-Host "Starting Docker Compose services..." -ForegroundColor Yellow
 Write-Host "This may take a few minutes on first run..." -ForegroundColor Gray
 
 try {
-    # Start services
+    # Change to docker directory and start services
+    Push-Location "docker"
+    
+    # Build base image first
+    Write-Host "Building base image..." -ForegroundColor Yellow
+    docker-compose build base
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Failed to build base image" -ForegroundColor Red
+        return
+    }
+    
+    # Now start all services
     docker-compose up -d
     
     if ($LASTEXITCODE -eq 0) {
@@ -85,4 +112,7 @@ try {
     
 } catch {
     Write-Host "Error starting services: $_" -ForegroundColor Red
+} finally {
+    # Return to original directory
+    Pop-Location
 }

@@ -3,11 +3,11 @@ FROM clickhouse/clickhouse-server:23.12
 LABEL description="ClickHouse for real-time analytics"
 
 # Copy custom configuration
-COPY config/config.xml /etc/clickhouse-server/config.d/
-COPY config/users.xml /etc/clickhouse-server/users.d/
+COPY docker/clickhouse/config/config.xml /etc/clickhouse-server/config.d/
+COPY docker/clickhouse/config/users.xml /etc/clickhouse-server/users.d/
 
 # Copy initialization scripts
-COPY init-scripts/ /docker-entrypoint-initdb.d/
+COPY docker/clickhouse/init-scripts/ /docker-entrypoint-initdb.d/
 
 # Set environment variables
 ENV CLICKHOUSE_DB=analytics

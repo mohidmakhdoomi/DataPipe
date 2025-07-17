@@ -7,8 +7,6 @@ version: '3.8'
 services:
   # Development overrides
   data-generator:
-    volumes:
-      - ../data-generators:/app:ro  # Mount local code for development
     environment:
       - NUM_USERS=100  # Smaller dataset for dev
       - NUM_PRODUCTS=50

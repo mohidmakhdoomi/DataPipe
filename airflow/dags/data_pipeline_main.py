@@ -113,11 +113,18 @@ def extract_and_validate_data(**context):
     
     extraction_results = {}
     for table, query in extraction_queries.items():
-        result = postgres_hook.get_first(query)
-        extraction_results[table] = dict(zip(
-            [desc[0] for desc in postgres_hook.get_conn().cursor().description],
-            result
-        ))
+        # Use get_pandas_df to get both data and column names
+        import pandas as pd
+        df = postgres_hook.get_pandas_df(query)
+        
+        if not df.empty:
+            # Convert first row to dictionary
+            extraction_results[table] = df.iloc[0].to_dict()
+        else:
+            # Handle empty results
+            extraction_results[table] = {}
+            logging.warning(f"No data returned for {table}")
+        
         logging.info(f"{table} metrics: {extraction_results[table]}")
     
     # Data quality validation

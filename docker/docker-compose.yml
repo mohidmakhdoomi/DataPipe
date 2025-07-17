@@ -65,8 +65,8 @@ services:
   # ClickHouse for real-time analytics
   clickhouse:
     build:
-      context: ./clickhouse
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/clickhouse/Dockerfile
     depends_on:
       - kafka
     environment:
@@ -88,8 +88,8 @@ services:
   # Data Generator Service
   data-generator:
     build:
-      context: ./data-generator
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/data-generator/Dockerfile
     depends_on:
       - base
       - postgres
@@ -109,8 +109,8 @@ services:
   # Kafka Tools (Producers/Consumers)
   kafka-tools:
     build:
-      context: ./kafka-tools
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/kafka-tools/Dockerfile
     depends_on:
       - base
       - kafka
@@ -125,8 +125,8 @@ services:
   # dbt for transformations
   dbt:
     build:
-      context: ./dbt
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/dbt/Dockerfile
     depends_on:
       - base
       - postgres
@@ -143,8 +143,8 @@ services:
   # Airflow components
   airflow-init:
     build:
-      context: ./airflow
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
     depends_on:
       - postgres
     environment:
@@ -160,8 +160,8 @@ services:
 
   airflow-webserver:
     build:
-      context: ./airflow
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
     depends_on:
       - airflow-init
     environment:
@@ -177,8 +177,8 @@ services:
 
   airflow-scheduler:
     build:
-      context: ./airflow
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/airflow/Dockerfile
     depends_on:
       - airflow-init
     environment:

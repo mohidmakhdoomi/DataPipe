@@ -3,15 +3,17 @@ FROM data-pipeline/base:latest
 LABEL description="dbt service for data transformations"
 
 # Install dbt and database adapters
-COPY requirements.txt /tmp/requirements.txt
+USER root
+COPY docker/dbt/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
+USER appuser
 
 # Create dbt project directory
 RUN mkdir -p /app/dbt_project && chown appuser:appuser /app/dbt_project
 
 # Copy dbt project files
-COPY --chown=appuser:appuser dbt_project/ /app/dbt_project/
+COPY --chown=appuser:appuser dbt/ /app/dbt_project/
 
 # Set dbt profiles directory
 ENV DBT_PROFILES_DIR=/app/dbt_project/profiles

@@ -3,12 +3,14 @@ FROM data-pipeline/base:latest
 LABEL description="Data generator service for realistic transaction data"
 
 # Install additional dependencies for data generation
-COPY requirements.txt /tmp/requirements.txt
+USER root
+COPY docker/data-generator/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
+USER appuser
 
 # Copy data generator code
-COPY --chown=appuser:appuser ../../data-generators/ /app/
+COPY --chown=appuser:appuser data-generators/ /app/
 
 # Create output directory
 RUN mkdir -p /app/output && chown appuser:appuser /app/output

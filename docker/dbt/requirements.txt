@@ -10,5 +10,5 @@ numpy==1.24.3
 # AWS integration
 boto3==1.34.0
 
-# Data quality
-dbt-expectations==0.10.0
+# Data quality packages can be added later as needed
+# dbt-expectations - not available in current version
