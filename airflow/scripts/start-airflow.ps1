@@ -73,7 +73,7 @@ try {
         Write-Host "  Username:      admin" -ForegroundColor White
         Write-Host "  Password:      admin" -ForegroundColor White
         Write-Host ""
-        Write-Host "  PostgreSQL:    localhost:5433" -ForegroundColor White
+        Write-Host "  PostgreSQL:    localhost:5432" -ForegroundColor White
         Write-Host "  ClickHouse:    http://localhost:8123" -ForegroundColor White
         Write-Host ""
         Write-Host "Useful commands:" -ForegroundColor Cyan

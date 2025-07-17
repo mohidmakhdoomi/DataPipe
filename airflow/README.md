@@ -30,7 +30,7 @@ cp .env.example .env
 
 ### **2. Access Services:**
 - **Airflow UI**: http://localhost:8080 (admin/admin)
-- **PostgreSQL**: localhost:5433 (postgres/postgres_password)
+- **PostgreSQL**: localhost:5432 (postgres/postgres_password)
 - **ClickHouse**: http://localhost:8123 (analytics_user/analytics_password)
 
 ### **3. Test DAGs:**
@@ -95,7 +95,7 @@ docker-compose exec airflow-scheduler airflow dags show data_pipeline_main
 ### **3. Database Access:**
 ```bash
 # Connect to data PostgreSQL
-psql -h localhost -p 5433 -U postgres -d transactions_db
+psql -h localhost -p 5432 -U postgres -d transactions_db
 
 # Connect to ClickHouse
 curl "http://localhost:8123/?query=SELECT * FROM analytics.transactions LIMIT 5"

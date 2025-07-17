@@ -65,3 +65,11 @@ def dag_policy(dag):
     # Example: Set default email settings
     if not dag.default_args.get('email_on_failure'):
         dag.default_args['email_on_failure'] = False
+
+
+# Environment-specific configurations
+if os.getenv('AIRFLOW_ENV') == 'production':
+    # Production settings
+    LOGGING_CONFIG['root']['level'] = 'WARNING'
+    LOGGING_CONFIG['loggers']['airflow.processor']['level'] = 'WARNING'
+    LOGGING_CONFIG['loggers']['airflow.task']['level'] = 'INFO'

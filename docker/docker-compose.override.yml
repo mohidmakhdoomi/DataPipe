@@ -2,8 +2,6 @@
 # This file is automatically loaded by docker-compose
 # Use this for local development customizations
 
-version: '3.8'
-
 services:
   # Development overrides
   data-generator:
