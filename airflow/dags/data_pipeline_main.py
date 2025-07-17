@@ -169,7 +169,7 @@ def run_dbt_models(**context):
         'POSTGRES_PORT': os.getenv('POSTGRES_PORT', '5432'),
         'POSTGRES_DB': os.getenv('POSTGRES_DB', 'transactions_db'),
         'POSTGRES_USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'POSTGRES_PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres_password'),
+        'POSTGRES_PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
         'SNOWFLAKE_ACCOUNT': os.getenv('SNOWFLAKE_ACCOUNT', ''),
         'SNOWFLAKE_USER': os.getenv('SNOWFLAKE_USER', ''),
         'SNOWFLAKE_PASSWORD': os.getenv('SNOWFLAKE_PASSWORD', ''),
@@ -273,7 +273,7 @@ def update_clickhouse_realtime(**context):
         try:
             # Get ClickHouse credentials from Airflow Variables or environment
             clickhouse_user = Variable.get("clickhouse_user", default_var=os.getenv('CLICKHOUSE_USER', 'analytics_user'))
-            clickhouse_password = Variable.get("clickhouse_password", default_var=os.getenv('CLICKHOUSE_PASSWORD', 'analytics_password'))
+            clickhouse_password = Variable.get("clickhouse_password", default_var=os.getenv('CLICKHOUSE_PASSWORD', ''))
             
             response = requests.post(
                 clickhouse_url,

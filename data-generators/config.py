@@ -12,7 +12,7 @@ class Settings(BaseModel):
     postgres_port: int = int(os.getenv("POSTGRES_PORT", "5432"))
     postgres_db: str = os.getenv("POSTGRES_DB", "transactions_db")
     postgres_user: str = os.getenv("POSTGRES_USER", "postgres")
-    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "password")
+    postgres_password: str = os.getenv("POSTGRES_PASSWORD", "")
     
     # Kafka settings
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")

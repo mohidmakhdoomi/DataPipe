@@ -66,7 +66,7 @@ AUTH_TYPE = AUTH_DB
 # MAIL_SERVER = 'smtp.gmail.com'
 # MAIL_USE_TLS = True
 # MAIL_USERNAME = 'yourappemail@gmail.com'
-# MAIL_PASSWORD = 'passwordformail'
+# MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', '')
 # MAIL_DEFAULT_SENDER = 'sender@gmail.com'
 
 # The default user self registration role
