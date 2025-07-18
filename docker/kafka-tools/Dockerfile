@@ -11,7 +11,9 @@ USER appuser
 
 # Copy Kafka tools and scripts
 COPY --chown=appuser:appuser docker/kafka-tools/scripts/ /app/scripts/
-COPY --chown=appuser:appuser docker/kafka-tools/producers/ /app/producers/
+
+# Create producers directory (for future use)
+RUN mkdir -p /app/producers && chown appuser:appuser /app/producers
 
 # Create consumers directory (for future use)
 RUN mkdir -p /app/consumers && chown appuser:appuser /app/consumers
@@ -25,7 +27,7 @@ ENV PYTHONPATH=/app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python /app/scripts/health_check.py || exit 1
+    CMD ["python", "/app/scripts/health_check.py"]
 
-# Default command
-CMD ["python", "/app/scripts/stream_data.py"]
+# Default command - keep container running for utility access
+CMD ["tail", "-f", "/dev/null"]

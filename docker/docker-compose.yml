@@ -78,11 +78,6 @@ services:
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - clickhouse_logs:/var/log/clickhouse-server
-    healthcheck:
-      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # Data Generator Service
   data-generator:
@@ -90,20 +85,25 @@ services:
       context: ..
       dockerfile: docker/data-generator/Dockerfile
     depends_on:
-      - base
-      - postgres
+      base:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB:-transactions_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       NUM_USERS: 1000
       NUM_PRODUCTS: 500
       DAYS_OF_DATA: 30
     volumes:
       - data_output:/app/output
-    command: ["python", "generator.py", "--users", "1000", "--products", "500", "--days", "30"]
+    command: ["python", "generator.py", "--realtime", "--duration", "120", "--rate", "120"]
 
   # Kafka Tools (Producers/Consumers)
   kafka-tools:
@@ -156,8 +156,8 @@ services:
         airflow db migrate &&
         airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
         airflow connections create-default-connections &&
-        airflow connections delete postgres_default || true &&        
-        airflow connections add postgres_default --conn-type postgres --conn-host postgres --conn-login ${POSTGRES_USER:-postgres} --conn-password ${POSTGRES_PASSWORD} --conn-schema ${POSTGRES_DB:-transactions_db} --conn-port 5432        
+        airflow connections delete postgres_default &&        
+        airflow connections add postgres_default --conn-type postgres --conn-host postgres --conn-login ${POSTGRES_USER:-postgres} --conn-password ${POSTGRES_PASSWORD} --conn-schema ${POSTGRES_DB:-transactions_db} --conn-port 5432
       "
 
   airflow-webserver:

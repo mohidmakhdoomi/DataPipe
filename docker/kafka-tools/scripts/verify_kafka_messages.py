@@ -52,8 +52,8 @@ def test_kafka_roundtrip():
         
         message_found = False
         for message in consumer:
-            print(f"✅ Received message: {message.value}")
             if message.value.get('id') == 'test-123':
+                print(f"✅ Received message: {message.value}")
                 message_found = True
                 break
         
