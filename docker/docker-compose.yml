@@ -152,10 +152,11 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY:?AIRFLOW_SECRET_KEY must be set}
     command: >
       bash -c "
-        airflow db init &&
+        airflow db migrate &&
         airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin &&
-        airflow connections delete postgres_default || true &&
-        airflow connections add postgres_default --conn-type postgres --conn-host postgres --conn-login ${POSTGRES_USER:-postgres} --conn-password ${POSTGRES_PASSWORD} --conn-schema ${POSTGRES_DB:-transactions_db} --conn-port 5432
+        airflow connections create-default-connections &&
+        airflow connections delete postgres_default || true &&        
+        airflow connections add postgres_default --conn-type postgres --conn-host postgres --conn-login ${POSTGRES_USER:-postgres} --conn-password ${POSTGRES_PASSWORD} --conn-schema ${POSTGRES_DB:-transactions_db} --conn-port 5432        
       "
 
   airflow-webserver:
@@ -163,7 +164,8 @@ services:
       context: ..
       dockerfile: docker/airflow/Dockerfile
     depends_on:
-      - airflow-init
+      airflow-init:
+        condition: service_completed_successfully
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres/${POSTGRES_DB:-transactions_db}
@@ -180,7 +182,8 @@ services:
       context: ..
       dockerfile: docker/airflow/Dockerfile
     depends_on:
-      - airflow-init
+      airflow-init:
+        condition: service_completed_successfully
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres/${POSTGRES_DB:-transactions_db}

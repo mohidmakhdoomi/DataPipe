@@ -25,7 +25,10 @@ spec:
         - bash
         - -c
         - |
-          airflow db init
+          airflow db migrate
+          airflow connections create-default-connections
+          airflow connections delete postgres_default
+          airflow connections add postgres_default --conn-type postgres --conn-host postgres --conn-login ${POSTGRES_USER:-postgres} --conn-password ${POSTGRES_PASSWORD} --conn-schema ${POSTGRES_DB:-transactions_db} --conn-port 5432
           airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true
         envFrom:
         - configMapRef:
