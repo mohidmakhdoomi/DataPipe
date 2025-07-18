@@ -7,7 +7,7 @@
 **Solution**: 
 - Created `environment_config.py` for centralized configuration management
 - Environment-aware hostname resolution:
-  - **Local**: `postgres-data`, `clickhouse`
+  - **Local**: `postgres`, `clickhouse`
   - **Kubernetes**: `postgres.data-storage.svc.cluster.local`, `clickhouse.data-storage.svc.cluster.local`
 - Dynamic configuration based on `AIRFLOW_ENV` and Kubernetes detection
 
@@ -129,7 +129,7 @@ is_kubernetes = os.getenv('KUBERNETES_SERVICE_HOST') is not None
 if is_kubernetes:
     postgres_host = 'postgres.data-storage.svc.cluster.local'
 elif env == 'development':
-    postgres_host = 'postgres-data'
+    postgres_host = 'postgres'
 else:
     postgres_host = os.getenv('POSTGRES_HOST', 'localhost')
 ```

@@ -154,7 +154,7 @@ docker-compose exec airflow-scheduler airflow dags list-import-errors
 **Database connection issues:**
 ```bash
 # Test PostgreSQL connection
-docker-compose exec postgres-data psql -U postgres -d transactions_db -c "SELECT 1;"
+docker-compose exec postgres psql -U postgres -d transactions_db -c "SELECT 1;"
 
 # Test ClickHouse connection
 curl "http://localhost:8123/ping"

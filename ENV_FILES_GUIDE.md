@@ -33,7 +33,7 @@ This document provides an overview of all `.env.example` files in the project an
 **Usage**: For running Airflow locally during development
 
 **Key Variables**:
-- Local service hostnames (postgres-data, clickhouse)
+- Local service hostnames (postgres, clickhouse)
 - Development-scale settings
 - All security credentials
 
@@ -86,7 +86,7 @@ MAIL_PASSWORD=your_email_password
 - Production environment flag
 
 ### Local Airflow (`airflow/.env.example`)
-- Uses local service names (`postgres-data`, `clickhouse`)
+- Uses local service names (`postgres`, `clickhouse`)
 - Development environment flag
 - Medium-scale data settings
 

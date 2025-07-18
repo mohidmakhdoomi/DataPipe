@@ -64,7 +64,7 @@ This directory contains the Docker-based Airflow setup for the data pipeline pro
 ### Local Development
 ```bash
 # Use local docker-compose services
-POSTGRES_HOST=postgres-data
+POSTGRES_HOST=postgres
 CLICKHOUSE_HOST=clickhouse
 AIRFLOW_ENV=development
 ```

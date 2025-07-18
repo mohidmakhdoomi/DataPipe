@@ -41,7 +41,7 @@ spec:
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
         volumeMounts:
-        - name: postgres-data
+        - name: postgres
           mountPath: /var/lib/postgresql/data
         - name: postgres-init
           mountPath: /docker-entrypoint-initdb.d
@@ -69,9 +69,9 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
       volumes:
-      - name: postgres-data
+      - name: postgres
         persistentVolumeClaim:
-          claimName: postgres-data
+          claimName: postgres
       - name: postgres-init
         configMap:
           name: postgres-init-scripts

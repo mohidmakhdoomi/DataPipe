@@ -70,8 +70,6 @@ try {
         Write-Host ""
         Write-Host "Access points:" -ForegroundColor Cyan
         Write-Host "  Airflow UI:    http://localhost:8080" -ForegroundColor White
-        Write-Host "  Username:      admin" -ForegroundColor White
-        Write-Host "  Password:      admin" -ForegroundColor White
         Write-Host ""
         Write-Host "  PostgreSQL:    localhost:5432" -ForegroundColor White
         Write-Host "  ClickHouse:    http://localhost:8123" -ForegroundColor White

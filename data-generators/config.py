@@ -8,7 +8,7 @@ load_dotenv()
 
 class Settings(BaseModel):
     # Database settings
-    postgres_host: str = os.getenv("POSTGRES_HOST", "localhost")
+    postgres_host: str = os.getenv("POSTGRES_HOST", "127.0.0.1")
     postgres_port: int = int(os.getenv("POSTGRES_PORT", "5432"))
     postgres_db: str = os.getenv("POSTGRES_DB", "transactions_db")
     postgres_user: str = os.getenv("POSTGRES_USER", "postgres")

@@ -23,10 +23,10 @@ class EnvironmentConfig:
             host = 'postgres.data-storage.svc.cluster.local'
         elif self.env == 'development':
             # Local docker-compose
-            host = 'postgres-data'
+            host = 'postgres'
         else:
             # Default fallback
-            host = os.getenv('POSTGRES_HOST', 'localhost')
+            host = os.getenv('POSTGRES_HOST', '127.0.0.1')
         
         return {
             'host': host,

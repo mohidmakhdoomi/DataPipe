@@ -172,7 +172,7 @@ def run_dbt_models(**context):
     # Set environment variables for dbt
     env = os.environ.copy()
     env.update({
-        'POSTGRES_HOST': os.getenv('POSTGRES_HOST', 'postgres-data'),  # For local docker-compose
+        'POSTGRES_HOST': os.getenv('POSTGRES_HOST', 'postgres'),  # For local docker-compose
         'POSTGRES_PORT': os.getenv('POSTGRES_PORT', '5432'),
         'POSTGRES_DB': os.getenv('POSTGRES_DB', 'transactions_db'),
         'POSTGRES_USER': os.getenv('POSTGRES_USER', 'postgres'),
