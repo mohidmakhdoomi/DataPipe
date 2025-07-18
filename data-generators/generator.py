@@ -1,19 +1,101 @@
 import random
 import uuid
+import json
+import time
 from datetime import datetime, timedelta
-from typing import List, Dict
+from typing import List, Dict, Optional
 import pandas as pd
 from faker import Faker
+from kafka import KafkaProducer
+from kafka.errors import KafkaError
 from models import User, Product, Transaction, UserEvent, UserTier, TransactionStatus, EventType
 from config import settings
 
 fake = Faker()
 
-class DataGenerator:
+class KafkaStreamer:
+    """Handles streaming data to Kafka topics"""
+    
     def __init__(self):
+        self.producer = None
+        self._initialize_producer()
+    
+    def _initialize_producer(self):
+        """Initialize Kafka producer with error handling"""
+        try:
+            self.producer = KafkaProducer(
+                bootstrap_servers=settings.kafka_bootstrap_servers,
+                value_serializer=lambda v: json.dumps(v, default=str).encode('utf-8'),
+                key_serializer=lambda k: str(k).encode('utf-8') if k else None,
+                acks='all',  # Wait for leader acknowledgment only
+                retries=3,
+                batch_size=1024,  # Very small batch size for immediate sending
+                linger_ms=0,  # No lingering - send immediately
+                buffer_memory=33554432,
+                request_timeout_ms=30000,  # 30 second timeout
+                max_block_ms=5000  # 5 second max block time
+            )
+            print(f"✅ Connected to Kafka at {settings.kafka_bootstrap_servers}")
+        except Exception as e:
+            print(f"❌ Failed to connect to Kafka: {e}")
+            self.producer = None
+    
+    def stream_event(self, topic: str, event_data: dict, key: str = None):
+        """Stream a single event to Kafka topic"""
+        if not self.producer:
+            return False
+            
+        try:
+            # Add metadata
+            event_data['_timestamp'] = datetime.now().isoformat()
+            event_data['_source'] = 'data-generator'
+            
+            # Fire and forget - don't wait for response
+            self.producer.send(
+                topic=topic,
+                value=event_data,
+                key=key
+            )
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error streaming to {topic}: {e}")
+            return False
+    
+    def stream_batch(self, topic: str, events: List[dict], key_field: str = None):
+        """Stream a batch of events to Kafka topic"""
+        if not self.producer:
+            print(f"❌ Kafka producer not available for batch streaming to {topic}")
+            return 0
+            
+        success_count = 0
+        for event in events:
+            key = event.get(key_field) if key_field else None
+            if self.stream_event(topic, event, key):
+                success_count += 1
+                
+        # Flush without timeout to avoid blocking
+        try:
+            self.producer.flush(timeout=1)
+        except:
+            pass  # Ignore flush timeouts
+        return success_count
+    
+    def _on_send_error(self, excp):
+        """Handle send errors"""
+        print(f"❌ Kafka send error: {excp}")
+    
+    def close(self):
+        """Close Kafka producer"""
+        if self.producer:
+            self.producer.close()
+
+class DataGenerator:
+    def __init__(self, enable_streaming: bool = False):
         self.users: List[User] = []
         self.products: List[Product] = []
         self.user_sessions: Dict[str, List[str]] = {}  # user_id -> session_ids
+        self.kafka_streamer = KafkaStreamer() if enable_streaming else None
         
     def generate_users(self, count: int = None) -> List[User]:
         """Generate realistic user profiles with weighted tiers"""
@@ -336,6 +418,183 @@ class DataGenerator:
         events_df = pd.DataFrame([e.model_dump() for e in events])
         events_df.to_csv(f"{output_dir}/user_events.csv", index=False)
         print(f"Exported {len(events)} events to {output_dir}/user_events.csv")
+    
+    def stream_to_kafka(self, transactions: List[Transaction], events: List[UserEvent]):
+        """Stream generated data to Kafka topics"""
+        if not self.kafka_streamer:
+            print("❌ Kafka streaming not enabled")
+            return
+        
+        print("🚀 Streaming data to Kafka...")
+        
+        # Stream transactions
+        if transactions:
+            transaction_dicts = [t.model_dump() for t in transactions]
+            success_count = self.kafka_streamer.stream_batch(
+                topic=settings.kafka_topic_transactions,
+                events=transaction_dicts,
+                key_field='user_id'
+            )
+            print(f"✅ Streamed {success_count}/{len(transactions)} transactions to {settings.kafka_topic_transactions}")
+        
+        # Stream user events
+        if events:
+            event_dicts = [e.model_dump() for e in events]
+            success_count = self.kafka_streamer.stream_batch(
+                topic=settings.kafka_topic_events,
+                events=event_dicts,
+                key_field='user_id'
+            )
+            print(f"✅ Streamed {success_count}/{len(events)} events to {settings.kafka_topic_events}")
+    
+    def stream_realtime_events(self, duration_minutes: int = 60, events_per_minute: int = 10):
+        """Generate and stream both events and transactions in real-time"""
+        if not self.kafka_streamer:
+            print("❌ Kafka streaming not enabled")
+            return
+        
+        if not self.users or not self.products:
+            print("❌ Must generate users and products first")
+            return
+        
+        print(f"🔄 Starting real-time streaming for {duration_minutes} minutes...")
+        print(f"📊 Target: {events_per_minute} events per minute + transactions")
+        
+        active_users = [u for u in self.users if u.is_active]
+        active_products = [p for p in self.products if p.is_active]
+        
+        start_time = time.time()
+        end_time = start_time + (duration_minutes * 60)
+        events_generated = 0
+        transactions_generated = 0
+        
+        try:
+            while time.time() < end_time:
+                # Generate user events batch
+                batch_events = []
+                
+                for _ in range(events_per_minute):
+                    user = random.choice(active_users)
+                    event_type = random.choice(list(EventType))
+                    
+                    # Create realistic event
+                    properties = {}
+                    page_url = None
+                    product_id = None
+                    search_query = None
+                    
+                    if event_type == EventType.PAGE_VIEW:
+                        page_url = f"/{random.choice(['home', 'products', 'about', 'contact'])}"
+                    elif event_type in [EventType.PRODUCT_VIEW, EventType.ADD_TO_CART]:
+                        product = random.choice(active_products)
+                        product_id = product.product_id
+                        page_url = f"/product/{product_id}"
+                    elif event_type == EventType.SEARCH:
+                        search_query = random.choice([
+                            'laptop', 'phone', 'shoes', 'shirt', 'book', 'headphones'
+                        ])
+                        properties['results_count'] = random.randint(0, 100)
+                    elif event_type == EventType.PURCHASE:
+                        properties['amount'] = round(random.uniform(10, 500), 2)
+                    
+                    event = UserEvent(
+                        event_id=str(uuid.uuid4()),
+                        user_id=user.user_id,
+                        session_id=str(uuid.uuid4()),
+                        event_type=event_type,
+                        timestamp=datetime.now(),
+                        page_url=page_url,
+                        product_id=product_id,
+                        search_query=search_query,
+                        device_type=random.choice(['desktop', 'mobile', 'tablet']),
+                        browser=random.choice(['chrome', 'firefox', 'safari', 'edge']),
+                        ip_address=fake.ipv4(),
+                        properties=properties
+                    )
+                    batch_events.append(event)
+                
+                # Generate transactions (realistic ratio: ~10% of events result in transactions)
+                batch_transactions = []
+                transactions_to_generate = max(1, events_per_minute // 10)  # At least 1 transaction per minute
+                
+                for _ in range(transactions_to_generate):
+                    user = random.choice(active_users)
+                    product = random.choice(active_products)
+                    
+                    # Higher tier users buy more expensive items and more quantity
+                    tier_multiplier = 1 + 0.3 * list(UserTier).index(user.tier)
+                    quantity = random.choices([1, 2, 3, 4, 5], weights=[50, 25, 15, 7, 3])[0]
+                    quantity = int(quantity * tier_multiplier)
+                    
+                    unit_price = product.price
+                    subtotal = unit_price * quantity
+                    
+                    # Discounts more common for higher tier users
+                    discount_prob = 0.1 + 0.05 * list(UserTier).index(user.tier)
+                    discount_amount = subtotal * random.uniform(0.05, 0.25) if random.random() < discount_prob else 0
+                    
+                    tax_amount = (subtotal - discount_amount) * 0.08  # 8% tax
+                    total_amount = subtotal - discount_amount + tax_amount
+                    
+                    # Transaction status - most succeed in real-time
+                    status_weights = [0.90, 0.05, 0.03, 0.02]  # completed, pending, failed, refunded
+                    status = random.choices(list(TransactionStatus), weights=status_weights)[0]
+                    
+                    transaction = Transaction(
+                        transaction_id=str(uuid.uuid4()),
+                        user_id=user.user_id,
+                        product_id=product.product_id,
+                        quantity=quantity,
+                        unit_price=unit_price,
+                        total_amount=round(total_amount, 2),
+                        discount_amount=round(discount_amount, 2),
+                        tax_amount=round(tax_amount, 2),
+                        status=status,
+                        payment_method=random.choice(['credit_card', 'debit_card', 'paypal', 'apple_pay']),
+                        shipping_address=f"{fake.street_address()}, {fake.city()}, {fake.state()}",
+                        created_at=datetime.now(),
+                        updated_at=datetime.now()
+                    )
+                    batch_transactions.append(transaction)
+                
+                # Stream user events
+                if batch_events:
+                    event_dicts = [e.model_dump() for e in batch_events]
+                    events_success = self.kafka_streamer.stream_batch(
+                        topic=settings.kafka_topic_events,
+                        events=event_dicts,
+                        key_field='user_id'
+                    )
+                    events_generated += events_success
+                
+                # Stream transactions
+                if batch_transactions:
+                    transaction_dicts = [t.model_dump() for t in batch_transactions]
+                    transactions_success = self.kafka_streamer.stream_batch(
+                        topic=settings.kafka_topic_transactions,
+                        events=transaction_dicts,
+                        key_field='user_id'
+                    )
+                    transactions_generated += transactions_success
+                
+                # Progress update every minute
+                elapsed_minutes = (time.time() - start_time) / 60
+                if int(elapsed_minutes) % 1 == 0:  # Every minute
+                    print(f"⏱️  {elapsed_minutes:.0f}m: Generated {events_generated} events, {transactions_generated} transactions")
+                
+                # Wait for next minute
+                time.sleep(60)
+                
+        except KeyboardInterrupt:
+            print("\n🛑 Streaming interrupted by user")
+        
+        elapsed_minutes = (time.time() - start_time) / 60
+        print(f"✅ Real-time streaming completed. Generated {events_generated} events and {transactions_generated} transactions in {elapsed_minutes:.1f} minutes")
+    
+    def close(self):
+        """Clean up resources"""
+        if self.kafka_streamer:
+            self.kafka_streamer.close()
 
 def main():
     """CLI interface for data generation"""
@@ -346,37 +605,71 @@ def main():
     @click.option('--products', default=500, help='Number of products to generate')
     @click.option('--days', default=30, help='Days of transaction history')
     @click.option('--output', default='output', help='Output directory')
-    def generate_data(users, products, days, output):
+    @click.option('--stream', is_flag=True, help='Enable Kafka streaming')
+    @click.option('--realtime', is_flag=True, help='Generate real-time streaming events')
+    @click.option('--duration', default=60, help='Duration for real-time streaming (minutes)')
+    @click.option('--rate', default=10, help='Events per minute for real-time streaming')
+    def generate_data(users, products, days, output, stream, realtime, duration, rate):
         """Generate realistic e-commerce data"""
-        print(f"Generating data: {users} users, {products} products, {days} days of history")
         
-        generator = DataGenerator()
+        # Initialize generator with streaming if requested
+        generator = DataGenerator(enable_streaming=stream or realtime)
         
-        # Generate core data
-        print("Generating users...")
-        generator.generate_users(users)
-        
-        print("Generating products...")
-        generator.generate_products(products)
-        
-        print("Generating transactions...")
-        transactions = generator.generate_transactions(days)
-        
-        print("Generating user events...")
-        events = generator.generate_user_events(days)
-        
-        # Export to CSV
-        print(f"Exporting to {output}/...")
-        generator.export_to_csv(output)
-        generator.export_transactions_to_csv(transactions, output)
-        generator.export_events_to_csv(events, output)
-        
-        print("Data generation complete!")
-        print(f"Generated:")
-        print(f"  - {len(generator.users)} users")
-        print(f"  - {len(generator.products)} products") 
-        print(f"  - {len(transactions)} transactions")
-        print(f"  - {len(events)} user events")
+        try:
+            if realtime:
+                print("🔄 Real-time streaming mode")
+                print("Generating base users and products...")
+                generator.generate_users(users)
+                generator.generate_products(products)
+                
+                # Start real-time streaming
+                generator.stream_realtime_events(duration_minutes=duration, events_per_minute=rate)
+                
+            else:
+                print(f"📊 Batch generation mode: {users} users, {products} products, {days} days of history")
+                
+                # Generate core data
+                print("Generating users...")
+                generator.generate_users(users)
+                
+                print("Generating products...")
+                generator.generate_products(products)
+                
+                print("Generating transactions...")
+                transactions = generator.generate_transactions(days)
+                
+                print("Generating user events...")
+                events = generator.generate_user_events(days)
+                
+                # Stream to Kafka if enabled
+                if stream:
+                    generator.stream_to_kafka(transactions, events)
+                
+                # Always export to CSV for backup/analysis
+                print(f"📁 Exporting to {output}/...")
+                generator.export_to_csv(output)
+                generator.export_transactions_to_csv(transactions, output)
+                generator.export_events_to_csv(events, output)
+                
+                print("✅ Data generation complete!")
+                print(f"Generated:")
+                print(f"  - {len(generator.users)} users")
+                print(f"  - {len(generator.products)} products") 
+                print(f"  - {len(transactions)} transactions")
+                print(f"  - {len(events)} user events")
+                
+                if stream:
+                    print(f"🚀 Data streamed to Kafka topics:")
+                    print(f"  - {settings.kafka_topic_transactions}")
+                    print(f"  - {settings.kafka_topic_events}")
+                    
+        except KeyboardInterrupt:
+            print("\n🛑 Generation interrupted by user")
+        except Exception as e:
+            print(f"❌ Error during generation: {e}")
+        finally:
+            # Clean up resources
+            generator.close()
     
     generate_data()
 

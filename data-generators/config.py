@@ -15,7 +15,7 @@ class Settings(BaseModel):
     postgres_password: str = os.getenv("POSTGRES_PASSWORD", "")
     
     # Kafka settings
-    kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+    kafka_bootstrap_servers: str = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
     kafka_topic_events: str = os.getenv("KAFKA_TOPIC_EVENTS", "user_events")
     kafka_topic_transactions: str = os.getenv("KAFKA_TOPIC_TRANSACTIONS", "transactions")
     

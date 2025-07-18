@@ -20,11 +20,12 @@ def check_kafka_connection():
             request_timeout_ms=5000
         )
         
-        # Get cluster metadata
-        metadata = producer.list_topics(timeout=5)
+        # Test connection by sending a test message
+        future = producer.send('__test_topic__', value='health_check')
+        producer.flush(timeout=5)
         producer.close()
         
-        print(f"✅ Kafka connection successful. Topics: {list(metadata.topics.keys())}")
+        print(f"✅ Kafka connection successful to {bootstrap_servers}")
         return True
         
     except Exception as e:

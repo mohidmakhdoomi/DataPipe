@@ -20,7 +20,7 @@ RUN mkdir -p /app/consumers && chown appuser:appuser /app/consumers
 RUN chmod +x /app/scripts/*.py
 
 # Set environment variables
-ENV KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+ENV KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 ENV PYTHONPATH=/app
 
 # Health check
