@@ -85,7 +85,7 @@ kubectl get pods -l app=clickhouse -n data-storage
 dbt debug --project-dir /opt/airflow/dbt
 
 # Check profiles.yml
-cat /opt/airflow/dbt/profiles.yml
+cat /opt/airflow/dbt/profiles/profiles.yml
 
 # Verify environment variables
 env | grep -E "(POSTGRES|SNOWFLAKE)"

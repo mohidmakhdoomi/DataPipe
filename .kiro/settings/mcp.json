@@ -1,8 +1,130 @@
 {
   "mcpServers": {
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"],
+    "terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "sequentialthinking": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "mcp/sequentialthinking"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "Context7": {
+      "timeout": 60,
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "context7-mcp"],
+      "transportType": "stdio",
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "get-library-docs",
+        "resolve-library-id"
+      ]
+    },
+    "aws-terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/aws-terraform"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "SearchAwsProviderDocs",
+        "SearchAwsccProviderDocs",
+        "SearchSpecificAwsIaModules",
+        "SearchUserProvidedModule",
+        "RunCheckovScan"
+      ]
+    },
+    "aws-cdk-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/aws-cdk-mcp-server"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "aws-diagram": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/aws-diagram"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "aws-documentation": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/aws-documentation"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "search_documentation",
+        "read_documentation"
+      ]
+    },
+    "aws-core-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/aws-core-mcp-server"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "prompt_understanding"
+      ]
+    },
+    "docker": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "mcp/docker"
+      ],
       "env": {},
       "disabled": true,
       "autoApprove": []
