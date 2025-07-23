@@ -72,7 +72,7 @@ $airflowHealthy = Test-ServiceHealth -ServiceName "Airflow Webserver" -HealthCom
 # Run Airflow tests
 if ($airflowHealthy) {
     Write-Host "`n🧪 Running Airflow configuration tests..." -ForegroundColor Cyan
-    docker-compose exec -T airflow-scheduler python /opt/airflow/test_airflow_setup.py
+    docker-compose exec -T airflow-scheduler python /opt/airflow/scripts/test_airflow_setup.py
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Airflow configuration tests passed" -ForegroundColor Green
