@@ -2,8 +2,8 @@ services:
   # Base image (built first)
   base:
     build:
-      context: ./base
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/base/Dockerfile
     image: data-pipeline/base:latest
     command: ["echo", "Base image built successfully"]
 
@@ -50,7 +50,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_NUM_PARTITIONS: ${KAFKA_NUM_PARTITIONS:-10}
+      KAFKA_COMPRESSION_TYPE: producer
     ports:
       - "9092:9092"
     volumes:
@@ -103,7 +104,7 @@ services:
       DAYS_OF_DATA: 30
     volumes:
       - data_output:/app/output
-    command: ["python", "generator.py", "--realtime", "--duration", "120", "--rate", "120"]
+    command: ["python", "generator.py", "--realtime", "--duration", "3", "--rate", "9000"]
 
   # Kafka Tools (Producers/Consumers)
   kafka-tools:

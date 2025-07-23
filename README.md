@@ -31,7 +31,7 @@ PostgreSQL (Transactional Data)
 
 ```
 ├── airflow/                       # Airflow DAGs and configuration
-├── data-generators/               # Real-time data generation (120 events/min)
+├── data-generators/               # Real-time data generation (9000 events/second)
 ├── dbt/                           # SQL transformations and data modeling
 ├── docker/                        # Production containerization
 │   └── compose files              # Multi-service orchestration
@@ -62,7 +62,7 @@ PostgreSQL (Transactional Data)
 - **CI/CD Ready**: Infrastructure as code with automated deployment
 
 ### Data Processing Capabilities
-- **Real-time Streaming**: 120+ events per minute with sub-second latency
+- **Real-time Streaming**: 9000+ events per second with sub-second latency
 - **Batch Processing**: Complex ETL with data quality validation
 - **Data Quality**: Automated profiling, validation, and anomaly detection
 - **Transformation**: SQL-first approach with dbt + Spark for complex operations

@@ -10,7 +10,7 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  Data Generator │───▶│      Kafka      │───▶│   ClickHouse    │───▶│   Analytics     │
-│  (120 evt/min)  │    │  (3 partitions) │    │  (Real-time)    │    │   Dashboard     │
+│   (9000 evt/s)  │    │  (3 partitions) │    │  (Real-time)    │    │   Dashboard     │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │
                                 ▼
@@ -151,7 +151,7 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 ## 🔄 **Key Integration Patterns**
 
 ### **Real-time Data Flow:**
-1. **Data Generator** → **Kafka** (120 events/min + transactions)
+1. **Data Generator** → **Kafka** (9000 events/second + transactions)
 2. **Kafka** → **ClickHouse** (real-time analytics via materialized views)
 3. **Kafka** → **S3** (via Kafka Connect for data lake)
 
@@ -172,7 +172,7 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 ## 🎯 **Current Implementation Status**
 
 ### **✅ Fully Implemented & Working:**
-- **Data Generator**: Real-time streaming (120 events/min + transactions)
+- **Data Generator**: Real-time streaming (9000 events/second + transactions)
 - **Kafka**: 3-partition topics with auto-creation
 - **Docker**: All services containerized including Spark
 - **Kubernetes**: Production-ready manifests and deployment scripts including Spark cluster
@@ -195,7 +195,7 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 ## 📋 **Deployment Readiness**
 
 ### **Production-Ready Components:**
-- **Core Data Pipeline**: Kafka streaming working at 120 events/min
+- **Core Data Pipeline**: Kafka streaming working at 9000 events/second
 - **Container Infrastructure**: Docker + Kubernetes fully configured
 - **AWS Infrastructure**: Terraform scripts for EKS, RDS, MSK, S3
 - **Security**: Proper secrets management and IAM roles

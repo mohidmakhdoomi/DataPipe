@@ -22,13 +22,18 @@
       ],
       "env": {},
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "sequentialthinking"
+      ]
     },
     "Context7": {
-      "timeout": 60,
       "command": "docker",
-      "args": ["run", "-i", "--rm", "context7-mcp"],
-      "transportType": "stdio",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "context7-mcp"
+      ],
       "env": {},
       "disabled": false,
       "autoApprove": [

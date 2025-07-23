@@ -2,8 +2,11 @@ import random
 import uuid
 import json
 import time
+import multiprocessing
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
+from concurrent.futures import ThreadPoolExecutor
+from queue import Empty
 import pandas as pd
 from faker import Faker
 from kafka import KafkaProducer
@@ -11,7 +14,156 @@ from kafka.errors import KafkaError
 from models import User, Product, Transaction, UserEvent, UserTier, TransactionStatus, EventType
 from config import settings
 
+# Try to import orjson for faster serialization, fallback to json
+try:
+    import orjson
+    USE_ORJSON = True
+except ImportError:
+    import json as orjson
+    USE_ORJSON = False
+
 fake = Faker()
+
+class HighPerformanceKafkaStreamer:
+    """High-performance Kafka streamer optimized for 10K+ events/second"""
+    
+    def __init__(self):
+        self.producer = None
+        self._initialize_producer()
+    
+    def _initialize_producer(self):
+        """Initialize high-throughput Kafka producer"""
+        # Detect available compression libraries
+        compression_type = None
+        try:
+            import snappy
+            compression_type = 'snappy'
+            print("✅ Snappy compression available")
+        except ImportError:
+            try:
+                import lz4
+                compression_type = 'lz4'
+                print("✅ LZ4 compression available")
+            except ImportError:
+                try:
+                    import zstandard
+                    compression_type = 'zstd'
+                    print("✅ Zstandard compression available")
+                except ImportError:
+                    compression_type = None
+                    print("⚠️  No compression libraries available, using uncompressed")
+        
+        # Retry connection with backoff for resilience
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Serializer selection based on available libraries
+                if USE_ORJSON:
+                    value_serializer = lambda v: orjson.dumps(v)
+                else:
+                    value_serializer = lambda v: json.dumps(v, default=str).encode('utf-8')
+                
+                # Base configuration with improved resilience
+                config = {
+                    'bootstrap_servers': settings.kafka_bootstrap_servers,
+                    'value_serializer': value_serializer,
+                    'key_serializer': lambda k: str(k).encode('utf-8') if k else None,
+                    
+                    # High-throughput optimizations
+                    'batch_size': 65536,              # 64KB batches
+                    'linger_ms': 5,                   # Small batching delay for throughput
+                    'acks': 1,                        # Leader-only acknowledgment (faster)
+                    'buffer_memory': 134217728,       # 128MB buffer
+                    'max_in_flight_requests_per_connection': 10,
+                    'send_buffer_bytes': 262144,      # 256KB
+                    'receive_buffer_bytes': 65536,    # 64KB
+                    'retries': 5,                     # More retries for resilience
+                    'retry_backoff_ms': 100,          # Fast retry backoff
+                    'request_timeout_ms': 10000,      # Shorter timeout to fail fast
+                    'max_block_ms': 2000,             # Longer block time for initial connection
+                    'metadata_max_age_ms': 30000,     # Refresh metadata more frequently
+                    'connections_max_idle_ms': 540000 # Keep connections alive longer
+                }
+                
+                # Add compression if available
+                if compression_type:
+                    config['compression_type'] = compression_type
+                
+                self.producer = KafkaProducer(**config)
+                
+                print(f"✅ High-performance Kafka producer connected to {settings.kafka_bootstrap_servers}")
+                if USE_ORJSON:
+                    print("✅ Using orjson for faster serialization")
+                if compression_type:
+                    print(f"✅ Using {compression_type} compression")
+                else:
+                    print("⚠️  Running without compression (may impact performance)")
+                
+                return  # Success, exit retry loop
+                
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 2  # Exponential backoff: 2s, 4s, 6s
+                    print(f"⚠️  Kafka connection attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"❌ Failed to connect to Kafka after {max_retries} attempts: {e}")
+        
+        # If all retries failed, try fallback configuration
+        try:
+            print("🔄 Attempting fallback configuration...")
+            fallback_config = {
+                'bootstrap_servers': settings.kafka_bootstrap_servers,
+                'value_serializer': lambda v: json.dumps(v, default=str).encode('utf-8'),
+                'key_serializer': lambda k: str(k).encode('utf-8') if k else None,
+                'acks': 1,
+                'retries': 3,
+                'batch_size': 16384,  # Smaller batch size
+                'linger_ms': 10,
+                'request_timeout_ms': 30000
+            }
+            self.producer = KafkaProducer(**fallback_config)
+            print("✅ Fallback Kafka producer connected (basic configuration)")
+        except Exception as fallback_error:
+            print(f"❌ Fallback connection also failed: {fallback_error}")
+            self.producer = None
+    
+    def stream_batch_async(self, topic: str, events: List[dict], key_field: str = None):
+        """Stream batch of events asynchronously for maximum throughput"""
+        if not self.producer:
+            return 0
+        
+        successfully_queued = 0
+        error_count = 0
+        
+        for event in events:
+            key = event.get(key_field) if key_field else None
+            try:
+                # Send to Kafka - this queues the message in the producer buffer
+                self.producer.send(topic=topic, value=event, key=key)
+                successfully_queued += 1
+            except Exception as e:
+                error_count += 1
+                # Only print errors occasionally to avoid spam
+                if error_count <= 5 or error_count % 1000 == 0:
+                    print(f"❌ Error queuing event ({error_count} total): {e}")
+        
+        # Return count of events successfully queued to Kafka producer
+        # These will be sent asynchronously by the producer
+        return successfully_queued
+    
+    def flush_async(self, timeout: float = 0.1):
+        """Non-blocking flush with timeout"""
+        if self.producer:
+            try:
+                self.producer.flush(timeout=timeout)
+            except Exception:
+                pass  # Ignore flush timeouts for performance
+    
+    def close(self):
+        """Close producer"""
+        if self.producer:
+            self.producer.close()
 
 class KafkaStreamer:
     """Handles streaming data to Kafka topics"""
@@ -90,12 +242,232 @@ class KafkaStreamer:
         if self.producer:
             self.producer.close()
 
+class HighPerformanceEventPools:
+    """Pre-computed pools for ultra-fast event generation"""
+    
+    def __init__(self, pool_sizes: Dict[str, int] = None):
+        if pool_sizes is None:
+            pool_sizes = {
+                'uuids': 1000000,      # 1M UUIDs
+                'sessions': 100000,     # 100K session IDs
+                'ips': 10000,          # 10K IP addresses
+                'user_agents': 1000,   # 1K user agent strings
+                'urls': 5000           # 5K URLs
+            }
+        
+        print("🔄 Pre-computing high-performance pools...")
+        start_time = time.time()
+        
+        # Pre-generate expensive operations
+        self.uuid_pool = [str(uuid.uuid4()) for _ in range(pool_sizes['uuids'])]
+        self.session_pool = [str(uuid.uuid4()) for _ in range(pool_sizes['sessions'])]
+        self.ip_pool = [fake.ipv4() for _ in range(pool_sizes['ips'])]
+        
+        # Pre-generate user agent strings
+        browsers = ['Chrome', 'Firefox', 'Safari', 'Edge', 'Opera']
+        versions = ['90.0', '91.0', '92.0', '93.0', '94.0', '95.0']
+        self.user_agent_pool = [
+            f"{random.choice(browsers)}/{random.choice(versions)}" 
+            for _ in range(pool_sizes['user_agents'])
+        ]
+        
+        # Pre-generate realistic URLs
+        pages = ['home', 'products', 'about', 'contact', 'search', 'checkout', 'profile', 'cart']
+        categories = ['electronics', 'clothing', 'books', 'sports', 'home']
+        self.url_pool = [f"/{random.choice(pages)}" for _ in range(pool_sizes['urls'] // 2)]
+        self.url_pool.extend([f"/category/{random.choice(categories)}" for _ in range(pool_sizes['urls'] // 4)])
+        self.url_pool.extend([f"/product/{uuid.uuid4()}" for _ in range(pool_sizes['urls'] // 4)])
+        
+        # Fixed arrays for ultra-fast access
+        self.device_types = ['desktop', 'mobile', 'tablet']
+        self.browsers = ['chrome', 'firefox', 'safari', 'edge']
+        self.event_types = list(EventType)
+        
+        # Event type weights for realistic distribution
+        self.event_type_weights = [0.35, 0.25, 0.15, 0.10, 0.05, 0.04, 0.03, 0.02, 0.01]
+        
+        # Counters for round-robin access (reduces random calls)
+        self.uuid_counter = 0
+        self.session_counter = 0
+        self.ip_counter = 0
+        self.url_counter = 0
+        
+        elapsed = time.time() - start_time
+        print(f"✅ Pre-computed pools ready in {elapsed:.2f}s")
+        print(f"   - {len(self.uuid_pool):,} UUIDs")
+        print(f"   - {len(self.session_pool):,} session IDs") 
+        print(f"   - {len(self.ip_pool):,} IP addresses")
+        print(f"   - {len(self.url_pool):,} URLs")
+    
+    def get_uuid(self) -> str:
+        """Get UUID from pool using round-robin + random offset"""
+        idx = (self.uuid_counter + random.randint(0, 1000)) % len(self.uuid_pool)
+        self.uuid_counter = (self.uuid_counter + 1) % len(self.uuid_pool)
+        return self.uuid_pool[idx]
+    
+    def get_session_id(self) -> str:
+        """Get session ID from pool"""
+        idx = (self.session_counter + random.randint(0, 100)) % len(self.session_pool)
+        self.session_counter = (self.session_counter + 1) % len(self.session_pool)
+        return self.session_pool[idx]
+    
+    def get_ip(self) -> str:
+        """Get IP address from pool"""
+        return self.ip_pool[random.randint(0, len(self.ip_pool) - 1)]
+    
+    def get_url(self) -> str:
+        """Get URL from pool"""
+        return self.url_pool[random.randint(0, len(self.url_pool) - 1)]
+    
+    def get_user_agent(self) -> str:
+        """Get user agent from pool"""
+        return self.user_agent_pool[random.randint(0, len(self.user_agent_pool) - 1)]
+
 class DataGenerator:
-    def __init__(self, enable_streaming: bool = False):
+    def __init__(self, enable_streaming: bool = False, high_performance: bool = False):
         self.users: List[User] = []
         self.products: List[Product] = []
         self.user_sessions: Dict[str, List[str]] = {}  # user_id -> session_ids
-        self.kafka_streamer = KafkaStreamer() if enable_streaming else None
+        
+        # Choose streamer based on performance requirements
+        if high_performance:
+            self.kafka_streamer = HighPerformanceKafkaStreamer() if enable_streaming else None
+            self.performance_pools = HighPerformanceEventPools()
+        else:
+            self.kafka_streamer = KafkaStreamer() if enable_streaming else None
+            self.performance_pools = None
+        
+        # Cached selections for fast access
+        self.active_users_cache = []
+        self.active_products_cache = []
+        self.weighted_users = []
+        self.weighted_products = []
+    
+    def _create_weighted_selections(self):
+        """Create weighted user and product selections for fast access"""
+        if not self.users or not self.products:
+            return
+        
+        print("🔄 Creating weighted selections for high-performance access...")
+        
+        # Cache active users and products
+        self.active_users_cache = [u for u in self.users if u.is_active]
+        self.active_products_cache = [p for p in self.products if p.is_active]
+        
+        # Create weighted selections based on user tiers (higher tiers more active)
+        self.weighted_users = []
+        for user in self.active_users_cache:
+            tier_weight = 1 + list(UserTier).index(user.tier)  # Bronze=1, Silver=2, Gold=3, Platinum=4
+            self.weighted_users.extend([user] * tier_weight)
+        
+        # Create weighted product selections (some products more popular)
+        self.weighted_products = []
+        for product in self.active_products_cache:
+            # Simulate popularity - some products appear more frequently
+            popularity_weight = random.choices([1, 2, 3, 4, 5], weights=[40, 30, 20, 7, 3])[0]
+            self.weighted_products.extend([product] * popularity_weight)
+        
+        print(f"✅ Weighted selections ready:")
+        print(f"   - {len(self.active_users_cache)} active users -> {len(self.weighted_users)} weighted")
+        print(f"   - {len(self.active_products_cache)} active products -> {len(self.weighted_products)} weighted")
+    
+    def generate_event_batch_ultra_fast(self, batch_size: int, current_timestamp: float = None) -> List[dict]:
+        """Ultra-fast event generation using pre-computed pools"""
+        if not self.performance_pools or not self.weighted_users:
+            raise ValueError("High-performance mode not initialized or no users available")
+        
+        if current_timestamp is None:
+            current_timestamp = time.time()
+        
+        events = []
+        pools = self.performance_pools
+        
+        # Generate events directly as dicts (skip object creation overhead)
+        for i in range(batch_size):
+            # Fast selections using weighted pools
+            user = self.weighted_users[random.randint(0, len(self.weighted_users) - 1)]
+            event_type = random.choices(pools.event_types, weights=pools.event_type_weights)[0]
+            
+            # Create event dict directly
+            event = {
+                'event_id': pools.get_uuid(),
+                'user_id': user.user_id,
+                'session_id': pools.get_session_id(),
+                'event_type': event_type.value,
+                'timestamp': current_timestamp + (i * 0.0001),  # Microsecond spacing
+                'page_url': pools.get_url(),
+                'product_id': None,
+                'search_query': None,
+                'device_type': pools.device_types[i % len(pools.device_types)],
+                'browser': pools.browsers[i % len(pools.browsers)],
+                'ip_address': pools.get_ip(),
+                'properties': {},
+                '_timestamp': datetime.fromtimestamp(current_timestamp + (i * 0.0001)).isoformat(),
+                '_source': 'high-performance-generator'
+            }
+            
+            # Add event-specific properties
+            if event_type in [EventType.PRODUCT_VIEW, EventType.ADD_TO_CART]:
+                if self.weighted_products:
+                    product = self.weighted_products[random.randint(0, len(self.weighted_products) - 1)]
+                    event['product_id'] = product.product_id
+                    event['page_url'] = f"/product/{product.product_id}"
+            elif event_type == EventType.SEARCH:
+                search_terms = ['laptop', 'phone', 'shoes', 'shirt', 'book', 'headphones', 'watch', 'camera']
+                event['search_query'] = search_terms[i % len(search_terms)]
+                event['properties'] = {'results_count': random.randint(0, 100)}
+            elif event_type == EventType.PURCHASE:
+                event['properties'] = {'amount': round(random.uniform(10, 500), 2)}
+            
+            events.append(event)
+        
+        return events
+    
+    def generate_transaction_batch_fast(self, batch_size: int, current_timestamp: float = None) -> List[dict]:
+        """Fast transaction generation"""
+        if not self.weighted_users or not self.weighted_products:
+            return []
+        
+        if current_timestamp is None:
+            current_timestamp = time.time()
+        
+        transactions = []
+        
+        for i in range(batch_size):
+            user = self.weighted_users[random.randint(0, len(self.weighted_users) - 1)]
+            product = self.weighted_products[random.randint(0, len(self.weighted_products) - 1)]
+            
+            # Fast transaction calculation
+            tier_multiplier = 1 + 0.3 * list(UserTier).index(user.tier)
+            quantity = random.choices([1, 2, 3, 4, 5], weights=[50, 25, 15, 7, 3])[0]
+            quantity = int(quantity * tier_multiplier)
+            
+            unit_price = product.price
+            subtotal = unit_price * quantity
+            discount_amount = subtotal * random.uniform(0.05, 0.25) if random.random() < 0.15 else 0
+            tax_amount = (subtotal - discount_amount) * 0.08
+            total_amount = subtotal - discount_amount + tax_amount
+            
+            transaction = {
+                'transaction_id': self.performance_pools.get_uuid() if self.performance_pools else str(uuid.uuid4()),
+                'user_id': user.user_id,
+                'product_id': product.product_id,
+                'quantity': quantity,
+                'unit_price': unit_price,
+                'total_amount': round(total_amount, 2),
+                'discount_amount': round(discount_amount, 2),
+                'tax_amount': round(tax_amount, 2),
+                'status': 'completed',  # Simplified for performance
+                'payment_method': ['credit_card', 'debit_card', 'paypal', 'apple_pay'][i % 4],
+                'shipping_address': f"Address {i}",  # Simplified for performance
+                'created_at': datetime.fromtimestamp(current_timestamp + (i * 0.0001)).isoformat(),
+                'updated_at': datetime.fromtimestamp(current_timestamp + (i * 0.0001)).isoformat(),
+                '_timestamp': datetime.fromtimestamp(current_timestamp + (i * 0.0001)).isoformat(),
+                '_source': 'high-performance-generator'
+            }
+            transactions.append(transaction)
+        
+        return transactions
         
     def generate_users(self, count: int = None) -> List[User]:
         """Generate realistic user profiles with weighted tiers"""
@@ -447,8 +819,15 @@ class DataGenerator:
             )
             print(f"✅ Streamed {success_count}/{len(events)} events to {settings.kafka_topic_events}")
     
-    def stream_realtime_events(self, duration_minutes: int = 60, events_per_minute: int = 10):
-        """Generate and stream both events and transactions in real-time"""
+    def stream_realtime_events(self, duration_minutes: int = 60, events_per_second: int = 10):
+        """Legacy single-threaded streaming (kept for compatibility)"""
+        if events_per_second <= 100:
+            return self._stream_realtime_events_legacy(duration_minutes, events_per_second)
+        else:
+            return self.stream_realtime_events_optimized(duration_minutes, events_per_second)
+    
+    def _stream_realtime_events_legacy(self, duration_minutes: int = 60, events_per_second: int = 10):
+        """Original single-threaded implementation for low throughput"""
         if not self.kafka_streamer:
             print("❌ Kafka streaming not enabled")
             return
@@ -457,11 +836,12 @@ class DataGenerator:
             print("❌ Must generate users and products first")
             return
         
-        print(f"🔄 Starting real-time streaming for {duration_minutes} minutes...")
-        print(f"📊 Target: {events_per_minute} events per minute + transactions")
+        print(f"🔄 Starting legacy real-time streaming for {duration_minutes} minutes...")
+        print(f"📊 Target: {events_per_second} events per second + transactions")
         
-        active_users = [u for u in self.users if u.is_active]
-        active_products = [p for p in self.products if p.is_active]
+        # Use cached selections if available
+        if not self.active_users_cache:
+            self._create_weighted_selections()
         
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
@@ -470,126 +850,551 @@ class DataGenerator:
         
         try:
             while time.time() < end_time:
-                # Generate user events batch
-                batch_events = []
+                batch_start = time.time()
                 
-                for _ in range(events_per_minute):
-                    user = random.choice(active_users)
-                    event_type = random.choice(list(EventType))
-                    
-                    # Create realistic event
-                    properties = {}
-                    page_url = None
-                    product_id = None
-                    search_query = None
-                    
-                    if event_type == EventType.PAGE_VIEW:
-                        page_url = f"/{random.choice(['home', 'products', 'about', 'contact'])}"
-                    elif event_type in [EventType.PRODUCT_VIEW, EventType.ADD_TO_CART]:
-                        product = random.choice(active_products)
-                        product_id = product.product_id
-                        page_url = f"/product/{product_id}"
-                    elif event_type == EventType.SEARCH:
-                        search_query = random.choice([
-                            'laptop', 'phone', 'shoes', 'shirt', 'book', 'headphones'
-                        ])
-                        properties['results_count'] = random.randint(0, 100)
-                    elif event_type == EventType.PURCHASE:
-                        properties['amount'] = round(random.uniform(10, 500), 2)
-                    
-                    event = UserEvent(
-                        event_id=str(uuid.uuid4()),
-                        user_id=user.user_id,
-                        session_id=str(uuid.uuid4()),
-                        event_type=event_type,
-                        timestamp=datetime.now(),
-                        page_url=page_url,
-                        product_id=product_id,
-                        search_query=search_query,
-                        device_type=random.choice(['desktop', 'mobile', 'tablet']),
-                        browser=random.choice(['chrome', 'firefox', 'safari', 'edge']),
-                        ip_address=fake.ipv4(),
-                        properties=properties
-                    )
-                    batch_events.append(event)
-                
-                # Generate transactions (realistic ratio: ~10% of events result in transactions)
-                batch_transactions = []
-                transactions_to_generate = max(1, events_per_minute // 10)  # At least 1 transaction per minute
-                
-                for _ in range(transactions_to_generate):
-                    user = random.choice(active_users)
-                    product = random.choice(active_products)
-                    
-                    # Higher tier users buy more expensive items and more quantity
-                    tier_multiplier = 1 + 0.3 * list(UserTier).index(user.tier)
-                    quantity = random.choices([1, 2, 3, 4, 5], weights=[50, 25, 15, 7, 3])[0]
-                    quantity = int(quantity * tier_multiplier)
-                    
-                    unit_price = product.price
-                    subtotal = unit_price * quantity
-                    
-                    # Discounts more common for higher tier users
-                    discount_prob = 0.1 + 0.05 * list(UserTier).index(user.tier)
-                    discount_amount = subtotal * random.uniform(0.05, 0.25) if random.random() < discount_prob else 0
-                    
-                    tax_amount = (subtotal - discount_amount) * 0.08  # 8% tax
-                    total_amount = subtotal - discount_amount + tax_amount
-                    
-                    # Transaction status - most succeed in real-time
-                    status_weights = [0.90, 0.05, 0.03, 0.02]  # completed, pending, failed, refunded
-                    status = random.choices(list(TransactionStatus), weights=status_weights)[0]
-                    
-                    transaction = Transaction(
-                        transaction_id=str(uuid.uuid4()),
-                        user_id=user.user_id,
-                        product_id=product.product_id,
-                        quantity=quantity,
-                        unit_price=unit_price,
-                        total_amount=round(total_amount, 2),
-                        discount_amount=round(discount_amount, 2),
-                        tax_amount=round(tax_amount, 2),
-                        status=status,
-                        payment_method=random.choice(['credit_card', 'debit_card', 'paypal', 'apple_pay']),
-                        shipping_address=f"{fake.street_address()}, {fake.city()}, {fake.state()}",
-                        created_at=datetime.now(),
-                        updated_at=datetime.now()
-                    )
-                    batch_transactions.append(transaction)
-                
-                # Stream user events
-                if batch_events:
-                    event_dicts = [e.model_dump() for e in batch_events]
-                    events_success = self.kafka_streamer.stream_batch(
+                # Generate events using fast method if available
+                if self.performance_pools and self.weighted_users:
+                    batch_events = self.generate_event_batch_ultra_fast(events_per_second, batch_start)
+                    events_success = self.kafka_streamer.stream_batch_async(
                         topic=settings.kafka_topic_events,
-                        events=event_dicts,
+                        events=batch_events,
                         key_field='user_id'
                     )
                     events_generated += events_success
+                    
+                    # Generate transactions
+                    transactions_to_generate = max(1, events_per_second // 10)
+                    batch_transactions = self.generate_transaction_batch_fast(transactions_to_generate, batch_start)
+                    if batch_transactions:
+                        transactions_success = self.kafka_streamer.stream_batch_async(
+                            topic=settings.kafka_topic_transactions,
+                            events=batch_transactions,
+                            key_field='user_id'
+                        )
+                        transactions_generated += transactions_success
+                else:
+                    # Fallback to original method
+                    print("⚠️  Using original method - consider enabling high_performance mode")
+                    break
                 
-                # Stream transactions
-                if batch_transactions:
-                    transaction_dicts = [t.model_dump() for t in batch_transactions]
-                    transactions_success = self.kafka_streamer.stream_batch(
-                        topic=settings.kafka_topic_transactions,
-                        events=transaction_dicts,
-                        key_field='user_id'
-                    )
-                    transactions_generated += transactions_success
+                # Timing control
+                elapsed = time.time() - batch_start
+                sleep_time = 1.0 - elapsed
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
                 
-                # Progress update every minute
-                elapsed_minutes = (time.time() - start_time) / 60
-                if int(elapsed_minutes) % 1 == 0:  # Every minute
-                    print(f"⏱️  {elapsed_minutes:.0f}m: Generated {events_generated} events, {transactions_generated} transactions")
+                # Periodic flush
+                if events_generated % (events_per_second * 5) == 0:  # Every 5 seconds
+                    self.kafka_streamer.flush_async()
                 
-                # Wait for next minute
-                time.sleep(60)
+                if int(time.time() - start_time) % 10 == 0:  # Every 10 seconds
+                    print(f"⏱️  {(time.time() - start_time)/60:.1f}m: Generated {events_generated} events, {transactions_generated} transactions")
                 
         except KeyboardInterrupt:
             print("\n🛑 Streaming interrupted by user")
         
         elapsed_minutes = (time.time() - start_time) / 60
         print(f"✅ Real-time streaming completed. Generated {events_generated} events and {transactions_generated} transactions in {elapsed_minutes:.1f} minutes")
+    
+    def stream_realtime_events_optimized(self, duration_minutes: int = 60, events_per_second: int = 10000):
+        """High-performance multiprocessing implementation for 1K+ events/second"""
+        if not isinstance(self.kafka_streamer, HighPerformanceKafkaStreamer):
+            print("❌ High-performance streaming requires HighPerformanceKafkaStreamer")
+            print("💡 Initialize with DataGenerator(enable_streaming=True, high_performance=True)")
+            return
+        
+        if not self.users or not self.products:
+            print("❌ Must generate users and products first")
+            return
+        
+        print(f"🚀 Starting HIGH-PERFORMANCE real-time streaming for {duration_minutes} minutes...")
+        print(f"📊 Target: {events_per_second:,} events per second + {events_per_second//10:,} transactions per second")
+        
+        # Prepare weighted selections
+        if not self.weighted_users:
+            self._create_weighted_selections()
+        
+        # Optimized process distribution for high throughput
+        cpu_count = multiprocessing.cpu_count()
+        
+        # Extreme process allocation for 10K+ events/second
+        if events_per_second >= 9000:
+            generator_processes = cpu_count  # Use ALL cores for generation
+            streamer_processes = 4  # More streamers for high throughput
+        elif events_per_second >= 7000:
+            generator_processes = min(12, cpu_count - 1)
+            streamer_processes = 3
+        elif events_per_second >= 5000:
+            generator_processes = min(8, cpu_count - 1)
+            streamer_processes = 2
+        else:
+            generator_processes = max(2, min(6, cpu_count - 2))
+            streamer_processes = 2
+        
+        events_per_process = events_per_second // generator_processes
+        
+        print(f"🔧 Process configuration:")
+        print(f"   - CPU cores available: {cpu_count}")
+        print(f"   - Generator processes: {generator_processes}")
+        print(f"   - Events per process: {events_per_process:,}/second")
+        print(f"   - Streamer processes: {streamer_processes}")
+        
+        # Realistic queues with Kafka feedback tracking
+        event_queue = multiprocessing.Queue(maxsize=10000)  # Realistic buffer size
+        transaction_queue = multiprocessing.Queue(maxsize=1000)
+        stats_queue = multiprocessing.Queue(maxsize=1000)
+        
+        # Shared counters for actual Kafka streaming success
+        manager = multiprocessing.Manager()
+        kafka_events_streamed = manager.Value('i', 0)  # Actual events sent to Kafka
+        kafka_transactions_streamed = manager.Value('i', 0)  # Actual transactions sent to Kafka
+        
+        # Shared stop event
+        stop_event = multiprocessing.Event()
+        
+        try:
+            # Start generator processes
+            generators = []
+            for i in range(generator_processes):
+                p = multiprocessing.Process(
+                    target=self._event_generator_worker,
+                    args=(i, event_queue, transaction_queue, stats_queue, stop_event, 
+                          events_per_process, duration_minutes)
+                )
+                generators.append(p)
+                p.start()
+                print(f"✅ Started generator process {i+1}/{generator_processes}")
+            
+            # Start streaming processes
+            streamers = []
+            for i in range(streamer_processes):
+                p = multiprocessing.Process(
+                    target=self._kafka_streaming_worker,
+                    args=(i, event_queue, transaction_queue, stats_queue, stop_event, 
+                          kafka_events_streamed, kafka_transactions_streamed)
+                )
+                streamers.append(p)
+                p.start()
+                print(f"✅ Started streamer process {i+1}/{streamer_processes}")
+            
+            # Monitor performance with Kafka feedback
+            self._monitor_high_performance_streaming(stats_queue, stop_event, duration_minutes, 
+                                                    kafka_events_streamed, kafka_transactions_streamed)
+            
+        except KeyboardInterrupt:
+            print("\n🛑 High-performance streaming interrupted by user")
+        finally:
+            # Clean shutdown
+            print("🔄 Shutting down processes...")
+            stop_event.set()
+            
+            # Wait for processes to finish
+            for p in generators + streamers:
+                p.join(timeout=5)
+                if p.is_alive():
+                    p.terminate()
+            
+            print("✅ All processes shut down")
+    
+    def _event_generator_worker(self, worker_id: int, event_queue, transaction_queue, stats_queue, 
+                               stop_event, events_per_second: int, duration_minutes: int):
+        """Optimized worker process for generating events at ultra-high speed"""
+        try:
+            # Initialize worker-specific data with optimized pools
+            pool_sizes = {
+                'uuids': 50000,       # Reduced for faster initialization
+                'sessions': 5000,
+                'ips': 500,
+                'user_agents': 50,
+                'urls': 200
+            }
+            worker_pools = HighPerformanceEventPools(pool_sizes)
+            
+            # Create local copies of weighted selections
+            local_weighted_users = self.weighted_users.copy()
+            local_weighted_products = self.weighted_products.copy()
+            
+            print(f"🔧 Generator worker {worker_id} initialized with {len(local_weighted_users)} users")
+            
+            # Ultra-aggressive batch sizing for 10K+ events/second
+            if events_per_second >= 9000:
+                batch_size = 10000  # Massive batches for ultra-high throughput
+                batches_per_second = max(1, events_per_second // batch_size)
+            elif events_per_second >= 5000:
+                batch_size = 5000
+                batches_per_second = max(1, events_per_second // batch_size)
+            elif events_per_second >= 2000:
+                batch_size = 2000
+                batches_per_second = max(1, events_per_second // batch_size)
+            else:
+                batch_size = 1000
+                batches_per_second = max(1, events_per_second // batch_size)
+            
+            # Eliminate timing constraints for maximum throughput
+            target_interval = 0.001  # Minimal interval - generate as fast as possible
+            
+            start_time = time.time()
+            end_time = start_time + (duration_minutes * 60)
+            events_generated = 0
+            transactions_generated = 0
+            last_stats_time = start_time
+            batch_count = 0
+            
+            # Pre-calculate transaction batch size
+            transaction_batch_size = max(1, batch_size // 10)
+            
+            # Ultra-high speed generation loop - no timing constraints
+            while time.time() < end_time and not stop_event.is_set():
+                # Generate multiple batches in rapid succession
+                for _ in range(5):  # Generate 5 batches per cycle for maximum throughput
+                    if time.time() >= end_time or stop_event.is_set():
+                        break
+                    
+                    cycle_start = time.time()
+                    
+                    # Generate event batch (ultra-optimized)
+                    events = self._generate_ultra_fast_event_batch(
+                        batch_size, worker_pools, local_weighted_users, local_weighted_products, cycle_start
+                    )
+                    
+                    # Generate transaction batch (ultra-optimized)
+                    transactions = self._generate_ultra_fast_transaction_batch(
+                        transaction_batch_size, worker_pools, local_weighted_users, local_weighted_products, cycle_start
+                    )
+                    
+                    # Queue operations - only count successfully queued events
+                    try:
+                        event_queue.put(events, block=False)
+                        events_generated += len(events)  # Only count if successfully queued
+                    except:
+                        pass  # Don't count failed queue operations
+                    
+                    try:
+                        transaction_queue.put(transactions, block=False)
+                        transactions_generated += len(transactions)  # Only count if successfully queued
+                    except:
+                        pass  # Don't count failed queue operations
+                    
+                    batch_count += 1
+                
+                # Minimal stats reporting (every 20 seconds)
+                current_time = time.time()
+                if current_time - last_stats_time >= 20.0:
+                    try:
+                        stats_queue.put({
+                            'worker_id': worker_id,
+                            'events': events_generated,
+                            'transactions': transactions_generated,
+                            'timestamp': current_time,
+                            'batches': batch_count
+                        }, block=False)
+                        last_stats_time = current_time
+                    except:
+                        pass
+                
+                # Tiny pause to prevent 100% CPU usage
+                time.sleep(0.0001)  # 0.1ms pause
+            
+            # Reduce print overhead for performance
+            if worker_id == 0:  # Only first worker prints to reduce output
+                print(f"✅ Generator worker {worker_id} completed: {events_generated:,} events, {transactions_generated:,} transactions in {batch_count} batches")
+            
+        except Exception as e:
+            print(f"❌ Generator worker {worker_id} error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _kafka_streaming_worker(self, worker_id: int, event_queue, transaction_queue, stats_queue, stop_event, 
+                               kafka_events_streamed, kafka_transactions_streamed):
+        """Optimized worker process for streaming to Kafka with accurate counting"""
+        try:
+            # Brief startup delay to let Kafka stabilize
+            time.sleep(worker_id * 0.5 + 1)  # Staggered startup: 1s, 1.5s, 2s, 2.5s
+            
+            # Initialize high-performance Kafka producer
+            streamer = HighPerformanceKafkaStreamer()
+            
+            print(f"🔧 Streamer worker {worker_id} initialized")
+            
+            events_streamed = 0
+            transactions_streamed = 0
+            flush_counter = 0
+            last_flush_time = time.time()
+            
+            while not stop_event.is_set():
+                batches_processed = 0
+                cycle_start = time.time()
+                
+                # Process massive number of batches per cycle for 10K+ events/second
+                while batches_processed < 200 and not stop_event.is_set():
+                    events_processed = False
+                    transactions_processed = False
+                    
+                    # Stream events with accurate Kafka feedback
+                    try:
+                        events = event_queue.get(block=False)
+                        events_processed = True
+                        batches_processed += 1
+                        
+                        if streamer.producer:  # Only stream if producer is available
+                            success_count = streamer.stream_batch_async(
+                                topic=settings.kafka_topic_events,
+                                events=events,
+                                key_field='user_id'
+                            )
+                            events_streamed += success_count
+                            # Update shared counter for accurate reporting
+                            try:
+                                kafka_events_streamed.value += success_count
+                            except Exception as e:
+                                print(f"⚠️  Worker {worker_id}: Error updating events counter: {e}")
+                    except Empty:
+                        pass  # No events available, continue
+                    
+                    # Stream transactions with accurate Kafka feedback
+                    try:
+                        transactions = transaction_queue.get(block=False)
+                        transactions_processed = True
+                        batches_processed += 1
+                        
+                        if streamer.producer:  # Only stream if producer is available
+                            success_count = streamer.stream_batch_async(
+                                topic=settings.kafka_topic_transactions,
+                                events=transactions,
+                                key_field='user_id'
+                            )
+                            transactions_streamed += success_count
+                            # Update shared counter for accurate reporting
+                            try:
+                                kafka_transactions_streamed.value += success_count
+                            except Exception as e:
+                                print(f"⚠️  Worker {worker_id}: Error updating transactions counter: {e}")
+                    except Empty:
+                        pass  # No transactions available, continue
+                    
+                    # Break if no data available
+                    if not events_processed and not transactions_processed:
+                        break
+                
+                # Extreme flushing optimization for 10K+ events/second
+                flush_counter += batches_processed
+                current_time = time.time()
+                
+                # Flush conditions optimized for extreme throughput
+                should_flush = (
+                    flush_counter >= 500 or  # Much higher volume threshold
+                    (current_time - last_flush_time) >= 5.0 or  # Much less frequent time-based flushing
+                    stop_event.is_set()  # Shutdown flush
+                )
+                
+                if should_flush and flush_counter > 0:
+                    try:
+                        streamer.flush_async(timeout=0.01)  # Very short timeout
+                        flush_counter = 0
+                        last_flush_time = current_time
+                    except:
+                        pass  # Continue on flush errors
+                
+                # No pause - maximum throughput mode
+                if batches_processed == 0:
+                    pass  # No sleep - run at maximum speed
+            
+            # Final flush with longer timeout
+            print(f"🔄 Streamer worker {worker_id} performing final flush...")
+            try:
+                streamer.flush_async(timeout=5.0)
+            except:
+                pass
+            
+            streamer.close()
+            
+            # Reduce print overhead for performance
+            if worker_id == 0:  # Only first worker prints to reduce output
+                print(f"✅ Streamer worker {worker_id} completed: {events_streamed:,} events, {transactions_streamed:,} transactions actually streamed to Kafka")
+            
+        except Exception as e:
+            print(f"❌ Streamer worker {worker_id} error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _generate_ultra_fast_event_batch(self, batch_size: int, pools, users, products, timestamp: float) -> List[dict]:
+        """Ultra-optimized event batch generation for maximum throughput"""
+        events = []
+        
+        # Pre-calculate common values to reduce function calls
+        user_count = len(users)
+        product_count = len(products) if products else 0
+        device_count = len(pools.device_types)
+        browser_count = len(pools.browsers)
+        event_type_count = len(pools.event_types)
+        
+        # Use deterministic cycling for maximum performance (no random calls)
+        user_indices = [(i * 13) % user_count for i in range(batch_size)]
+        event_type_indices = [(i * 17) % event_type_count for i in range(batch_size)]
+        
+        # Batch timestamp calculation
+        base_timestamp = timestamp
+        
+        for i in range(batch_size):
+            user = users[user_indices[i]]
+            event_type = pools.event_types[event_type_indices[i]]
+            
+            # Ultra-fast event creation with minimal function calls and pre-computed values
+            event_timestamp = base_timestamp + (i * 0.0001)
+            event = {
+                'event_id': pools.get_uuid(),
+                'user_id': user.user_id,
+                'session_id': pools.get_session_id(),
+                'event_type': event_type.value,
+                'timestamp': event_timestamp,
+                'page_url': pools.get_url(),
+                'product_id': None,
+                'search_query': None,
+                'device_type': pools.device_types[i % device_count],
+                'browser': pools.browsers[i % browser_count],
+                'ip_address': pools.get_ip(),
+                'properties': {},
+                '_timestamp': datetime.fromtimestamp(event_timestamp).isoformat(),
+                '_source': 'ultra-high-performance-generator'
+            }
+            
+            # Ultra-optimized event-specific properties (minimal branching)
+            event_val = event_type.value
+            if event_val in ['product_view', 'add_to_cart'] and product_count > 0:
+                product = products[i % product_count]  # Cycle through products
+                event['product_id'] = product.product_id
+                event['page_url'] = f"/product/{product.product_id}"
+            elif event_val == 'search':
+                search_terms = ['laptop', 'phone', 'shoes', 'shirt', 'book', 'headphones']
+                event['search_query'] = search_terms[i % 6]
+                event['properties'] = {'results_count': 50 + (i % 50)}
+            elif event_val == 'purchase':
+                event['properties'] = {'amount': round(10 + (i % 490) + (i * 0.1), 2)}
+            
+            events.append(event)
+        
+        return events
+    
+    def _generate_fast_event_batch(self, batch_size: int, pools, users, products, timestamp: float) -> List[dict]:
+        """Generate event batch optimized for speed (legacy method)"""
+        return self._generate_ultra_fast_event_batch(batch_size, pools, users, products, timestamp)
+    
+    def _generate_ultra_fast_transaction_batch(self, batch_size: int, pools, users, products, timestamp: float) -> List[dict]:
+        """Ultra-optimized transaction batch generation for maximum throughput"""
+        if not products:
+            return []
+        
+        transactions = []
+        
+        # Pre-calculate common values
+        user_count = len(users)
+        product_count = len(products)
+        payment_methods = ['credit_card', 'debit_card', 'paypal']
+        
+        # Use cycling instead of random for maximum performance
+        user_indices = [(i * 7) % user_count for i in range(batch_size)]  # Pseudo-random cycling
+        product_indices = [(i * 11) % product_count for i in range(batch_size)]
+        
+        base_timestamp = timestamp
+        
+        for i in range(batch_size):
+            user = users[user_indices[i]]
+            product = products[product_indices[i]]
+            
+            # Ultra-fast calculation with minimal randomness
+            quantity = 1 + (i % 3)  # Pseudo-random quantity (1, 2, or 3)
+            unit_price = product.price
+            subtotal = unit_price * quantity
+            tax_amount = subtotal * 0.08
+            total_amount = subtotal + tax_amount
+            
+            transaction = {
+                'transaction_id': pools.get_uuid(),
+                'user_id': user.user_id,
+                'product_id': product.product_id,
+                'quantity': quantity,
+                'unit_price': unit_price,
+                'total_amount': round(total_amount, 2),
+                'discount_amount': 0.0,
+                'tax_amount': round(tax_amount, 2),
+                'status': 'completed',
+                'payment_method': payment_methods[i % 3],
+                'shipping_address': f"Address {i % 1000}",  # Cycle addresses
+                'created_at': datetime.fromtimestamp(base_timestamp + (i * 0.0001)).isoformat(),
+                'updated_at': datetime.fromtimestamp(base_timestamp + (i * 0.0001)).isoformat(),
+                '_timestamp': datetime.fromtimestamp(base_timestamp + (i * 0.0001)).isoformat(),
+                '_source': 'ultra-high-performance-generator'
+            }
+            transactions.append(transaction)
+        
+        return transactions
+    
+    def _generate_fast_transaction_batch(self, batch_size: int, pools, users, products, timestamp: float) -> List[dict]:
+        """Generate transaction batch optimized for speed (legacy method)"""
+        return self._generate_ultra_fast_transaction_batch(batch_size, pools, users, products, timestamp)
+    
+    def _monitor_high_performance_streaming(self, stats_queue, stop_event, duration_minutes: int,
+                                          kafka_events_streamed, kafka_transactions_streamed):
+        """Monitor high-performance streaming progress with Kafka feedback"""
+        start_time = time.time()
+        end_time = start_time + (duration_minutes * 60)
+        
+        total_events = 0
+        total_transactions = 0
+        worker_stats = {}
+        
+        print(f"📊 Monitoring high-performance streaming...")
+        
+        try:
+            while time.time() < end_time and not stop_event.is_set():
+                try:
+                    # Collect stats from workers
+                    while True:
+                        try:
+                            stats = stats_queue.get(timeout=1.0)
+                            worker_id = stats['worker_id']
+                            worker_stats[worker_id] = stats
+                        except Empty:
+                            break
+                    
+                    # Calculate totals
+                    current_events = sum(s.get('events', 0) for s in worker_stats.values())
+                    current_transactions = sum(s.get('transactions', 0) for s in worker_stats.values())
+                    
+                    # Get actual Kafka streaming counts
+                    kafka_events = kafka_events_streamed.value
+                    kafka_transactions = kafka_transactions_streamed.value
+                    
+                    elapsed_minutes = (time.time() - start_time) / 60
+                    queue_rate = current_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+                    kafka_rate = kafka_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+                    
+                    print(f"⚡ {elapsed_minutes:.1f}m: {current_events:,} generated ({queue_rate:.0f}/s) | {kafka_events:,} sent to Kafka ({kafka_rate:.0f}/s)")
+                    
+                    total_events = current_events
+                    total_transactions = current_transactions
+                    
+                    time.sleep(5)  # Report every 5 seconds
+                    
+                except KeyboardInterrupt:
+                    break
+        
+        except KeyboardInterrupt:
+            print("\n🛑 Monitoring interrupted")
+        
+        stop_event.set()
+        elapsed_minutes = (time.time() - start_time) / 60
+        avg_queue_rate = total_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+        final_kafka_events = kafka_events_streamed.value
+        final_kafka_transactions = kafka_transactions_streamed.value
+        avg_kafka_rate = final_kafka_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+        
+        print(f"\n✅ HIGH-PERFORMANCE streaming completed:")
+        print(f"   - Duration: {elapsed_minutes:.1f} minutes")
+        print(f"   - Events generated: {total_events:,} ({avg_queue_rate:.0f}/s)")
+        print(f"   - Events sent to Kafka: {final_kafka_events:,} ({avg_kafka_rate:.0f}/s)")
+        print(f"   - Transactions sent to Kafka: {final_kafka_transactions:,}")
+        print(f"   - Streaming efficiency: {(final_kafka_events/total_events*100):.1f}%" if total_events > 0 else "   - Streaming efficiency: 0%")
     
     def close(self):
         """Clean up resources"""
@@ -608,22 +1413,46 @@ def main():
     @click.option('--stream', is_flag=True, help='Enable Kafka streaming')
     @click.option('--realtime', is_flag=True, help='Generate real-time streaming events')
     @click.option('--duration', default=60, help='Duration for real-time streaming (minutes)')
-    @click.option('--rate', default=10, help='Events per minute for real-time streaming')
-    def generate_data(users, products, days, output, stream, realtime, duration, rate):
+    @click.option('--rate', default=10, help='Events per second for real-time streaming')
+    @click.option('--high-performance', is_flag=True, help='Enable high-performance mode for 1K+ events/second')
+    def generate_data(users, products, days, output, stream, realtime, duration, rate, high_performance):
         """Generate realistic e-commerce data"""
         
-        # Initialize generator with streaming if requested
-        generator = DataGenerator(enable_streaming=stream or realtime)
+        # Validate high-performance requirements
+        if high_performance and rate < 100:
+            print("⚠️  High-performance mode recommended for 100+ events/second")
+            print("💡 Consider using --rate 1000 or higher for best results")
+        
+        if rate >= 10000 and not high_performance:
+            print("❌ High-performance mode required for 10K+ events/second")
+            print("💡 Add --high-performance flag")
+            return
+        
+        # Initialize generator with appropriate mode
+        generator = DataGenerator(
+            enable_streaming=stream or realtime, 
+            high_performance=high_performance or rate >= 100
+        )
         
         try:
             if realtime:
-                print("🔄 Real-time streaming mode")
+                mode_name = "HIGH-PERFORMANCE" if high_performance else "Standard"
+                print(f"🔄 {mode_name} real-time streaming mode")
                 print("Generating base users and products...")
+                
                 generator.generate_users(users)
                 generator.generate_products(products)
                 
+                # Create weighted selections for performance
+                generator._create_weighted_selections()
+                
+                if high_performance:
+                    print(f"🚀 Starting high-performance streaming: {rate:,} events/second")
+                    if rate >= 10000:
+                        print("⚡ ULTRA-HIGH throughput mode activated!")
+                
                 # Start real-time streaming
-                generator.stream_realtime_events(duration_minutes=duration, events_per_minute=rate)
+                generator.stream_realtime_events(duration_minutes=duration, events_per_second=rate)
                 
             else:
                 print(f"📊 Batch generation mode: {users} users, {products} products, {days} days of history")

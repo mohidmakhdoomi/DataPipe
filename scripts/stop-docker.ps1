@@ -6,7 +6,7 @@ Write-Host "=========================================" -ForegroundColor Red
 try {
     # Stop and remove containers
     Write-Host "Stopping Docker Compose services..." -ForegroundColor Yellow
-    docker-compose -f docker/docker-compose.yml down
+    docker-compose -f docker/docker-compose.yml down -v
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host "Docker services stopped successfully!" -ForegroundColor Green
@@ -16,24 +16,13 @@ try {
         # docker-compose -f docker/docker-compose.yml down -v
         
         Write-Host ""
-        Write-Host "Services stopped:" -ForegroundColor Cyan
-        Write-Host "  - Airflow Webserver" -ForegroundColor White
-        Write-Host "  - Airflow Scheduler" -ForegroundColor White
-        Write-Host "  - PostgreSQL (Airflow)" -ForegroundColor White
-        Write-Host "  - PostgreSQL (Data)" -ForegroundColor White
-        Write-Host "  - ClickHouse" -ForegroundColor White
-        Write-Host "  - Data Generator" -ForegroundColor White
-        Write-Host ""
-        Write-Host "To completely clean up (remove data):" -ForegroundColor Cyan
-        Write-Host "   docker-compose -f docker/docker-compose.yml down -v" -ForegroundColor White
+        Write-Host "Services stopped" -ForegroundColor Cyan
         
     } else {
         Write-Host "Failed to stop some services" -ForegroundColor Red
-        Write-Host "You may need to stop them manually:" -ForegroundColor Yellow
-        Write-Host "  docker-compose -f docker/docker-compose.yml down -v" -ForegroundColor White
+        Write-Host "You may need to stop them manually" -ForegroundColor Yellow
     }
     
 } catch {
     Write-Host "Error stopping services: $_" -ForegroundColor Red
-    Write-Host "Try running: docker-compose -f docker/docker-compose.yml down -v" -ForegroundColor Yellow
 }

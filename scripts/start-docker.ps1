@@ -53,8 +53,15 @@ try {
     # Change to docker directory and start services
     Push-Location "docker"
     
-    # Build base image first
-    Write-Host "Building all images..." -ForegroundColor Yellow
+    Write-Host "Building base image first..." -ForegroundColor Yellow
+    docker-compose build base
+    
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Failed to build base image" -ForegroundColor Red
+        return
+    }
+    
+    Write-Host "Building all other images..." -ForegroundColor Yellow
     docker-compose build
     
     if ($LASTEXITCODE -ne 0) {
