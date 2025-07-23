@@ -25,7 +25,7 @@ This directory contains the Airflow development setup for local testing and deve
 cp .env.example .env
 
 # Start all services
-.\scripts\start-airflow.ps1
+scripts\start-docker.ps1
 ```
 
 ### **2. Access Services:**
@@ -47,7 +47,7 @@ cp .env.example .env
 
 ### **4. Stop Environment:**
 ```powershell
-.\scripts\stop-airflow.ps1
+scripts\stop-docker.ps1
 ```
 
 ## 📁 **Directory Structure:**
@@ -57,8 +57,6 @@ airflow/
 ├── dags/                           # Production DAG files
 │   └── data_pipeline_main.py      # Main ETL orchestration
 ├── scripts/                        # Helper scripts
-│   ├── start-airflow.ps1          # Start environment
-│   ├── stop-airflow.ps1           # Stop environment
 │   └── test-dags.ps1              # Test DAGs
 ├── config/                         # Airflow configuration
 │   └── airflow_local_settings.py  # Custom settings

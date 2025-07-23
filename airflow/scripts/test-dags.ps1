@@ -18,12 +18,12 @@ Write-Host "====================" -ForegroundColor Cyan
 try {
     $response = Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 5 -UseBasicParsing
     if ($response.StatusCode -ne 200) {
-        Write-Host "❌ Airflow is not running. Start it with: .\scripts\start-airflow.ps1" -ForegroundColor Red
+        Write-Host "❌ Airflow is not running. Start it with: scripts\start-docker.ps1" -ForegroundColor Red
         exit 1
     }
     Write-Host "✅ Airflow is running" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Airflow is not accessible. Start it with: .\scripts\start-airflow.ps1" -ForegroundColor Red
+    Write-Host "❌ Airflow is not accessible. Start it with: scripts\start-docker.ps1" -ForegroundColor Red
     exit 1
 }
 

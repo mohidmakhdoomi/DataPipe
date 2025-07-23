@@ -1,6 +1,6 @@
 # PowerShell script to start local Airflow development environment
 
-Write-Host "Starting Airflow Development Environment" -ForegroundColor Cyan
+Write-Host "Starting Development Environment" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 
 # Check if Docker is running
@@ -35,7 +35,7 @@ if (-not (Test-Path "docker\.env")) {
 }
 
 # Create required directories
-$directories = @("dags", "logs", "plugins", "config")
+$directories = @("airflow\dags", "airflow\plugins", "airflow\config")
 foreach ($dir in $directories) {
     if (-not (Test-Path $dir)) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
@@ -54,11 +54,11 @@ try {
     Push-Location "docker"
     
     # Build base image first
-    Write-Host "Building base image..." -ForegroundColor Yellow
-    docker-compose build base
+    Write-Host "Building all images..." -ForegroundColor Yellow
+    docker-compose build
     
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Failed to build base image" -ForegroundColor Red
+        Write-Host "Failed to build images" -ForegroundColor Red
         return
     }
     
@@ -66,7 +66,7 @@ try {
     docker-compose up -d
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "Airflow services started successfully!" -ForegroundColor Green
+        Write-Host "Docker services started successfully!" -ForegroundColor Green
         Write-Host ""
         Write-Host "Access points:" -ForegroundColor Cyan
         Write-Host "  Airflow UI:    http://localhost:8080" -ForegroundColor White
@@ -104,7 +104,7 @@ try {
         }
         
     } else {
-        Write-Host "Failed to start Airflow services" -ForegroundColor Red
+        Write-Host "Failed to start Docker services" -ForegroundColor Red
         Write-Host "Check logs with: docker-compose logs" -ForegroundColor Yellow
     }
     

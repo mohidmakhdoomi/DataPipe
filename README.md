@@ -30,14 +30,17 @@ PostgreSQL (Transactional Data)
 ## Project Structure
 
 ```
-├── airflow/           # Airflow DAGs and configuration
-├── data-generators/   # Real-time data generation (120 events/min)
-├── dbt/              # SQL transformations and data modeling
-├── docker/           # Production containerization
-│   └── compose files # Multi-service orchestration
-├── k8s/              # Kubernetes manifests and deployment
-├── terraform/        # AWS infrastructure as code
-└── .kiro/steering/   # Project standards and guidelines
+├── airflow/                       # Airflow DAGs and configuration
+├── data-generators/               # Real-time data generation (120 events/min)
+├── dbt/                           # SQL transformations and data modeling
+├── docker/                        # Production containerization
+│   └── compose files              # Multi-service orchestration
+├── k8s/                           # Kubernetes manifests and deployment
+├── scripts/                        # Helper scripts
+│   ├── start-docker.ps1          # Start environment
+│   ├── stop-docker.ps1           # Stop environment
+├── terraform/                     # AWS infrastructure as code
+└── .kiro/steering/                # Project standards and guidelines
 ```
 
 ## Data Domain
@@ -89,25 +92,13 @@ PostgreSQL (Transactional Data)
    # Edit docker/.env with your secure credentials
    ```
 
-3. **Start Core Services**
-   ```bash
-   cd docker
-   docker-compose up -d postgres clickhouse kafka
+3. **Start All Services**
+   ```powershell
+   scripts/start-docker.ps1
    ```
 
-4. **Initialize Data Generation**
-   ```bash
-   # Start data generators
-   docker-compose up -d data-generator
-   
-   # Verify data flow
-   docker-compose logs -f data-generator
-   ```
-
-5. **Launch Airflow**
-   ```bash
-   docker-compose up -d airflow-webserver airflow-scheduler
-   
+4. **Access Airflow**
+   ```bash   
    # Access UI at http://localhost:8080
    # Default: admin/admin (change in production)
    ```
