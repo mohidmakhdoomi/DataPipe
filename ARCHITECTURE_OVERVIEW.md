@@ -15,15 +15,20 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
                                 │
                                 ▼
                        ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-                       │  Kafka Connect  │───▶│       S3        │───▶│   Snowflake     │
-                       │  (S3 Sink)      │    │  (Data Lake)    │    │ (Data Warehouse)│
+                       │  Kafka Connect  │───▶│       S3        │───▶│     Spark       │
+                       │  (S3 Sink)      │    │  (Data Lake)    │    │ (Batch Process) │
                        └─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-                                                        ▼
-                                               ┌─────────────────┐
-                                               │      dbt        │
-                                               │ (Transformations)│
-                                               └─────────────────┘
+                                                        │                       │
+                                                        │                       ▼
+                                                        │              ┌─────────────────┐
+                                                        │              │   Snowflake     │
+                                                        │              │ (Data Warehouse)│
+                                                        │              └─────────────────┘
+                                                        ▼                       │
+                                               ┌─────────────────┐              ▼
+                                               │      dbt        │     ┌─────────────────┐
+                                               │ (Transformations)│     │   Final Models  │
+                                               └─────────────────┘     └─────────────────┘
 ```
 
 ### **Infrastructure Layers:**
@@ -32,7 +37,8 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 - **Infrastructure**: Terraform (AWS resources)
 - **Storage**: PostgreSQL (transactional), S3 (data lake), Snowflake (warehouse)
 - **Streaming**: Kafka (event streaming)
-- **Analytics**: ClickHouse (real-time), dbt (transformations)
+- **Processing**: Spark (batch processing), ClickHouse (real-time analytics)
+- **Transformation**: dbt (SQL transformations), Spark (complex ETL)
 
 ---
 
@@ -110,12 +116,25 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 - **Cloud Computing Model**: Can be self-hosted (IaaS) or managed service (PaaS) like MSK
 - **Interfaces with**:
   - **ClickHouse** → Real-time data relationship: Kafka streams data to ClickHouse for real-time analytics via Kafka engine tables
+  - **Spark** → Data ingestion relationship: Spark reads from Kafka topics (via S3) for batch processing and complex transformations
   - **AWS** → Infrastructure relationship: Uses AWS MSK (managed Kafka) or runs on AWS infrastructure
   - **Docker** → Containerization relationship: Kafka brokers and tools run in Docker containers
   - **Kubernetes** → Orchestration relationship: Kubernetes manages Kafka as StatefulSets with persistent volumes and service discovery
   - **Airflow** → Pipeline relationship: Airflow can monitor Kafka topics and trigger downstream processing based on data availability
 
-### **9. AWS**
+### **9. Apache Spark**
+- **Type of System**: Distributed Computing Engine / Big Data Processing Framework
+- **Cloud Computing Model**: Can be deployed as IaaS (self-managed) or PaaS (managed services like EMR, Databricks)
+- **Interfaces with**:
+  - **Kafka** → Data ingestion relationship: Spark reads data from S3 (populated by Kafka Connect) for batch processing
+  - **S3** → Data lake relationship: Spark reads raw data from S3 and writes processed data back for Snowflake ingestion
+  - **Snowflake** → Data preparation relationship: Spark prepares and transforms data before loading into Snowflake
+  - **Airflow** → Orchestration relationship: Airflow schedules and manages Spark jobs as part of data pipelines
+  - **Kubernetes** → Orchestration relationship: Kubernetes manages Spark driver and executor pods with auto-scaling
+  - **Docker** → Containerization relationship: Spark runs in Docker containers for consistent deployment
+  - **dbt** → Complementary relationship: Spark handles heavy ETL while dbt focuses on SQL transformations in the warehouse
+
+### **10. AWS**
 - **Type of System**: Cloud Computing Platform / Infrastructure Provider
 - **Cloud Computing Model**: Infrastructure as a Service (IaaS), Platform as a Service (PaaS), Software as a Service (SaaS)
 - **Interfaces with**:
@@ -123,6 +142,7 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
   - **Kubernetes** → Infrastructure relationship: AWS EKS provides managed Kubernetes control plane with integration to AWS services
   - **Snowflake** → Infrastructure relationship: Snowflake runs on AWS infrastructure and integrates with AWS services
   - **Kafka** → Infrastructure relationship: AWS MSK provides managed Kafka service
+  - **Spark** → Infrastructure relationship: AWS provides S3 for data storage and EKS for Spark cluster orchestration
   - **Airflow** → Infrastructure relationship: Airflow accesses AWS services (S3 for data, Secrets Manager for credentials, RDS for metadata)
   - **Docker** → Infrastructure relationship: AWS provides container registry (ECR) and compute resources for Docker containers
 
@@ -136,9 +156,11 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 3. **Kafka** → **S3** (via Kafka Connect for data lake)
 
 ### **Batch Data Flow:**
-1. **S3** → **Snowflake** (data warehouse loading)
-2. **Snowflake** → **dbt** (transformations and modeling)
-3. **Airflow** orchestrates the entire batch pipeline
+1. **S3** → **Spark** (complex ETL processing and data quality)
+2. **Spark** → **S3** (processed data for Snowflake ingestion)
+3. **S3** → **Snowflake** (data warehouse loading)
+4. **Snowflake** → **dbt** (SQL transformations and modeling)
+5. **Airflow** orchestrates the entire batch pipeline
 
 ### **Infrastructure Management:**
 1. **Terraform** provisions AWS infrastructure
@@ -152,10 +174,11 @@ Our data pipeline implements a **modern, cloud-native, event-driven architecture
 ### **✅ Fully Implemented & Working:**
 - **Data Generator**: Real-time streaming (120 events/min + transactions)
 - **Kafka**: 3-partition topics with auto-creation
-- **Docker**: All services containerized
-- **Kubernetes**: Production-ready manifests and deployment scripts
+- **Docker**: All services containerized including Spark
+- **Kubernetes**: Production-ready manifests and deployment scripts including Spark cluster
 - **Terraform**: Complete AWS infrastructure configuration
 - **PostgreSQL**: Transactional database with proper schema
+- **Spark**: Kubernetes-native batch processing with ETL jobs and data quality checks
 
 ### **⚠️ Partially Implemented:**
 - **ClickHouse**: Tables created but stability issues

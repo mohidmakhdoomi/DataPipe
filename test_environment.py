@@ -34,7 +34,7 @@ def test_required_files():
     required_files = [
         "docker/docker-compose.yml",
         "airflow/dags/data_pipeline_main.py",
-        "docker/.env.example",
+        "docker/.env",
         "SECURITY_SETUP.md"
     ]
     

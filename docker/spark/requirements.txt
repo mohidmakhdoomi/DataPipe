@@ -1,0 +1,27 @@
+# Spark and Big Data Processing
+pyspark==3.5.0
+
+# AWS and Cloud Storage
+boto3==1.34.0
+botocore==1.34.0
+s3fs==2023.12.2
+
+# Data Processing and Analysis
+pandas==2.1.4
+numpy==1.26.0
+pyarrow==14.0.2
+
+# Data Quality and Validation
+great-expectations==0.18.8
+pydantic==2.5.2
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Logging and Monitoring
+structlog==23.2.0
+
+# Configuration Management
+pyyaml==6.0.1
+python-dotenv==1.0.0

@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-config
+  namespace: data-pipeline
+  labels:
+    app: spark
+data:
+  # Spark Configuration
+  SPARK_MASTER_URL: "k8s://https://kubernetes.default.svc:443"
+  SPARK_EXECUTOR_INSTANCES: "3"
+  SPARK_EXECUTOR_MEMORY: "2g"
+  SPARK_EXECUTOR_CORES: "2"
+  SPARK_DRIVER_MEMORY: "1g"
+  SPARK_DRIVER_CORES: "1"
+  
+  # AWS S3 Configuration
+  AWS_REGION: "us-west-2"
+  S3_BUCKET_RAW: "data-lake-raw"
+  S3_BUCKET_PROCESSED: "data-lake-processed"
+  
+  # Spark SQL Configuration
+  SPARK_SQL_ADAPTIVE_ENABLED: "true"
+  SPARK_SQL_ADAPTIVE_COALESCE_PARTITIONS_ENABLED: "true"
+  SPARK_SERIALIZER: "org.apache.spark.serializer.KryoSerializer"
+  
+  # Logging
+  SPARK_LOG_LEVEL: "INFO"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spark-service-account
+  namespace: data-pipeline
+  labels:
+    app: spark
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spark-cluster-role
+  labels:
+    app: spark
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "persistentvolumeclaims"]
+  verbs: ["create", "get", "list", "watch", "delete", "patch", "update"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["create", "get", "list", "watch", "delete", "patch", "update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: spark-cluster-role-binding
+  labels:
+    app: spark
+subjects:
+- kind: ServiceAccount
+  name: spark-service-account
+  namespace: data-pipeline
+roleRef:
+  kind: ClusterRole
+  name: spark-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+  namespace: data-pipeline
+  labels:
+    app: spark-history-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+    spec:
+      serviceAccountName: spark-service-account
+      containers:
+      - name: spark-history-server
+        image: bitnami/spark:3.5
+        ports:
+        - containerPort: 18080
+          name: web-ui
+        env:
+        - name: SPARK_MODE
+          value: "history-server"
+        - name: SPARK_HISTORY_OPTS
+          value: "-Dspark.history.fs.logDirectory=s3a://$(S3_BUCKET_RAW)/spark-logs"
+        envFrom:
+        - configMapRef:
+            name: spark-config
+        - secretRef:
+            name: aws-credentials
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-history-server
+  namespace: data-pipeline
+  labels:
+    app: spark-history-server
+spec:
+  ports:
+  - port: 18080
+    targetPort: 18080
+    name: web-ui
+  selector:
+    app: spark-history-server
+  type: ClusterIP

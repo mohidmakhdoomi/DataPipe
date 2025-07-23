@@ -139,6 +139,24 @@ services:
       - dbt_output:/app/dbt_project/target
     command: ["dbt", "debug"]
 
+  # Spark for batch processing
+  spark-jobs:
+    build:
+      context: ..
+      dockerfile: docker/spark/Dockerfile
+    depends_on:
+      - base
+    environment:
+      SPARK_MODE: client
+      SPARK_MASTER_URL: local[*]
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-west-2}
+      S3_BUCKET_RAW: ${S3_BUCKET_RAW:-data-lake-raw}
+      S3_BUCKET_PROCESSED: ${S3_BUCKET_PROCESSED:-data-lake-processed}
+    volumes:
+      - spark_logs:/opt/bitnami/spark/logs
+
   # Airflow components
   airflow-init:
     build:
@@ -204,6 +222,7 @@ volumes:
   data_output:
   dbt_output:
   airflow_logs:
+  spark_logs:
 
 networks:
   default:

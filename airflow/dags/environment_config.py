@@ -78,7 +78,7 @@ class EnvironmentConfig:
         target = 'snowflake' if self.snowflake_config['account'] else 'dev'
         
         # Determine dbt project path based on environment
-        if self.is_kubernetes or self.env == 'production':
+        if self.is_kubernetes or self.is_production or self.env == 'development':
             project_path = '/opt/airflow/dbt'
         else:
             project_path = '../dbt'  # Local development
@@ -86,7 +86,7 @@ class EnvironmentConfig:
         return {
             'target': target,
             'project_path': project_path,
-            'profiles_dir': f"{project_path}/profiles" if self.is_kubernetes else None
+            'profiles_dir': f"{project_path}/profiles"
         }
     
     @property
