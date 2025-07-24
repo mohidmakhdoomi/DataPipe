@@ -916,19 +916,18 @@ class DataGenerator:
         
         # Optimized process distribution for high throughput
         cpu_count = multiprocessing.cpu_count()
-        
+        generator_processes = cpu_count // 4  # Use QUARTER cores for generation
+
         # Extreme process allocation for 10K+ events/second
-        if events_per_second >= 9000:
-            generator_processes = cpu_count  # Use ALL cores for generation
-            streamer_processes = 4  # More streamers for high throughput
+        if events_per_second >= 10000:
+            streamer_processes = 6  # One additional streamer for 10K+ throughput
+        elif events_per_second >= 9000:
+            streamer_processes = 5  # More streamers for high throughput
         elif events_per_second >= 7000:
-            generator_processes = min(12, cpu_count - 1)
-            streamer_processes = 3
+            streamer_processes = 4
         elif events_per_second >= 5000:
-            generator_processes = min(8, cpu_count - 1)
-            streamer_processes = 2
+            streamer_processes = 3
         else:
-            generator_processes = max(2, min(6, cpu_count - 2))
             streamer_processes = 2
         
         events_per_process = events_per_second // generator_processes
