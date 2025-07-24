@@ -104,7 +104,7 @@ services:
       DAYS_OF_DATA: 30
     volumes:
       - data_output:/app/output
-    command: ["python", "generator.py", "--high-performance", "--realtime", "--duration", "6", "--rate", "10000"]
+    command: ["python", "generator.py", "--high-performance", "--realtime", "--duration", "2", "--rate", "10000"]
 
   # Kafka Tools (Producers/Consumers)
   kafka-tools:
