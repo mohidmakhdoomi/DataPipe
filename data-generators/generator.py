@@ -944,10 +944,12 @@ class DataGenerator:
         transaction_queue = multiprocessing.Queue(maxsize=1000)
         stats_queue = multiprocessing.Queue(maxsize=1000)
         
-        # Shared counters for actual Kafka streaming success
+        # Shared counters for actual Kafka streaming success with locks
         manager = multiprocessing.Manager()
         kafka_events_streamed = manager.Value('i', 0)  # Actual events sent to Kafka
         kafka_transactions_streamed = manager.Value('i', 0)  # Actual transactions sent to Kafka
+        kafka_events_lock = manager.Lock()  # Lock for thread-safe counter updates
+        kafka_transactions_lock = manager.Lock()  # Lock for thread-safe counter updates
         
         # Shared stop event
         stop_event = multiprocessing.Event()
@@ -971,11 +973,15 @@ class DataGenerator:
                 p = multiprocessing.Process(
                     target=self._kafka_streaming_worker,
                     args=(i, event_queue, transaction_queue, stats_queue, stop_event, 
-                          kafka_events_streamed, kafka_transactions_streamed)
+                          kafka_events_streamed, kafka_transactions_streamed,
+                          kafka_events_lock, kafka_transactions_lock)
                 )
                 streamers.append(p)
                 p.start()
                 print(f"✅ Started streamer process {i+1}/{streamer_processes}")
+            
+            # Record start time for final calculations
+            streaming_start_time = time.time()
             
             # Monitor performance with Kafka feedback
             self._monitor_high_performance_streaming(stats_queue, stop_event, duration_minutes, 
@@ -994,7 +1000,23 @@ class DataGenerator:
                 if p.is_alive():
                     p.terminate()
             
+            # Get final accurate counts after all processes have completed
+            final_kafka_events = kafka_events_streamed.value
+            final_kafka_transactions = kafka_transactions_streamed.value
+            
+            # Calculate final metrics
+            total_elapsed_minutes = (time.time() - streaming_start_time) / 60
+            final_kafka_rate = final_kafka_events / (total_elapsed_minutes * 60) if total_elapsed_minutes > 0 else 0
+            
             print("✅ All processes shut down")
+            
+            # Print final accurate summary after all processes completed
+            print(f"\n🎯 FINAL ACCURATE COUNTS (after all processes completed):")
+            print(f"   - Total duration: {total_elapsed_minutes:.1f} minutes")
+            print(f"   - Events queued to Kafka producer: {final_kafka_events:,} ({final_kafka_rate:.0f}/s)")
+            print(f"   - Transactions queued to Kafka producer: {final_kafka_transactions:,}")
+            print(f"💡 To verify actual Kafka topic data:")
+            print(f"   docker exec docker-kafka-1 kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:9092")
     
     def _event_generator_worker(self, worker_id: int, event_queue, transaction_queue, stats_queue, 
                                stop_event, events_per_second: int, duration_minutes: int):
@@ -1105,7 +1127,7 @@ class DataGenerator:
             traceback.print_exc()
     
     def _kafka_streaming_worker(self, worker_id: int, event_queue, transaction_queue, stats_queue, stop_event, 
-                               kafka_events_streamed, kafka_transactions_streamed):
+                               kafka_events_streamed, kafka_transactions_streamed, kafka_events_lock, kafka_transactions_lock):
         """Optimized worker process for streaming to Kafka with accurate counting"""
         try:
             # Brief startup delay to let Kafka stabilize
@@ -1137,17 +1159,18 @@ class DataGenerator:
                         batches_processed += 1
                         
                         if streamer.producer:  # Only stream if producer is available
-                            success_count = streamer.stream_batch_async(
-                                topic=settings.kafka_topic_events,
-                                events=events,
-                                key_field='user_id'
-                            )
-                            events_streamed += success_count
-                            # Update shared counter for accurate reporting
                             try:
-                                kafka_events_streamed.value += success_count
+                                success_count = streamer.stream_batch_async(
+                                    topic=settings.kafka_topic_events,
+                                    events=events,
+                                    key_field='user_id'
+                                )
+                                events_streamed += success_count
+                                # Update shared counter with proper locking for thread safety
+                                with kafka_events_lock:
+                                    kafka_events_streamed.value += success_count
                             except Exception as e:
-                                print(f"⚠️  Worker {worker_id}: Error updating events counter: {e}")
+                                print(f"⚠️  Worker {worker_id}: Error streaming events batch: {e}")
                     except Empty:
                         pass  # No events available, continue
                     
@@ -1158,17 +1181,18 @@ class DataGenerator:
                         batches_processed += 1
                         
                         if streamer.producer:  # Only stream if producer is available
-                            success_count = streamer.stream_batch_async(
-                                topic=settings.kafka_topic_transactions,
-                                events=transactions,
-                                key_field='user_id'
-                            )
-                            transactions_streamed += success_count
-                            # Update shared counter for accurate reporting
                             try:
-                                kafka_transactions_streamed.value += success_count
+                                success_count = streamer.stream_batch_async(
+                                    topic=settings.kafka_topic_transactions,
+                                    events=transactions,
+                                    key_field='user_id'
+                                )
+                                transactions_streamed += success_count
+                                # Update shared counter with proper locking for thread safety
+                                with kafka_transactions_lock:
+                                    kafka_transactions_streamed.value += success_count
                             except Exception as e:
-                                print(f"⚠️  Worker {worker_id}: Error updating transactions counter: {e}")
+                                print(f"⚠️  Worker {worker_id}: Error streaming transactions batch: {e}")
                     except Empty:
                         pass  # No transactions available, continue
                     
@@ -1335,12 +1359,12 @@ class DataGenerator:
     
     def _monitor_high_performance_streaming(self, stats_queue, stop_event, duration_minutes: int,
                                           kafka_events_streamed, kafka_transactions_streamed):
-        """Monitor high-performance streaming progress with Kafka feedback"""
+        """Monitor high-performance streaming progress with accurate Kafka feedback"""
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
         
-        total_events = 0
-        total_transactions = 0
+        total_events_queued = 0
+        total_transactions_queued = 0
         worker_stats = {}
         
         print(f"📊 Monitoring high-performance streaming...")
@@ -1357,22 +1381,22 @@ class DataGenerator:
                         except Empty:
                             break
                     
-                    # Calculate totals
-                    current_events = sum(s.get('events', 0) for s in worker_stats.values())
-                    current_transactions = sum(s.get('transactions', 0) for s in worker_stats.values())
+                    # Calculate totals from generator workers (events queued for streaming)
+                    current_events_queued = sum(s.get('events', 0) for s in worker_stats.values())
+                    current_transactions_queued = sum(s.get('transactions', 0) for s in worker_stats.values())
                     
-                    # Get actual Kafka streaming counts
+                    # Get actual Kafka streaming counts (events successfully sent to Kafka)
                     kafka_events = kafka_events_streamed.value
                     kafka_transactions = kafka_transactions_streamed.value
                     
                     elapsed_minutes = (time.time() - start_time) / 60
-                    queue_rate = current_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+                    queue_rate = current_events_queued / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
                     kafka_rate = kafka_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
                     
-                    print(f"⚡ {elapsed_minutes:.1f}m: {current_events:,} generated ({queue_rate:.0f}/s) | {kafka_events:,} sent to Kafka ({kafka_rate:.0f}/s)")
+                    print(f"⚡ {elapsed_minutes:.1f}m: {current_events_queued:,} queued ({queue_rate:.0f}/s) | {kafka_events:,} sent to Kafka ({kafka_rate:.0f}/s)")
                     
-                    total_events = current_events
-                    total_transactions = current_transactions
+                    total_events_queued = current_events_queued
+                    total_transactions_queued = current_transactions_queued
                     
                     time.sleep(5)  # Report every 5 seconds
                     
@@ -1384,17 +1408,26 @@ class DataGenerator:
         
         stop_event.set()
         elapsed_minutes = (time.time() - start_time) / 60
-        avg_queue_rate = total_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+        avg_queue_rate = total_events_queued / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+        
+        # Get final counts (managed objects are already thread-safe)
         final_kafka_events = kafka_events_streamed.value
         final_kafka_transactions = kafka_transactions_streamed.value
+        
         avg_kafka_rate = final_kafka_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
+        streaming_efficiency = (final_kafka_events / total_events_queued * 100) if total_events_queued > 0 else 0
         
         print(f"\n✅ HIGH-PERFORMANCE streaming completed:")
         print(f"   - Duration: {elapsed_minutes:.1f} minutes")
-        print(f"   - Events generated: {total_events:,} ({avg_queue_rate:.0f}/s)")
-        print(f"   - Events sent to Kafka: {final_kafka_events:,} ({avg_kafka_rate:.0f}/s)")
-        print(f"   - Transactions sent to Kafka: {final_kafka_transactions:,}")
-        print(f"   - Streaming efficiency: {(final_kafka_events/total_events*100):.1f}%" if total_events > 0 else "   - Streaming efficiency: 0%")
+        print(f"   - Events queued by generators: {total_events_queued:,} ({avg_queue_rate:.0f}/s)")
+        print(f"   - Events queued to Kafka producer: {final_kafka_events:,} ({avg_kafka_rate:.0f}/s)")
+        print(f"   - Transactions queued to Kafka producer: {final_kafka_transactions:,}")
+        print(f"   - Producer queue efficiency: {streaming_efficiency:.1f}%")
+        
+        # Add verification note with more context
+        print(f"💡 To verify actual Kafka topic data:")
+        print(f"   docker exec docker-kafka-1 kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:9092")
+        print(f"📝 Note: Kafka producer queues events asynchronously, so actual topic counts may vary slightly")
     
     def close(self):
         """Clean up resources"""
