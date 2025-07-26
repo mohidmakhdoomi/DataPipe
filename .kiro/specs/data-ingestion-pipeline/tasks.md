@@ -171,7 +171,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 7.5, operational excellence_
 
 - [ ] 16. Performance testing and capacity planning
-  - Conduct load testing to validate 20,000 events/sec target throughput
+  - Conduct load testing to validate 10,000 events/sec target throughput
   - Test resource scaling: CPU, memory, and storage under sustained load
   - Validate backpressure handling and graceful degradation
   - Create capacity planning models and resource utilization projections
@@ -182,13 +182,13 @@ Phase 4: Production (Tasks 13-16)
 - [ ] Monitoring stack operational with comprehensive dashboards and alerting
 - [ ] Security controls implemented with encrypted communication and credential management
 - [ ] Backup and recovery procedures tested and documented
-- [ ] Performance validated at 20,000 events/sec with acceptable latency (<5s)
+- [ ] Performance validated at 10,000 events/sec with acceptable latency (<5s)
 
 ## Success Criteria
 
 Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 
-- **High Throughput**: Sustained ingestion of 20,000 events per second
+- **High Throughput**: Sustained ingestion of 10,000 events per second
 - **Data Integrity**: Exactly-once delivery with schema evolution support
 - **Reliability**: Automatic recovery from failures with <1 minute downtime
 - **Observability**: Comprehensive monitoring with proactive alerting

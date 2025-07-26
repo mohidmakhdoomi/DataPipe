@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation plan transforms the real-time analytics speed layer design into actionable coding tasks. The plan focuses on building a high-performance stream processing system that handles 20,000 events per second while providing sub-second analytics capabilities.
+This implementation plan transforms the real-time analytics speed layer design into actionable coding tasks. The plan focuses on building a high-performance stream processing system that handles 10,000 events per second while providing sub-second analytics capabilities.
 
 ## Implementation Phases
 
@@ -87,7 +87,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 3.2, 3.4, user tier analytics_
 
 - [ ] 8. Optimize Spark Streaming for high throughput
-  - Tune Spark configuration for 20,000 events/sec processing
+  - Tune Spark configuration for 10,000 events/sec processing
   - Configure dynamic allocation and backpressure handling
   - Optimize serialization with Kryo serializer
   - Set up adaptive query execution for batch processing
@@ -98,7 +98,7 @@ Phase 4: Production (Tasks 13-16)
 - [ ] Spark Streaming consuming events with 2-second micro-batches
 - [ ] Session management working with 30-minute timeouts
 - [ ] User tier enrichment operational with caching
-- [ ] Processing optimized for 20,000 events/sec target throughput
+- [ ] Processing optimized for 10,000 events/sec target throughput
 
 ### Phase 3: Analytics Storage - ClickHouse Implementation
 
@@ -129,7 +129,7 @@ Phase 4: Production (Tasks 13-16)
 
 - [ ] 12. Configure Spark Streaming to ClickHouse integration
   - Implement ClickHouse writer with UUID type handling
-  - Configure batch insertion optimized for high-volume writes (10,000 records/batch)
+  - Configure batch insertion optimized for high-volume writes (20,000 records/batch)
   - Set up proper data type mapping: UUID in ClickHouse, String in Spark
   - Implement error handling and retry mechanisms for write failures
   - Test data flow from Kafka through Spark to ClickHouse
@@ -170,7 +170,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 5.1, 5.2, 5.3_
 
 - [ ] 16. Performance testing and validation
-  - Conduct load testing to validate 20,000 events/sec processing
+  - Conduct load testing to validate 10,000 events/sec processing
   - Test ClickHouse query performance under sustained write load
   - Validate sub-second query response times for analytics queries
   - Test system behavior under failure scenarios: restarts, network issues
@@ -181,13 +181,13 @@ Phase 4: Production (Tasks 13-16)
 - [ ] Real-time analytics operational with conversion funnel tracking
 - [ ] Monitoring stack providing comprehensive visibility into speed layer
 - [ ] Data quality validation catching and handling invalid events
-- [ ] Performance validated: 20,000 events/sec processing, <1s query response
+- [ ] Performance validated: 10,000 events/sec processing, <1s query response
 
 ## Success Criteria
 
 Upon completion of all tasks, the speed layer should demonstrate:
 
-- **High Throughput**: Processing 20,000 events per second with 2-second micro-batches
+- **High Throughput**: Processing 10,000 events per second with 2-second micro-batches
 - **Low Latency**: Sub-second query response times for real-time analytics
 - **Session Management**: Accurate user session tracking with 30-minute timeouts
 - **User Tier Analytics**: Real-time behavioral analysis across user tiers

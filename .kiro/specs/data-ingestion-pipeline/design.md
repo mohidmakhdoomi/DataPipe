@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the design for a data ingestion pipeline that captures changes from PostgreSQL databases using Debezium CDC, streams them through Apache Kafka, and archives them to AWS S3. The system is designed to handle 20,000 events per second while maintaining data integrity and reliability.
+This document describes the design for a data ingestion pipeline that captures changes from PostgreSQL databases using Debezium CDC, streams them through Apache Kafka, and archives them to AWS S3. The system is designed to handle 10,000 events per second while maintaining data integrity and reliability.
 
 The architecture follows event-driven patterns with three main components:
 - **Source Layer**: PostgreSQL with logical replication for CDC
@@ -130,7 +130,7 @@ kafka:
     # KRaft mode configuration
     process.roles: broker,controller
     controller.quorum.voters: 1@kafka-0:9093,2@kafka-1:9093,3@kafka-2:9093
-    # Performance tuning for 20k events/sec
+    # Performance tuning for 10k events/sec
     num.network.threads: 8
     num.io.threads: 16
     socket.send.buffer.bytes: 102400
@@ -537,4 +537,4 @@ data-ingestion-pipeline/
     └── kafka-connect/
 ```
 
-This design provides a robust, scalable data ingestion pipeline that can handle 20,000 events per second while maintaining data integrity and providing comprehensive monitoring and error handling capabilities.
+This design provides a robust, scalable data ingestion pipeline that can handle 10,000 events per second while maintaining data integrity and providing comprehensive monitoring and error handling capabilities.
