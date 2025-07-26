@@ -1,5 +1,46 @@
 {
   "mcpServers": {
+    "zenDocker": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/.env",
+        "-v",
+        "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logs:/app/logs",
+        "zen-mcp-server:latest"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "chat",
+        "thinkdeep",
+        "challenge",
+        "planner",
+        "consensus",
+        "codereview",
+        "precommit",
+        "debug",
+        "analyze",
+        "refactor",
+        "tracer",
+        "testgen",
+        "secaudit",
+        "docgen"
+      ]
+    },
+    "zen": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "exec uvx --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
     "terraform": {
       "command": "docker",
       "args": [
@@ -9,7 +50,7 @@
         "hashicorp/terraform-mcp-server"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "sequentialthinking": {
@@ -52,7 +93,7 @@
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "SearchAwsProviderDocs",
         "SearchAwsccProviderDocs",
@@ -72,7 +113,7 @@
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "aws-diagram": {
@@ -86,7 +127,7 @@
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "aws-documentation": {
@@ -100,7 +141,7 @@
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "search_documentation",
         "read_documentation"
@@ -117,7 +158,7 @@
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "prompt_understanding"
       ]

@@ -1,0 +1,1 @@
+docker build -t zen-mcp-server:latest .kiro/settings/zen-mcp-server
