@@ -2,40 +2,21 @@
 inclusion: always
 ---
 
-# MCP Tool Parameter Validation
+# zenDocker MCP Tool Parameter Validation
 
-When calling MCP workflow tools, ALWAYS include all required parameters, especially:
+Absolute highest priority is to ensure required parameters are included for ALL zenDocker MCP tool calls.
 
-## Critical Parameter Requirements
+### MINIMUM REQUIRED Parameters for tools: analyze,codereview,consensus,debug,docgen,planner,precommit,refactor,secaudit,testgen,thinkdeep,tracer:
+- `step` (string, required)
+- `step_number` (integer, required)
+- `total_steps` (integer, required)
+- `next_step_required` (boolean, required)
 
-For these workflow tools, the `next_step_required` parameter is REQUIRED in every call:
-- thinkdeep
-- planner
-- debug
-- codereview
-- precommit
-- secaudit
-- analyze
-- refactor
-- testgen
-- consensus
-- tracer
-- docgen
+### MINIMUM REQUIRED Parameters for tools: challenge,chat:
+- `prompt` (string, required)
 
-## Parameter Rules
+## next_step_required Rules
 - Set `next_step_required: true` for intermediate steps
 - Set `next_step_required: false` for final steps
-- Never omit this parameter - it will cause validation failures
-
-## Example
-```json
-{
-  "step": "...",
-  "step_number": 3,
-  "total_steps": 3,
-  "findings": "...",
-  "next_step_required": false  // ALWAYS include this
-}
+- Never omit required parameters - causes validation failures
 ```
-
-This prevents MCP validation errors and ensures smooth workflow execution.
