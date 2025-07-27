@@ -54,7 +54,7 @@ The pipeline will be designed for local development and deployment using Docker 
 2. WHEN using Kubernetes THEN the system SHALL use kind provisioner with Spark Operator
 3. WHEN services require persistence THEN ClickHouse SHALL use persistent volumes
 4. WHEN Spark is deployed THEN it SHALL run on Kubernetes rather than standalone mode
-5. WHEN running locally THEN the system SHALL require no more than 12GB RAM for operation
+5. WHEN running locally THEN the system SHALL require no more than 9.5GB RAM for operation
 
 ### Requirement 5: Data Quality and Validation
 

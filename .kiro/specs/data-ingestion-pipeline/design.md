@@ -32,7 +32,7 @@ graph TB
     
     subgraph "Infrastructure"
         K8S[Kubernetes<br/>Docker Desktop + kind]
-        PV[Persistent Volumes<br/>8GB Total]
+        PV[Persistent Volumes<br/>4GB Total]
     end
     
     PG -->|WAL Changes| CDC
@@ -69,8 +69,8 @@ graph TB
 ```yaml
 postgresql:
   resources:
-    requests: { memory: "1Gi", cpu: "500m" }
-    limits: { memory: "2Gi", cpu: "1000m" }
+    requests: { memory: "512Mi", cpu: "500m" }
+    limits: { memory: "1Gi", cpu: "1000m" }
   config:
     wal_level: logical
     max_replication_slots: 4
@@ -123,8 +123,8 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 kafka:
   replicas: 3
   resources:
-    requests: { memory: "1Gi", cpu: "500m" }
-    limits: { memory: "1.5Gi", cpu: "1000m" }
+    requests: { memory: "512Mi", cpu: "500m" }
+    limits: { memory: "2Gi", cpu: "1000m" }
   storage: 10Gi
   config:
     # KRaft mode configuration
@@ -198,8 +198,8 @@ topics:
 ```yaml
 schema-registry:
   resources:
-    requests: { memory: "512Mi", cpu: "250m" }
-    limits: { memory: "1Gi", cpu: "500m" }
+    requests: { memory: "256Mi", cpu: "250m" }
+    limits: { memory: "512Mi", cpu: "500m" }
   config:
     kafkastore.bootstrap.servers: "kafka-0:9092,kafka-1:9092,kafka-2:9092"
     kafkastore.topic: "_schemas"
@@ -448,14 +448,14 @@ network_policies:
 
 ## Performance and Scalability
 
-### Resource Allocation (8GB Total)
+### Resource Allocation (4GB Total)
 ```yaml
 resource_allocation:
-  postgresql: 2GB RAM, 1 CPU
-  kafka_brokers: 4.5GB RAM (1.5GB each), 3 CPU
-  schema_registry: 1GB RAM, 0.5 CPU
+  postgresql: 1GB RAM, 1 CPU
+  kafka_brokers: 2GB RAM (shared HA cluster allocation), 3 CPU
+  schema_registry: 0.5GB RAM, 0.5 CPU
   kafka_connect: 0.5GB RAM, 0.5 CPU
-  total: 8GB RAM, 5 CPU
+  total: 4GB RAM, 5 CPU
 ```
 
 ### Performance Optimization
@@ -481,6 +481,12 @@ acks=1
 # Broker optimization
 num.replica.fetchers=4
 replica.fetch.max.bytes=1048576
+
+# GC optimization for 2GB heap
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=20
+-XX:InitiatingHeapOccupancyPercent=35
+-XX:+ExplicitGCInvokesConcurrent
 ```
 
 ### Scalability Considerations
@@ -494,6 +500,35 @@ replica.fetch.max.bytes=1048576
 - Increase PostgreSQL memory for larger WAL buffers
 - Add CPU cores for Kafka brokers under high load
 - Optimize JVM heap sizes for Kafka Connect
+
+## Container Orchestration Requirements
+
+### Memory Limits and Reservations
+```yaml
+container_limits:
+  postgresql:
+    memory: "1Gi"
+    memory_request: "512Mi"
+    memory_limit_enforcement: true
+  kafka:
+    memory: "2Gi"  # Shared HA cluster allocation
+    memory_request: "512Mi"
+    gc_monitoring: true
+    gc_pause_threshold: "50ms"
+  schema_registry:
+    memory: "512Mi"
+    memory_request: "256Mi"
+    jvm_optimization: true
+  kafka_connect:
+    memory: "512Mi"
+    memory_request: "256Mi"
+```
+
+### System Memory Considerations
+- Total application allocation: 4GB
+- System memory reservation: 2GB (handled at cluster level)
+- Container memory overhead: Included in limits
+- OOM killer protection: Enabled via cgroups
 
 ## Deployment Architecture
 

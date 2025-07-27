@@ -35,7 +35,7 @@ graph TB
     end
     
     subgraph "Infrastructure"
-        K8S[Kubernetes<br/>Docker Desktop + kind<br/>12GB RAM]
+        K8S[Kubernetes<br/>Docker Desktop + kind<br/>9.5GB RAM]
         PV[Persistent Volumes<br/>ClickHouse Storage]
     end
     
@@ -76,13 +76,13 @@ graph TB
 spark:
   driver:
     resources:
-      requests: { memory: "1Gi", cpu: "500m" }
-      limits: { memory: "2Gi", cpu: "1000m" }
+      requests: { memory: "512Mi", cpu: "500m" }
+      limits: { memory: "1Gi", cpu: "1000m" }
   executor:
-    instances: 2
+    instances: 1
     resources:
-      requests: { memory: "2Gi", cpu: "1000m" }
-      limits: { memory: "4Gi", cpu: "2000m" }
+      requests: { memory: "1Gi", cpu: "1000m" }
+      limits: { memory: "1.5Gi", cpu: "1500m" }
   config:
     spark.streaming.batchDuration: "2s"
     spark.streaming.backpressure.enabled: "true"
@@ -148,14 +148,20 @@ object SpeedLayerApp extends App {
 ```yaml
 clickhouse:
   resources:
-    requests: { memory: "4Gi", cpu: "2000m" }
-    limits: { memory: "6Gi", cpu: "3000m" }
+    requests: { memory: "5Gi", cpu: "2000m" }
+    limits: { memory: "7Gi", cpu: "3000m" }
   storage: 20Gi
   config:
-    max_memory_usage: 4000000000
+    max_memory_usage: 6000000000  # 6GB for queries (1GB reserved for system)
     max_threads: 8
-    max_concurrent_queries: 100
+    max_concurrent_queries: 50  # Reduced for memory optimization
     keep_alive_timeout: 3
+    # Memory optimization for 7GB allocation
+    max_memory_usage_for_user: 5000000000
+    max_memory_usage_for_all_queries: 5500000000
+    # Query performance optimization
+    use_uncompressed_cache: 1
+    uncompressed_cache_size: 1073741824  # 1GB uncompressed cache
 ```
 
 **Database Schema**:
@@ -570,15 +576,75 @@ alerts:
     duration: "5m"
 ```
 
+## Dynamic Resource Pooling Architecture
+
+### Shared Spark Resource Pool (7GB Total)
+```yaml
+dynamic_resource_pool:
+  total_pool_size: 7GB
+  speed_layer_guaranteed: 2.5GB
+  batch_layer_flexible: 4.5GB
+  
+  resource_manager: kubernetes
+  priority_queues:
+    - name: "streaming"
+      priority: high
+      guaranteed_resources: 2.5GB
+      max_resources: 7GB
+    - name: "batch"
+      priority: normal
+      guaranteed_resources: 0GB
+      max_resources: 4.5GB
+  
+  scaling_policy:
+    scale_up_threshold: 80%
+    scale_down_threshold: 20%
+    evaluation_interval: 30s
+```
+
+### Container Orchestration Requirements
+```yaml
+container_limits:
+  clickhouse:
+    memory: "7Gi"
+    memory_request: "5Gi"
+    memory_limit_enforcement: true
+    query_memory_optimization: true
+  spark_streaming:
+    memory: "2.5Gi"  # Guaranteed allocation
+    memory_request: "1Gi"
+    dynamic_scaling: true
+    max_memory: "7Gi"  # Can scale into batch pool
+  spark_batch:
+    memory: "4.5Gi"  # Flexible allocation
+    memory_request: "0Gi"
+    dynamic_scaling: true
+    preemptible: true
+```
+
+### Integration with Data Ingestion
+```yaml
+kafka_integration:
+  shared_cluster_allocation: 2GB
+  consumer_optimization:
+    fetch_min_bytes: 1048576
+    fetch_max_wait_ms: 500
+    max_poll_records: 1000
+  backpressure_handling:
+    enabled: true
+    initial_rate: 1000
+    max_rate: 10000
+```
+
 ## Performance and Scalability
 
-### Resource Allocation (12GB Total)
+### Resource Allocation (9.5GB Total)
 ```yaml
 resource_allocation:
-  spark_driver: 2GB RAM, 1 CPU
-  spark_executors: 4GB RAM (2GB each), 2 CPU
-  clickhouse: 6GB RAM, 3 CPU
-  total: 12GB RAM, 6 CPU
+  spark_driver: 1GB RAM, 1 CPU
+  spark_executors: 1.5GB RAM (single executor), 1.5 CPU
+  clickhouse: 7GB RAM, 3 CPU
+  total: 9.5GB RAM, 5.5 CPU
 ```
 
 ### Performance Optimization

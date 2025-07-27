@@ -47,6 +47,11 @@ Phase 4: Production (Tasks 13-16)
 - [ ] 4. Deploy PostgreSQL with e-commerce schema and CDC configuration
   - Create PostgreSQL StatefulSet with persistent volume (5Gi)
   - Configure logical replication: `wal_level=logical`, `max_replication_slots=4`
+  - Optimize PostgreSQL for 1GB memory allocation:
+    - Set `shared_buffers=256MB`
+    - Set `effective_cache_size=512MB`
+    - Set `work_mem=4MB`
+    - Set `maintenance_work_mem=64MB`
   - Implement e-commerce dimension tables (users, products) with proper schemas
   - Set up CDC user with replication permissions: `GRANT REPLICATION ON DATABASE`
   - Create publication for CDC: `CREATE PUBLICATION debezium_publication FOR ALL TABLES`
@@ -54,7 +59,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.2, 4.4_
 
 **Acceptance Criteria:**
-- [ ] Kind cluster running with 3 nodes and 8GB RAM allocation
+- [ ] Kind cluster running with 3 nodes and 4GB RAM allocation
 - [ ] PostgreSQL accessible with logical replication enabled
 - [ ] E-commerce tables created with sample data for testing
 - [ ] CDC user configured with proper replication permissions
@@ -65,6 +70,10 @@ Phase 4: Production (Tasks 13-16)
   - Deploy 3 Kafka brokers in KRaft mode with persistent storage (10Gi total)
   - Configure KRaft controllers for metadata management (no ZooKeeper)
   - Set up inter-broker communication and replication factor 3
+  - Configure Kafka for 2GB shared HA cluster allocation:
+    - Set JVM heap size: `-Xmx2g -Xms2g`
+    - Enable G1GC: `-XX:+UseG1GC -XX:MaxGCPauseMillis=20`
+    - Configure GC monitoring and alerting
   - Create initial topics: `cdc.postgres.users`, `cdc.postgres.products`
   - Configure topic settings: 6 partitions, 7-day retention, LZ4 compression
   - Test cluster health and topic creation/deletion
@@ -88,7 +97,12 @@ Phase 4: Production (Tasks 13-16)
 
 - [ ] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
-  - Monitor resource consumption and adjust allocations within 8GB limit
+  - Monitor resource consumption and adjust allocations within 4GB limit
+  - Verify container memory limits enforcement:
+    - PostgreSQL: 1GB limit with OOM protection
+    - Kafka: 2GB limit with GC monitoring
+    - Schema Registry: 512MB limit with JVM optimization
+    - Kafka Connect: 512MB limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
   - Document baseline performance metrics and resource usage
@@ -197,10 +211,10 @@ Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 
 ## Resource Allocation Summary
 
-- **Total RAM**: 8GB allocated across all components
-- **PostgreSQL**: 2GB RAM, 5Gi storage
-- **Kafka Cluster**: 4.5GB RAM (1.5GB per broker), 10Gi storage
-- **Schema Registry**: 1GB RAM
+- **Total RAM**: 4GB allocated across all components
+- **PostgreSQL**: 1GB RAM, 5Gi storage
+- **Kafka Cluster**: 2GB RAM (shared HA cluster allocation), 10Gi storage
+- **Schema Registry**: 0.5GB RAM
 - **Kafka Connect**: 0.5GB RAM
 - **Monitoring**: Included in orchestration-monitoring feature
 

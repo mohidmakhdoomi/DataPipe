@@ -25,18 +25,23 @@ Phase 4: Production (Tasks 13-16)
 
 - [ ] 1. Set up Kind Kubernetes cluster for speed layer
   - Create kind-config.yaml with single control-plane and 2 worker nodes
-  - Initialize cluster with containerd image store and 12GB RAM allocation
+  - Initialize cluster with containerd image store and 9.5GB RAM allocation
   - Configure port mappings for ClickHouse (8123, 9000) and Spark UI (4040)
   - Verify cluster connectivity and resource availability
   - _Requirements: 4.1, 4.2_
 
-- [ ] 2. Deploy Spark Operator on Kubernetes
+- [ ] 2. Deploy Spark Operator on Kubernetes with dynamic resource pooling
   - Install Spark Operator with proper RBAC configuration
-  - Configure Spark application templates and resource limits (6GB total)
+  - Configure Spark application templates and resource limits (2.5GB guaranteed, 7GB dynamic pool)
+  - Set up dynamic resource pooling architecture:
+    - Create 7GB shared resource pool with Speed and Batch layers
+    - Configure Kubernetes priority classes: Speed Layer (HIGH), Batch Layer (NORMAL)
+    - Implement admission control policies to prevent resource starvation
+    - Set up resource quotas and limits for pool management
   - Set up Spark history server for job monitoring and debugging
   - Create service accounts with minimal required permissions
-  - Test basic Spark job submission and execution
-  - _Requirements: 1.1, 4.4_
+  - Test basic Spark job submission and dynamic resource allocation
+  - _Requirements: 1.1, 4.4, dynamic pooling_
 
 - [ ] 3. Configure persistent volume provisioning for ClickHouse
   - Set up local-path-provisioner for ClickHouse data storage
@@ -53,7 +58,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: security, service isolation_
 
 **Acceptance Criteria:**
-- [ ] Kind cluster running with 12GB RAM allocation and proper networking
+- [ ] Kind cluster running with 9.5GB RAM allocation and proper networking
 - [ ] Spark Operator operational with job submission capabilities
 - [ ] Persistent volumes configured for ClickHouse data storage
 - [ ] RBAC and network policies implemented for security
@@ -86,13 +91,22 @@ Phase 4: Production (Tasks 13-16)
   - Test enrichment performance and cache hit rates
   - _Requirements: 3.2, 3.4, user tier analytics_
 
-- [ ] 8. Optimize Spark Streaming for high throughput
+- [ ] 8. Optimize Spark Streaming for high throughput with dynamic pooling
   - Tune Spark configuration for 10,000 events/sec processing
   - Configure dynamic allocation and backpressure handling
+  - Implement and validate dynamic resource pooling with Batch Layer:
+    - Configure 7GB shared resource pool between Speed and Batch layers
+    - Set Speed Layer priority: HIGH (2.5GB guaranteed, can scale to 7GB)
+    - Set Batch Layer priority: NORMAL (4.5GB flexible, preemptible)
+    - Implement admission control to prevent Speed Layer resource starvation
+    - Configure resource preemption policies for batch workloads
+    - Add monitoring for resource pool utilization and contention
   - Optimize serialization with Kryo serializer
   - Set up adaptive query execution for batch processing
-  - Benchmark processing latency and throughput under load
-  - _Requirements: 1.2, 6.1, 6.4_
+  - Configure Kubernetes resource management with priority classes and quotas
+  - Implement circuit breakers for resource pressure scenarios
+  - Benchmark processing latency and throughput under resource contention
+  - _Requirements: 1.2, 6.1, 6.4, dynamic pooling_
 
 **Acceptance Criteria:**
 - [ ] Spark Streaming consuming events with 2-second micro-batches
@@ -102,13 +116,20 @@ Phase 4: Production (Tasks 13-16)
 
 ### Phase 3: Analytics Storage - ClickHouse Implementation
 
-- [ ] 9. Deploy ClickHouse with e-commerce optimized configuration
+- [ ] 9. Deploy ClickHouse with 7GB optimized configuration
   - Create ClickHouse StatefulSet with persistent volumes (20Gi)
   - Configure ClickHouse for high-throughput writes and fast queries
-  - Set up memory allocation: 6GB RAM with proper buffer settings
+  - Set up memory allocation: 7GB RAM with optimized buffer settings for concurrent queries:
+    - max_memory_usage: 6GB (1GB reserved for system)
+    - max_concurrent_queries: 50 (optimized for memory constraints)
+    - uncompressed_cache_size: 1GB
+    - mark_cache_size: 512MB
+    - max_memory_usage_for_user: 5GB
+  - Configure container orchestration with hard memory limits
+  - Implement OOM protection and memory pressure monitoring
   - Configure replication settings for single-node development setup
   - Test ClickHouse deployment and basic connectivity
-  - _Requirements: 2.1, 2.2, 4.5_
+  - _Requirements: 2.1, 2.2, 4.5, memory optimization_
 
 - [ ] 10. Implement e-commerce specific database schemas and tables
   - Create `user_events_realtime` table with UUID data types and proper partitioning
@@ -169,13 +190,24 @@ Phase 4: Production (Tasks 13-16)
   - Test error handling with malformed data and schema violations
   - _Requirements: 5.1, 5.2, 5.3_
 
-- [ ] 16. Performance testing and validation
+- [ ] 16. Performance testing and validation with 9.5GB constraints
   - Conduct load testing to validate 10,000 events/sec processing
-  - Test ClickHouse query performance under sustained write load
-  - Validate sub-second query response times for analytics queries
-  - Test system behavior under failure scenarios: restarts, network issues
+  - Test ClickHouse query performance under sustained write load with 7GB allocation
+  - Validate sub-second query response times for 50+ concurrent users
+  - Test dynamic Spark pooling under resource contention scenarios:
+    - Validate Speed Layer 2.5GB guarantee is maintained under Batch Layer pressure
+    - Test resource scaling from 2.5GB to 7GB during low batch activity
+    - Validate admission control prevents resource starvation
+    - Test preemption policies for batch workloads during Speed Layer peaks
+  - Validate container memory limits and OOM protection mechanisms
+  - Test integration with Data Ingestion Kafka (2GB allocation) consumer optimization:
+    - Validate backpressure handling with constrained Kafka allocation
+    - Test consumer lag recovery under memory pressure
+    - Optimize fetch sizes and batching for 2GB Kafka constraint
+  - Test system behavior under failure scenarios: restarts, network issues, memory pressure
+  - Benchmark memory utilization and GC performance across all components
   - Document performance characteristics and optimization recommendations
-  - _Requirements: 1.2, 2.1, 6.1, 6.4_
+  - _Requirements: 1.2, 2.1, 6.1, 6.4, resource optimization_
 
 **Acceptance Criteria:**
 - [ ] Real-time analytics operational with conversion funnel tracking
@@ -197,10 +229,11 @@ Upon completion of all tasks, the speed layer should demonstrate:
 
 ## Resource Allocation Summary
 
-- **Total RAM**: 12GB allocated across all components
-- **Spark Driver**: 2GB RAM, 1 CPU
-- **Spark Executors**: 4GB RAM (2GB each), 2 CPU
-- **ClickHouse**: 6GB RAM, 3 CPU
+- **Total RAM**: 9.5GB allocated across all components
+- **Spark Driver**: 1GB RAM, 1 CPU
+- **Spark Executors**: 1.5GB RAM (single executor), 1.5 CPU
+- **ClickHouse**: 7GB RAM, 3 CPU (optimized for concurrent queries)
+- **Dynamic Spark Pool**: 7GB shared with Batch Layer (2.5GB guaranteed for Speed Layer)
 - **Storage**: 20Gi for ClickHouse data and analytics
 
 ## E-commerce Event Types and Processing
