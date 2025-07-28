@@ -150,7 +150,7 @@ Phase 4: Production (Tasks 13-16)
 
 - [ ] 12. Configure Spark Streaming to ClickHouse integration
   - Implement ClickHouse writer with UUID type handling
-  - Configure batch insertion optimized for high-volume writes (20,000 records/batch)
+  - Configure batch insertion optimized for high-volume writes (10,000 records/batch)
   - Set up proper data type mapping: UUID in ClickHouse, String in Spark
   - Implement error handling and retry mechanisms for write failures
   - Test data flow from Kafka through Spark to ClickHouse

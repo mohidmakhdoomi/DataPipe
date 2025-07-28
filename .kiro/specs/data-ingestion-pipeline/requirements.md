@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document outlines the requirements for a data ingestion pipeline that captures changes from PostgreSQL databases and streams them through Apache Kafka to AWS S3 for archival. The system will handle high-throughput data ingestion (20,000 events per second) and support change data capture from transactional systems.
+This document outlines the requirements for a data ingestion pipeline that captures changes from PostgreSQL databases and streams them through Apache Kafka to AWS S3 for archival. The system will handle high-throughput data ingestion (10,000 events per second) and support change data capture from transactional systems.
 
 The pipeline will be designed for local development and deployment using Docker Desktop on Windows with Kubernetes (kind provisioner), while connecting to real AWS S3 for storage. The architecture prioritizes out-of-the-box solutions and industry-standard integration patterns.
 
@@ -22,11 +22,11 @@ The pipeline will be designed for local development and deployment using Docker 
 
 ### Requirement 2: High-Throughput Event Streaming
 
-**User Story:** As a system administrator, I want the pipeline to handle 20,000 events per second, so that it can support high-volume transactional systems.
+**User Story:** As a system administrator, I want the pipeline to handle 10,000 events per second, so that it can support high-volume transactional systems.
 
 #### Acceptance Criteria
 
-1. WHEN the system receives data THEN Kafka SHALL handle ingestion of at least 20,000 events per second
+1. WHEN the system receives data THEN Kafka SHALL handle ingestion of at least 10,000 events per second
 2. WHEN under load THEN the system SHALL maintain processing latency within acceptable bounds
 3. WHEN throughput monitoring is active THEN the system SHALL provide metrics on actual vs target throughput rates
 4. WHEN scaling is needed THEN Kafka SHALL support horizontal scaling through partitioning

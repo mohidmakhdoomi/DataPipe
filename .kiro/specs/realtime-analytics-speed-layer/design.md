@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the design for a real-time analytics speed layer that processes streaming data from Kafka using Spark Streaming and stores results in ClickHouse for sub-second analytics. The system is designed to handle 20,000 events per second while providing real-time insights for operational dashboards and e-commerce analytics.
+This document describes the design for a real-time analytics speed layer that processes streaming data from Kafka using Spark Streaming and stores results in ClickHouse for sub-second analytics. The system is designed to handle 10,000 events per second while providing real-time insights for operational dashboards and e-commerce analytics.
 
 The architecture follows Lambda Architecture principles with focus on low-latency processing:
 - **Stream Processing**: Spark Streaming with micro-batching for real-time data processing
@@ -16,7 +16,7 @@ The architecture follows Lambda Architecture principles with focus on low-latenc
 ```mermaid
 graph TB
     subgraph "Input Layer"
-        KAFKA[Apache Kafka<br/>Event Topics<br/>20k events/sec]
+        KAFKA[Apache Kafka<br/>Event Topics<br/>10k events/sec]
     end
     
     subgraph "Stream Processing Layer"
@@ -677,4 +677,4 @@ ALTER TABLE conversion_funnel_mv MODIFY SETTING
     optimize_on_insert = 1;
 ```
 
-This design provides a robust, high-performance real-time analytics speed layer that can handle 20,000 events per second while providing sub-second query response times for operational dashboards and business intelligence.
+This design provides a robust, high-performance real-time analytics speed layer that can handle 10,000 events per second while providing sub-second query response times for operational dashboards and business intelligence.

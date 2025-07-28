@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document outlines the requirements for a real-time analytics speed layer that processes streaming data from Kafka using Spark Streaming and stores results in ClickHouse for sub-second analytics. The system will handle high-throughput stream processing (20,000 events per second) and provide real-time insights for operational dashboards.
+This document outlines the requirements for a real-time analytics speed layer that processes streaming data from Kafka using Spark Streaming and stores results in ClickHouse for sub-second analytics. The system will handle high-throughput stream processing (10,000 events per second) and provide real-time insights for operational dashboards.
 
 The pipeline will be designed for local development and deployment using Docker Desktop on Windows with Kubernetes (kind provisioner). The architecture prioritizes low-latency processing and real-time analytics capabilities.
 
@@ -15,7 +15,7 @@ The pipeline will be designed for local development and deployment using Docker 
 #### Acceptance Criteria
 
 1. WHEN streaming data arrives THEN Spark Streaming SHALL consume from Kafka topics with micro-batching
-2. WHEN processing data THEN the system SHALL maintain throughput of 20,000 events per second
+2. WHEN processing data THEN the system SHALL maintain throughput of 10,000 events per second
 3. WHEN micro-batches are processed THEN the system SHALL use 2-second windows for optimal latency
 4. WHEN failures occur THEN Spark SHALL use checkpointing for fault tolerance
 5. WHEN scaling is needed THEN Spark SHALL support dynamic resource allocation
@@ -28,7 +28,7 @@ The pipeline will be designed for local development and deployment using Docker 
 
 1. WHEN processed data is ready THEN it SHALL be written to ClickHouse for real-time analytics
 2. WHEN queries are executed THEN ClickHouse SHALL provide sub-second response times
-3. WHEN data is inserted THEN ClickHouse SHALL support insertion rates of at least 20,000 records per second
+3. WHEN data is inserted THEN ClickHouse SHALL support insertion rates of at least 10,000 records per second
 4. WHEN analytics are needed THEN the system SHALL support complex aggregations and filtering
 5. WHEN data freshness is critical THEN the speed layer SHALL provide data that is seconds old
 
