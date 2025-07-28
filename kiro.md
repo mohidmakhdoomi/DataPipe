@@ -28,7 +28,7 @@
    - Gemini 2.5 Pro
    - Claude Opus 4  
    - Grok 4
-   - O3 Pro
+   - O3
 4. **Implementation** based on validated consensus
 
 **Key Insight:** Multi-model analysis revealed critical optimization - single-node cluster instead of multi-node for resource constraints.
@@ -46,7 +46,7 @@
 - **Available for Workloads:** ~3.4GB
 - **Memory Budget per Component:**
   - PostgreSQL: ~400-500MB
-  - Kafka: ~800MB (single broker for dev)
+  - Kafka: ~2GB (3 brokers for HA)
   - Schema Registry: ~400MB
   - Debezium: ~300MB
 
@@ -137,6 +137,7 @@
 
 ### **Resource Optimization**
 - Single-node cluster reduces overhead from 1.5GB to 622MB
+- 3-broker Kafka cluster provides high availability within resource constraints
 - Phased implementation prevents resource exhaustion
 - Memory tuning essential for Java-based services
 
