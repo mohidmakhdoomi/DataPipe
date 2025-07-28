@@ -1,6 +1,18 @@
 {
   "mcpServers": {
-    "zenDocker": {
+    "clearthought": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "waldzellai/clear-thought"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "zen": {
       "command": "docker",
       "args": [
         "run",
@@ -31,7 +43,7 @@
         "docgen"
       ]
     },
-    "zen": {
+    "zenORIG": {
       "command": "sh",
       "args": [
         "-c",
