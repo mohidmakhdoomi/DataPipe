@@ -1,0 +1,52 @@
+# Kind Configuration for Data Ingestion Pipeline
+# Optimized single-node cluster for 4GB RAM constraint
+# Based on multi-model consensus analysis
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: data-ingestion
+
+# Single control-plane node that also hosts workloads
+# This optimization reduces Kubernetes overhead from ~1.5GB to ~700-900MB
+nodes:
+- role: control-plane
+  # Enable the control-plane to schedule workloads (remove NoSchedule taint)
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true,workload-type=data-services"
+  
+  # Port mappings for direct host access to services
+  # Critical for local development and testing
+  extraPortMappings:
+  # PostgreSQL database access
+  - containerPort: 30432
+    hostPort: 5432
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # Kafka broker access  
+  - containerPort: 30092
+    hostPort: 9092
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # Schema Registry access (for future tasks)
+  - containerPort: 30081
+    hostPort: 8081
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # Kafka Connect REST API (for future tasks)
+  - containerPort: 30083
+    hostPort: 8083
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+
+# Containerd configuration for efficient image management
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5001"]
+    endpoint = ["http://kind-registry:5000"]
