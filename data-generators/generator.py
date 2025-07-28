@@ -63,24 +63,24 @@ class HighPerformanceKafkaStreamer:
                 else:
                     value_serializer = lambda v: json.dumps(v, default=str).encode('utf-8')
                 
-                # Base configuration with improved resilience
+                # Reliable configuration optimized for delivery confirmation
                 config = {
                     'bootstrap_servers': settings.kafka_bootstrap_servers,
                     'value_serializer': value_serializer,
                     'key_serializer': lambda k: str(k).encode('utf-8') if k else None,
                     
-                    # High-throughput optimizations
-                    'batch_size': 65536,              # 64KB batches
-                    'linger_ms': 5,                   # Small batching delay for throughput
-                    'acks': 1,                        # Leader-only acknowledgment (faster)
-                    'buffer_memory': 134217728,       # 128MB buffer
-                    'max_in_flight_requests_per_connection': 10,
-                    'send_buffer_bytes': 262144,      # 256KB
+                    # Reliability-focused optimizations
+                    'batch_size': 32768,              # 32KB batches (smaller for faster delivery)
+                    'linger_ms': 10,                  # Slightly longer batching for efficiency
+                    'acks': 'all',                    # Wait for all replicas (more reliable)
+                    'buffer_memory': 67108864,        # 64MB buffer (smaller to prevent overflow)
+                    'max_in_flight_requests_per_connection': 1,  # Ensure ordering (idempotence alternative)
+                    'send_buffer_bytes': 131072,      # 128KB
                     'receive_buffer_bytes': 65536,    # 64KB
-                    'retries': 5,                     # More retries for resilience
-                    'retry_backoff_ms': 100,          # Fast retry backoff
-                    'request_timeout_ms': 10000,      # Shorter timeout to fail fast
-                    'max_block_ms': 2000,             # Longer block time for initial connection
+                    'retries': 10,                    # More retries for reliability
+                    'retry_backoff_ms': 200,          # Longer backoff for stability
+                    'request_timeout_ms': 15000,      # Longer timeout for reliability
+                    'max_block_ms': 5000,             # Block longer if needed
                     'metadata_max_age_ms': 30000,     # Refresh metadata more frequently
                     'connections_max_idle_ms': 540000 # Keep connections alive longer
                 }
@@ -129,28 +129,39 @@ class HighPerformanceKafkaStreamer:
             self.producer = None
     
     def stream_batch_async(self, topic: str, events: List[dict], key_field: str = None):
-        """Stream batch of events asynchronously for maximum throughput"""
+        """Stream batch of events with delivery confirmation for reliable throughput"""
         if not self.producer:
             return 0
         
-        successfully_queued = 0
+        successfully_sent = 0
         error_count = 0
+        futures = []
         
+        # Send all events and collect futures
         for event in events:
             key = event.get(key_field) if key_field else None
             try:
-                # Send to Kafka - this queues the message in the producer buffer
-                self.producer.send(topic=topic, value=event, key=key)
-                successfully_queued += 1
+                # Send to Kafka and get future for confirmation
+                future = self.producer.send(topic=topic, value=event, key=key)
+                futures.append(future)
             except Exception as e:
                 error_count += 1
-                # Only print errors occasionally to avoid spam
                 if error_count <= 5 or error_count % 1000 == 0:
-                    print(f"❌ Error queuing event ({error_count} total): {e}")
+                    print(f"❌ Error sending event ({error_count} total): {e}")
         
-        # Return count of events successfully queued to Kafka producer
-        # These will be sent asynchronously by the producer
-        return successfully_queued
+        # Wait for confirmations with timeout to ensure delivery
+        for future in futures:
+            try:
+                # Wait for confirmation with short timeout
+                future.get(timeout=2.0)
+                successfully_sent += 1
+            except Exception as e:
+                error_count += 1
+                if error_count <= 5 or error_count % 100 == 0:
+                    print(f"⚠️  Event delivery failed ({error_count} total): {e}")
+        
+        # Return count of events actually confirmed sent to Kafka
+        return successfully_sent
     
     def flush_async(self, timeout: float = 0.1):
         """Non-blocking flush with timeout"""
@@ -820,7 +831,7 @@ class DataGenerator:
             print(f"✅ Streamed {success_count}/{len(events)} events to {settings.kafka_topic_events}")
     
     def stream_realtime_events(self, duration_minutes: int = 60, events_per_second: int = 10):
-        """Legacy single-threaded streaming (kept for compatibility)"""
+        """Stream events in real-time with reliable delivery"""
         if events_per_second <= 100:
             return self._stream_realtime_events_legacy(duration_minutes, events_per_second)
         else:
@@ -1064,41 +1075,46 @@ class DataGenerator:
             # Pre-calculate transaction batch size
             transaction_batch_size = max(1, batch_size // 10)
             
-            # Ultra-high speed generation loop - no timing constraints
+            # Rate-controlled generation loop with backpressure
             while time.time() < end_time and not stop_event.is_set():
-                # Generate multiple batches in rapid succession
-                for _ in range(5):  # Generate 5 batches per cycle for maximum throughput
-                    if time.time() >= end_time or stop_event.is_set():
-                        break
-                    
-                    cycle_start = time.time()
-                    
-                    # Generate event batch (ultra-optimized)
-                    events = self._generate_ultra_fast_event_batch(
-                        batch_size, worker_pools, local_weighted_users, local_weighted_products, cycle_start
-                    )
-                    
-                    # Generate transaction batch (ultra-optimized)
-                    transactions = self._generate_ultra_fast_transaction_batch(
-                        transaction_batch_size, worker_pools, local_weighted_users, local_weighted_products, cycle_start
-                    )
-                    
-                    # Queue operations - only count successfully queued events
-                    try:
-                        event_queue.put(events, block=False)
-                        events_generated += len(events)  # Only count if successfully queued
-                    except:
-                        pass  # Don't count failed queue operations
-                    
-                    try:
-                        transaction_queue.put(transactions, block=False)
-                        transactions_generated += len(transactions)  # Only count if successfully queued
-                    except:
-                        pass  # Don't count failed queue operations
-                    
-                    batch_count += 1
+                cycle_start = time.time()
                 
-                # Minimal stats reporting (every 20 seconds)
+                # Generate event batch (optimized)
+                events = self._generate_ultra_fast_event_batch(
+                    batch_size, worker_pools, local_weighted_users, local_weighted_products, cycle_start
+                )
+                
+                # Generate transaction batch (optimized)
+                transactions = self._generate_ultra_fast_transaction_batch(
+                    transaction_batch_size, worker_pools, local_weighted_users, local_weighted_products, cycle_start
+                )
+                
+                # Queue operations with backpressure - block if queue is full
+                try:
+                    event_queue.put(events, block=True, timeout=5.0)  # Block with timeout for backpressure
+                    events_generated += len(events)  # Only count if successfully queued
+                except:
+                    # If queue is full, slow down generation
+                    time.sleep(0.1)
+                    continue
+                
+                try:
+                    transaction_queue.put(transactions, block=True, timeout=5.0)  # Block with timeout for backpressure
+                    transactions_generated += len(transactions)  # Only count if successfully queued
+                except:
+                    # If queue is full, slow down generation
+                    time.sleep(0.1)
+                    continue
+                
+                batch_count += 1
+                
+                # Rate limiting - ensure we don't exceed target rate
+                cycle_duration = time.time() - cycle_start
+                target_cycle_duration = 1.0 / batches_per_second if batches_per_second > 0 else 0.1
+                if cycle_duration < target_cycle_duration:
+                    time.sleep(target_cycle_duration - cycle_duration)
+                
+                # Stats reporting (every 20 seconds)
                 current_time = time.time()
                 if current_time - last_stats_time >= 20.0:
                     try:
@@ -1112,9 +1128,6 @@ class DataGenerator:
                         last_stats_time = current_time
                     except:
                         pass
-                
-                # Tiny pause to prevent 100% CPU usage
-                time.sleep(0.0001)  # 0.1ms pause
             
             # Reduce print overhead for performance
             if worker_id == 0:  # Only first worker prints to reduce output
@@ -1199,28 +1212,28 @@ class DataGenerator:
                     if not events_processed and not transactions_processed:
                         break
                 
-                # Extreme flushing optimization for 10K+ events/second
+                # Reliable flushing for confirmed delivery
                 flush_counter += batches_processed
                 current_time = time.time()
                 
-                # Flush conditions optimized for extreme throughput
+                # Flush conditions optimized for reliability
                 should_flush = (
-                    flush_counter >= 500 or  # Much higher volume threshold
-                    (current_time - last_flush_time) >= 5.0 or  # Much less frequent time-based flushing
+                    flush_counter >= 50 or  # Lower volume threshold for more frequent flushing
+                    (current_time - last_flush_time) >= 2.0 or  # More frequent time-based flushing
                     stop_event.is_set()  # Shutdown flush
                 )
                 
                 if should_flush and flush_counter > 0:
                     try:
-                        streamer.flush_async(timeout=0.01)  # Very short timeout
+                        streamer.flush_async(timeout=1.0)  # Longer timeout for reliability
                         flush_counter = 0
                         last_flush_time = current_time
-                    except:
-                        pass  # Continue on flush errors
+                    except Exception as e:
+                        print(f"⚠️  Worker {worker_id}: Flush error: {e}")
                 
-                # No pause - maximum throughput mode
+                # Small pause if no batches processed to prevent busy waiting
                 if batches_processed == 0:
-                    pass  # No sleep - run at maximum speed
+                    time.sleep(0.01)  # 10ms pause when no work available
             
             # Final flush with longer timeout
             print(f"🔄 Streamer worker {worker_id} performing final flush...")
@@ -1392,7 +1405,8 @@ class DataGenerator:
                     queue_rate = current_events_queued / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
                     kafka_rate = kafka_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
                     
-                    print(f"⚡ {elapsed_minutes:.1f}m: {current_events_queued:,} queued ({queue_rate:.0f}/s) | {kafka_events:,} sent to Kafka ({kafka_rate:.0f}/s)")
+                    success_rate = (kafka_events / current_events_queued * 100) if current_events_queued > 0 else 0
+                    print(f"⚡ {elapsed_minutes:.1f}m: {current_events_queued:,} generated ({queue_rate:.0f}/s) | {kafka_events:,} sent to Kafka ({kafka_rate:.0f}/s) | {success_rate:.1f}% success")
                     
                     total_events_queued = current_events_queued
                     total_transactions_queued = current_transactions_queued
@@ -1416,17 +1430,17 @@ class DataGenerator:
         avg_kafka_rate = final_kafka_events / (elapsed_minutes * 60) if elapsed_minutes > 0 else 0
         streaming_efficiency = (final_kafka_events / total_events_queued * 100) if total_events_queued > 0 else 0
         
-        print(f"\n✅ HIGH-PERFORMANCE streaming completed:")
+        print(f"\n✅ RELIABLE streaming completed:")
         print(f"   - Duration: {elapsed_minutes:.1f} minutes")
-        print(f"   - Events queued by generators: {total_events_queued:,} ({avg_queue_rate:.0f}/s)")
-        print(f"   - Events queued to Kafka producer: {final_kafka_events:,} ({avg_kafka_rate:.0f}/s)")
-        print(f"   - Transactions queued to Kafka producer: {final_kafka_transactions:,}")
-        print(f"   - Producer queue efficiency: {streaming_efficiency:.1f}%")
+        print(f"   - Events generated by workers: {total_events_queued:,} ({avg_queue_rate:.0f}/s)")
+        print(f"   - Events successfully sent to Kafka: {final_kafka_events:,} ({avg_kafka_rate:.0f}/s)")
+        print(f"   - Transactions successfully sent to Kafka: {final_kafka_transactions:,}")
+        print(f"   - Delivery success rate: {streaming_efficiency:.1f}%")
         
         # Add verification note with more context
         print(f"💡 To verify actual Kafka topic data:")
         print(f"   docker exec docker-kafka-1 kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:9092")
-        print(f"📝 Note: Kafka producer queues events asynchronously, so actual topic counts may vary slightly")
+        print(f"📝 Note: All events shown as 'sent to Kafka' have been confirmed delivered")
     
     def close(self):
         """Clean up resources"""
