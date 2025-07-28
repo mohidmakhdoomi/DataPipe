@@ -1,12 +1,37 @@
 {
   "mcpServers": {
-    "clearthought": {
+    "clear-thought": {
       "command": "docker",
       "args": [
         "run",
         "--rm",
         "-i",
         "waldzellai/clear-thought"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "clear-thought-script": {
+      "command": "sh .kiro/settings/clearThoughtBridge.sh",
+      "args": [],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "clear-thought-manual": {
+      "command": "sh",
+      "args": [
+        ".kiro/settings/clearThought.sh"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
+    },
+    "clear-thought-ORIG": {
+      "command": "sh",
+      "args": [
+        ".kiro/settings/clearThought.sh"
       ],
       "env": {},
       "disabled": true,
@@ -42,16 +67,6 @@
         "secaudit",
         "docgen"
       ]
-    },
-    "zenORIG": {
-      "command": "sh",
-      "args": [
-        "-c",
-        "exec uvx --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server"
-      ],
-      "env": {},
-      "disabled": true,
-      "autoApprove": []
     },
     "terraform": {
       "command": "docker",

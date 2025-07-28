@@ -1,3 +1,4 @@
 #!/bin/bash
 
-docker build --no-cache -t context7-mcp .kiro/settings/context7
+cd .kiro/settings/context7
+docker build --no-cache -t context7-mcp .

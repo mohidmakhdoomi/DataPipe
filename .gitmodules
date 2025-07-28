@@ -1,0 +1,6 @@
+[submodule ".kiro/settings/waldzell-mcp"]
+	path = .kiro/settings/waldzell-mcp
+	url = https://github.com/waldzellai/waldzell-mcp.git
+[submodule ".kiro/settings/zen-mcp-server"]
+	path = .kiro/settings/zen-mcp-server
+	url = https://github.com/BeehiveInnovations/zen-mcp-server.git
