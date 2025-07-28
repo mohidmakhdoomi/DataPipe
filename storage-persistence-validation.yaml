@@ -1,0 +1,188 @@
+# Persistence Validation Test
+# Verifies data persists across pod restarts
+
+---
+# Database persistence validation pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: database-persistence-validation
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: storage-test
+    test-type: persistence-validation
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: test-storage
+      persistentVolumeClaim:
+        claimName: database-canary-pvc
+  containers:
+  - name: validation-container
+    image: busybox:1.35
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        echo "=== Database Persistence Validation ==="
+        echo "Checking for existing data..."
+        if [ -f /data/database-test.txt ]; then
+          echo "✅ Database test file found!"
+          echo "File contents:"
+          cat /data/database-test.txt
+        else
+          echo "❌ Database test file NOT found!"
+          exit 1
+        fi
+        
+        if [ -f /data/test-file ]; then
+          echo "✅ Database test binary file found!"
+          echo "File size: $(ls -lh /data/test-file | awk '{print $5}')"
+        else
+          echo "❌ Database test binary file NOT found!"
+          exit 1
+        fi
+        
+        if [ -f /data/test-start.log ]; then
+          echo "✅ Database test log found!"
+          echo "Log contents:"
+          cat /data/test-start.log
+        else
+          echo "❌ Database test log NOT found!"
+          exit 1
+        fi
+        
+        echo "✅ Database persistence validation PASSED!"
+        echo "Validation completed at $(date)"
+    volumeMounts:
+      - name: test-storage
+        mountPath: /data
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "50m"
+      limits:
+        memory: "64Mi"
+        cpu: "100m"
+
+---
+# Streaming persistence validation pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: streaming-persistence-validation
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: storage-test
+    test-type: persistence-validation
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: test-storage
+      persistentVolumeClaim:
+        claimName: streaming-canary-pvc
+  containers:
+  - name: validation-container
+    image: busybox:1.35
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        echo "=== Streaming Persistence Validation ==="
+        echo "Checking for existing data..."
+        if [ -f /data/streaming-test.txt ]; then
+          echo "✅ Streaming test file found!"
+          echo "Log entries count: $(wc -l < /data/streaming-test.txt)"
+          echo "First 5 entries:"
+          head -5 /data/streaming-test.txt
+        else
+          echo "❌ Streaming test file NOT found!"
+          exit 1
+        fi
+        
+        if [ -f /data/test-start.log ]; then
+          echo "✅ Streaming test log found!"
+          echo "Log contents:"
+          cat /data/test-start.log
+        else
+          echo "❌ Streaming test log NOT found!"
+          exit 1
+        fi
+        
+        echo "✅ Streaming persistence validation PASSED!"
+        echo "Validation completed at $(date)"
+    volumeMounts:
+      - name: test-storage
+        mountPath: /data
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "50m"
+      limits:
+        memory: "64Mi"
+        cpu: "100m"
+
+---
+# Metadata persistence validation pod
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metadata-persistence-validation
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: storage-test
+    test-type: persistence-validation
+spec:
+  restartPolicy: Never
+  volumes:
+    - name: test-storage
+      persistentVolumeClaim:
+        claimName: metadata-canary-pvc
+  containers:
+  - name: validation-container
+    image: busybox:1.35
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        echo "=== Metadata Persistence Validation ==="
+        echo "Checking for existing data..."
+        if [ -f /data/metadata-test.txt ]; then
+          echo "✅ Metadata test file found!"
+          echo "File contents:"
+          cat /data/metadata-test.txt
+        else
+          echo "❌ Metadata test file NOT found!"
+          exit 1
+        fi
+        
+        if [ -f /data/schema-test.json ]; then
+          echo "✅ Schema test file found!"
+          echo "Schema contents:"
+          cat /data/schema-test.json
+        else
+          echo "❌ Schema test file NOT found!"
+          exit 1
+        fi
+        
+        if [ -f /data/test-start.log ]; then
+          echo "✅ Metadata test log found!"
+          echo "Log contents:"
+          cat /data/test-start.log
+        else
+          echo "❌ Metadata test log NOT found!"
+          exit 1
+        fi
+        
+        echo "✅ Metadata persistence validation PASSED!"
+        echo "Validation completed at $(date)"
+    volumeMounts:
+      - name: test-storage
+        mountPath: /data
+    resources:
+      requests:
+        memory: "32Mi"
+        cpu: "50m"
+      limits:
+        memory: "64Mi"
+        cpu: "100m"

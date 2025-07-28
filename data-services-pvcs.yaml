@@ -1,0 +1,131 @@
+# Production PVCs for Data Ingestion Pipeline Services
+# Based on multi-model consensus validation and successful canary testing
+
+---
+# PostgreSQL PVC - 5Gi for database files, WAL logs, CDC replication slots
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-data-pvc
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: postgresql
+    app.kubernetes.io/part-of: data-ingestion-pipeline
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "PostgreSQL database storage for CDC source"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: database-local-path
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# Kafka Broker 0 PVC - 3.3Gi for log segments and KRaft metadata
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-broker-0-pvc
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/part-of: data-ingestion-pipeline
+    kafka-broker-id: "0"
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Kafka broker 0 log storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: streaming-local-path
+  resources:
+    requests:
+      storage: 3300Mi  # 3.3Gi
+
+---
+# Kafka Broker 1 PVC - 3.3Gi for log segments and KRaft metadata
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-broker-1-pvc
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/part-of: data-ingestion-pipeline
+    kafka-broker-id: "1"
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Kafka broker 1 log storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: streaming-local-path
+  resources:
+    requests:
+      storage: 3300Mi  # 3.3Gi
+
+---
+# Kafka Broker 2 PVC - 3.4Gi for log segments and KRaft metadata (slight buffer for leader)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-broker-2-pvc
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/part-of: data-ingestion-pipeline
+    kafka-broker-id: "2"
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Kafka broker 2 log storage with leader buffer"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: streaming-local-path
+  resources:
+    requests:
+      storage: 3400Mi  # 3.4Gi
+
+---
+# Schema Registry PVC - 512Mi for schema metadata storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: schema-registry-pvc
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: schema-registry
+    app.kubernetes.io/part-of: data-ingestion-pipeline
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Schema Registry metadata storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: metadata-local-path
+  resources:
+    requests:
+      storage: 512Mi
+
+---
+# Kafka Connect PVC - 1Gi for connector offsets and configurations
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-connect-pvc
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka-connect
+    app.kubernetes.io/part-of: data-ingestion-pipeline
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Kafka Connect offsets and configuration storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: metadata-local-path
+  resources:
+    requests:
+      storage: 1Gi

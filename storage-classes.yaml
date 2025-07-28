@@ -1,0 +1,57 @@
+# Differentiated Storage Classes for Data Ingestion Pipeline
+# Based on multi-model consensus validation
+# Provides clarity and future portability to production environments
+
+---
+# Database-optimized storage class for PostgreSQL
+# Optimized for random I/O, ACID compliance, and transactional workloads
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: database-local-path
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: storage
+    workload-type: database
+  annotations:
+    storageclass.kubernetes.io/description: "Local path storage optimized for database workloads"
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain  # Retain data for development persistence
+volumeBindingMode: WaitForFirstConsumer  # Ensure co-location with pods
+allowVolumeExpansion: false  # Not supported by local-path provisioner
+
+---
+# Streaming-optimized storage class for Kafka
+# Optimized for sequential writes, high throughput, and log storage
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: streaming-local-path
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: storage
+    workload-type: streaming
+  annotations:
+    storageclass.kubernetes.io/description: "Local path storage optimized for streaming workloads"
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain  # Retain data for development persistence
+volumeBindingMode: WaitForFirstConsumer  # Ensure co-location with pods
+allowVolumeExpansion: false  # Not supported by local-path provisioner
+
+---
+# Metadata storage class for Schema Registry and Kafka Connect
+# Optimized for small, fast access patterns
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: metadata-local-path
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: storage
+    workload-type: metadata
+  annotations:
+    storageclass.kubernetes.io/description: "Local path storage optimized for metadata workloads"
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain  # Retain data for development persistence
+volumeBindingMode: WaitForFirstConsumer  # Ensure co-location with pods
+allowVolumeExpansion: false  # Not supported by local-path provisioner
