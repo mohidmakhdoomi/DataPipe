@@ -105,10 +105,6 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `storage-canary-test.yaml` - Storage performance testing
 - `storage-persistence-validation.yaml` - Data persistence validation
 
-## Development Approach
-
-This project uses a multi-model consensus approach for complex decisions, validated across multiple AI models (Gemini, Opus, Grok, O3). Implementation follows a phased approach with comprehensive validation at each step.
-
 ### Key Principles
 1. Resource efficiency within 4GB constraint
 2. Production parity through Kubernetes-native approach
