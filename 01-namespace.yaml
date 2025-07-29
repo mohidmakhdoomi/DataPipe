@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-ingestion
+  labels:
+    name: data-ingestion
+    purpose: data-pipeline
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: data-ingestion-quota
+  namespace: data-ingestion
+spec:
+  hard:
+    requests.memory: "4Gi"
+    limits.memory: "4Gi"
+    requests.cpu: "2"
+    limits.cpu: "4"
+    pods: "10"
+    persistentvolumeclaims: "5"
+    secrets: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: data-ingestion-limits
+  namespace: data-ingestion
+spec:
+  limits:
+  - default:
+      memory: "512Mi"
+      cpu: "500m"
+    defaultRequest:
+      memory: "256Mi"
+      cpu: "250m"
+    max:
+      memory: "2Gi"
+      cpu: "1"
+    min:
+      memory: "128Mi"
+      cpu: "100m"
+    type: Container
