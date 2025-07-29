@@ -1,0 +1,297 @@
+# Network Policies for Data Ingestion Pipeline Security
+# Task 3: Service isolation and traffic control
+# Implements defense-in-depth security architecture
+
+---
+# Default Deny All Policy for data-ingestion namespace
+# Establishes zero-trust foundation - all traffic denied by default
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: security
+    policy-type: default-deny
+  annotations:
+    description: "Default deny-all policy for zero-trust security model"
+spec:
+  podSelector: {}  # Applies to all pods in namespace
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+# PostgreSQL Network Policy
+# Allows ingress only from Kafka Connect (Debezium) for CDC
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql-network-policy
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: postgresql
+    policy-type: selective-allow
+  annotations:
+    description: "PostgreSQL access restricted to Kafka Connect for CDC operations"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: postgresql
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow Kafka Connect (Debezium) to connect for CDC
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL port
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow outbound connections for replication (if needed)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 5432
+
+---
+# Kafka Cluster Network Policy  
+# Allows inter-broker communication and connections from clients
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-network-policy
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+    policy-type: selective-allow
+  annotations:
+    description: "Kafka brokers accessible by Schema Registry and Kafka Connect"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: kafka
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow inter-broker communication for KRaft coordination
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092  # Kafka broker port
+    - protocol: TCP
+      port: 9093  # KRaft controller port
+  # Allow Schema Registry to connect
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: schema-registry
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow Kafka Connect to connect
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 9092
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow inter-broker communication
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+
+---
+# Schema Registry Network Policy
+# Allows connections from Kafka Connect and connects to Kafka
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schema-registry-network-policy
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: schema-registry
+    policy-type: selective-allow
+  annotations:
+    description: "Schema Registry accessible by Kafka Connect, connects to Kafka"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: schema-registry
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow Kafka Connect to access Schema Registry
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 8081  # Schema Registry port
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow connections to Kafka brokers for schema storage
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+
+---
+# Kafka Connect Network Policy
+# Most permissive - needs to connect to PostgreSQL, Kafka, Schema Registry, and external S3
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-connect-network-policy
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka-connect
+    policy-type: selective-allow
+  annotations:
+    description: "Kafka Connect with full connectivity for CDC and S3 archival"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: kafka-connect
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow Kafka Connect REST API access (for connector management)
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 8083  # Kafka Connect REST API
+  # Allow inter-worker communication for distributed mode
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 8083
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow connections to PostgreSQL for CDC
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow connections to Kafka brokers
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow connections to Schema Registry
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: schema-registry
+    ports:
+    - protocol: TCP
+      port: 8081
+  # Allow external connections to AWS S3 (HTTPS)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow inter-worker communication
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 8083
+
+---
+# External Egress Policy for AWS S3 Access
+# Specific policy for S3 connectivity from Kafka Connect
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: s3-egress-policy
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: external-access
+    policy-type: external-egress
+  annotations:
+    description: "Allow S3 access for data archival from Kafka Connect"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: kafka-connect
+  policyTypes:
+  - Egress
+  egress:
+  # Allow HTTPS connections to AWS S3 endpoints
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow HTTP connections (for some AWS services)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
