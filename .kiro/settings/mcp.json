@@ -1,37 +1,30 @@
 {
   "mcpServers": {
     "clear-thought": {
+      "command": "mcp-proxy",
+      "args": [
+        "--transport",
+        "streamablehttp",
+        "http://localhost:3000/mcp"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "clear-thought-starter": {
+      "command": "sh .kiro/settings/startClearThoughtDocker.sh",
+      "args": [],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
+    "clear-thought-dev-stdio": {
       "command": "docker",
       "args": [
         "run",
         "--rm",
         "-i",
         "waldzellai/clear-thought"
-      ],
-      "env": {},
-      "disabled": false,
-      "autoApprove": []
-    },
-    "clear-thought-script": {
-      "command": "sh .kiro/settings/clearThoughtBridge.sh",
-      "args": [],
-      "env": {},
-      "disabled": true,
-      "autoApprove": []
-    },
-    "clear-thought-manual": {
-      "command": "sh",
-      "args": [
-        ".kiro/settings/clearThought.sh"
-      ],
-      "env": {},
-      "disabled": true,
-      "autoApprove": []
-    },
-    "clear-thought-ORIG": {
-      "command": "sh",
-      "args": [
-        ".kiro/settings/clearThought.sh"
       ],
       "env": {},
       "disabled": true,
