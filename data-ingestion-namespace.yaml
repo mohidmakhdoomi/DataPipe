@@ -1,0 +1,20 @@
+# Data Ingestion Pipeline - Namespace Configuration
+# Based on multi-model consensus analysis (Gemini 2.5 Pro, Opus 4, Grok 4, O3)
+# Task 3: Create Kubernetes namespaces and RBAC configuration
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/part-of: data-pipeline
+    app.kubernetes.io/version: "1.0.0"
+    environment: development
+    workload-type: streaming-pipeline
+  annotations:
+    description: "Data ingestion pipeline namespace for PostgreSQL CDC, Kafka streaming, and S3 archival"
+    contact: "data-engineering-team"
+    resource-allocation: "4GB-total-ram-constraint"
+    throughput-target: "10000-events-per-second"
+    security-requirements: "7.1-k8s-secrets,7.2-encrypted-s3"

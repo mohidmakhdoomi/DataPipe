@@ -1,0 +1,135 @@
+# Task 3 Validation Script
+# Validates namespace, RBAC, and network policy configuration
+# Based on multi-model consensus recommendations
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: task3-validation
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: validation
+    task: task3-rbac-network-validation
+  annotations:
+    description: "Validates Task 3 RBAC and network policy implementation"
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: validation
+    spec:
+      serviceAccountName: debezium-sa  # Use most privileged SA for testing
+      restartPolicy: Never
+      containers:
+      - name: validation
+        image: alpine:3.18
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          echo "=== Task 3 Validation Report ==="
+          echo "Date: $(date)"
+          echo "Namespace: data-ingestion"
+          echo ""
+          
+          # Install kubectl and networking tools
+          apk add --no-cache curl wget bind-tools
+          
+          # Download kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          mv kubectl /usr/local/bin/
+          
+          echo "=== 1. Namespace Validation ==="
+          echo "Checking if data-ingestion namespace exists..."
+          if kubectl get namespace data-ingestion > /dev/null 2>&1; then
+            echo "✅ Namespace 'data-ingestion' exists"
+            kubectl get namespace data-ingestion -o yaml | grep -E "(name|labels|annotations)" | head -10
+          else
+            echo "❌ Namespace 'data-ingestion' not found"
+            exit 1
+          fi
+          echo ""
+          
+          echo "=== 2. Service Account Validation ==="
+          echo "Checking service accounts..."
+          for sa in postgresql-sa kafka-sa debezium-sa; do
+            if kubectl get serviceaccount $sa -n data-ingestion > /dev/null 2>&1; then
+              echo "✅ ServiceAccount '$sa' exists"
+            else
+              echo "❌ ServiceAccount '$sa' not found"
+            fi
+          done
+          echo ""
+          
+          echo "=== 3. RBAC Validation ==="
+          echo "Checking roles and rolebindings..."
+          for role in postgresql-role kafka-role debezium-role; do
+            if kubectl get role $role -n data-ingestion > /dev/null 2>&1; then
+              echo "✅ Role '$role' exists"
+            else
+              echo "❌ Role '$role' not found"
+            fi
+          done
+          
+          for rb in postgresql-rolebinding kafka-rolebinding debezium-rolebinding; do
+            if kubectl get rolebinding $rb -n data-ingestion > /dev/null 2>&1; then
+              echo "✅ RoleBinding '$rb' exists"
+            else
+              echo "❌ RoleBinding '$rb' not found"
+            fi
+          done
+          echo ""
+          
+          echo "=== 4. Secret Templates Validation ==="
+          echo "Checking secret templates..."
+          for secret in postgresql-credentials kafka-credentials aws-s3-credentials; do
+            if kubectl get secret $secret -n data-ingestion > /dev/null 2>&1; then
+              echo "✅ Secret '$secret' exists"
+            else
+              echo "❌ Secret '$secret' not found"
+            fi
+          done
+          echo ""
+          
+          echo "=== 5. Network Policy Validation ==="
+          echo "Checking network policies..."
+          policies="default-deny-all allow-dns-access postgresql-ingress kafka-cluster-communication schema-registry-access debezium-egress nodeport-development-access"
+          for policy in $policies; do
+            if kubectl get networkpolicy $policy -n data-ingestion > /dev/null 2>&1; then
+              echo "✅ NetworkPolicy '$policy' exists"
+            else
+              echo "❌ NetworkPolicy '$policy' not found"
+            fi
+          done
+          echo ""
+          
+          echo "=== 6. DNS Resolution Test ==="
+          echo "Testing DNS resolution (critical for network policies)..."
+          if nslookup kubernetes.default.svc.cluster.local > /dev/null 2>&1; then
+            echo "✅ DNS resolution working"
+          else
+            echo "⚠️  DNS resolution issues detected"
+          fi
+          echo ""
+          
+          echo "=== 7. Current Pod Security Context ==="
+          echo "Checking current pod's security context..."
+          echo "Current ServiceAccount: $(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)/$(cat /var/run/secrets/kubernetes.io/serviceaccount/serviceaccount)"
+          echo ""
+          
+          echo "=== 8. Resource Summary ==="
+          echo "Namespace resources:"
+          kubectl get all -n data-ingestion
+          echo ""
+          kubectl get networkpolicies -n data-ingestion
+          echo ""
+          kubectl get secrets -n data-ingestion
+          echo ""
+          
+          echo "=== Validation Complete ==="
+          echo "Check for any ❌ items above that need attention"
+          echo "If all items show ✅, Task 3 implementation is successful"
+          
+      # No volumes needed for this validation job

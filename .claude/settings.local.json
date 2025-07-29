@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__sequentialthinking__sequentialthinking",
+      "mcp__zen__thinkdeep",
+      "mcp__zen__consensus",
+      "Bash(kubectl logs:*)",
+      "Bash(kubectl get pods:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(kubectl get:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "clear-thought",
+    "clear-thought-starter",
+    "zen",
+    "sequentialthinking",
+    "Context7"
+  ]
+}

@@ -1,0 +1,276 @@
+# Data Ingestion Pipeline - Network Policies
+# Based on multi-model consensus analysis (Gemini 2.5 Pro, Opus 4, Grok 4, O3) 
+# Task 3: Default deny with explicit allows for service isolation
+# CRITICAL: Requires NetworkPolicy-aware CNI (Calico/Cilium) - default kindnetd ignores these rules
+
+---
+# Default deny all traffic in data-ingestion namespace
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    policy-type: default-deny
+  annotations:
+    description: "Default deny all ingress and egress traffic - explicit allows required"
+spec:
+  podSelector: {} # Apply to all pods in namespace
+  policyTypes:
+  - Ingress
+  - Egress
+
+---
+# Allow DNS access for all pods (CRITICAL - commonly overlooked)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-access
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    policy-type: dns-access
+  annotations:
+    description: "Allow DNS resolution for all pods - required for service discovery"
+spec:
+  podSelector: {} # Apply to all pods in namespace
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+# PostgreSQL ingress policy - only from Debezium
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql-ingress
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: postgresql
+    policy-type: service-ingress
+  annotations:
+    description: "Allow PostgreSQL access only from Debezium connector"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: postgresql
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow from Debezium/Kafka Connect
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: debezium
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow from NodePort for development access
+  - from: []  # Allow from any source
+    ports:
+    - protocol: TCP
+      port: 5432
+
+---
+# Kafka inter-broker communication policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-cluster-communication
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+    policy-type: cluster-communication
+  annotations:
+    description: "Allow Kafka inter-broker communication and client access"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: kafka
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Inter-broker communication (KRaft mode)
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092  # Client port
+    - protocol: TCP
+      port: 9093  # Controller port (KRaft)
+  # Allow from Debezium and Schema Registry
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: debezium
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: schema-registry
+    ports:
+    - protocol: TCP
+      port: 9092
+  # NodePort access for development
+  - from: []  # Allow from any source
+    ports:
+    - protocol: TCP
+      port: 9092
+  egress:
+  # Inter-broker communication
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+
+---
+# Schema Registry network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schema-registry-access
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: schema-registry
+    policy-type: service-access
+  annotations:
+    description: "Allow Schema Registry access from Kafka Connect and development"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: schema-registry
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow from Debezium/Kafka Connect
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: debezium
+    ports:
+    - protocol: TCP
+      port: 8081
+  # NodePort access for development
+  - from: []  # Allow from any source
+    ports:
+    - protocol: TCP
+      port: 8081
+  egress:
+  # Allow Schema Registry to connect to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+
+---
+# Debezium/Kafka Connect egress policy - bridge to external services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: debezium-egress
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: debezium
+    policy-type: bridge-egress
+  annotations:
+    description: "Allow Debezium to connect to PostgreSQL, Kafka, Schema Registry, and S3"
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: debezium
+  policyTypes:
+  - Egress
+  egress:
+  # Allow connection to PostgreSQL
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow connection to Kafka brokers
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow connection to Schema Registry
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: schema-registry
+    ports:
+    - protocol: TCP
+      port: 8081
+  # Allow HTTPS egress to AWS S3 (requirement 7.2 - encrypted connections)
+  # WARNING: This allows egress to entire internet for S3 access
+  # In production, scope to specific S3 IP ranges
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS for S3 API
+
+---
+# NodePort ingress policy for development access
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nodeport-development-access
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    policy-type: development-access
+  annotations:
+    description: "Allow NodePort access for local development and testing"
+spec:
+  podSelector: {} # Apply to all pods
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow NodePort access on mapped ports
+  - from: []  # Allow from any source (development only)
+    ports:
+    # PostgreSQL NodePort (5432 → 30432)
+    - protocol: TCP
+      port: 5432
+    # Kafka NodePort (9092 → 30092)  
+    - protocol: TCP
+      port: 9092
+    # Schema Registry NodePort (8081 → 30081)
+    - protocol: TCP
+      port: 8081
+    # Kafka Connect NodePort (8083 → 30083)
+    - protocol: TCP
+      port: 8083

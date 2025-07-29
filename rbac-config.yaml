@@ -1,0 +1,177 @@
+# Data Ingestion Pipeline - RBAC Configuration
+# Based on multi-model consensus analysis (Gemini 2.5 Pro, Opus 4, Grok 4, O3)
+# Task 3: Service accounts with minimal required permissions (not empty roles)
+
+---
+# PostgreSQL Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgresql-sa
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: postgresql
+    service-type: database
+  annotations:
+    description: "PostgreSQL service account with minimal permissions"
+
+---
+# Kafka Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kafka-sa
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+    service-type: streaming
+  annotations:
+    description: "Kafka service account for broker coordination and storage"
+
+---
+# Debezium/Kafka Connect Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: debezium-sa
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: debezium
+    service-type: connector
+  annotations:
+    description: "Debezium service account with bridge permissions for PostgreSQL/Kafka/S3"
+
+---
+# PostgreSQL Role - Minimal permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: data-ingestion
+  name: postgresql-role
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: postgresql
+rules:
+# PostgreSQL typically needs minimal K8s API permissions
+# Add permissions only if StatefulSet self-management is required
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+  resourceNames: ["postgresql-credentials"]
+
+---
+# Kafka Role - Broker coordination and storage
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: data-ingestion
+  name: kafka-role
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+rules:
+# Kafka brokers need pod discovery for cluster coordination
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+# StatefulSet management permissions
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "create", "update"]
+# Service discovery for broker coordination
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+# Access to broker credentials and TLS certificates
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+  resourceNames: ["kafka-credentials", "kafka-tls-certs"]
+
+---
+# Debezium Role - Bridge permissions across services
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: data-ingestion
+  name: debezium-role
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: debezium
+rules:
+# ConfigMap access for connector configurations
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "create", "update"]
+# Secret access for database, Kafka, and S3 credentials
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+  resourceNames: ["postgresql-credentials", "kafka-credentials", "aws-s3-credentials"]
+# Service discovery for connecting to PostgreSQL, Kafka, Schema Registry
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+
+---
+# PostgreSQL RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgresql-rolebinding
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: postgresql
+subjects:
+- kind: ServiceAccount
+  name: postgresql-sa
+  namespace: data-ingestion
+roleRef:
+  kind: Role
+  name: postgresql-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Kafka RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kafka-rolebinding
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: kafka
+subjects:
+- kind: ServiceAccount
+  name: kafka-sa
+  namespace: data-ingestion
+roleRef:
+  kind: Role
+  name: kafka-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Debezium RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: debezium-rolebinding
+  namespace: data-ingestion
+  labels:
+    app.kubernetes.io/name: data-ingestion-pipeline
+    app.kubernetes.io/component: debezium
+subjects:
+- kind: ServiceAccount
+  name: debezium-sa
+  namespace: data-ingestion
+roleRef:
+  kind: Role
+  name: debezium-role
+  apiGroup: rbac.authorization.k8s.io

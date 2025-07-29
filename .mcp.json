@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "clear-thought": {
+      "command": "mcp-proxy",
+      "args": [
+        "--transport",
+        "streamablehttp",
+        "http://localhost:3000/mcp"
+      ],
+      "env": {}
+    },
+    "clear-thought-starter": {
+      "command": "sh .kiro/settings/startClearThoughtDocker.sh",
+      "args": [],
+      "env": {}
+    },
+    "zen": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/.env",
+        "-v",
+        "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logsClaude:/app/logs",
+        "zen-mcp-server:latest"
+      ],
+      "env": {}
+    },
+    "sequentialthinking": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "mcp/sequentialthinking"
+      ],
+      "env": {}
+    },
+    "Context7": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "context7-mcp"
+      ],
+      "env": {}
+    }
+  }
+}
