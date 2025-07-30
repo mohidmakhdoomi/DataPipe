@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: schema-registry-debug
+  namespace: data-ingestion
+  labels:
+    app: schema-registry-debug
+spec:
+  serviceAccountName: kafka-sa
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: schema-registry
+    image: confluentinc/cp-schema-registry:7.4.0
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: false
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop:
+        - ALL
+    env:
+    - name: SCHEMA_REGISTRY_HOST_NAME
+      value: "schema-registry-debug"
+    - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+      value: "kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092"
+    - name: SCHEMA_REGISTRY_LISTENERS
+      value: "http://0.0.0.0:8081"
+    - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
+      value: "_schemas"
+    - name: SCHEMA_REGISTRY_DEBUG
+      value: "true"
+    - name: SCHEMA_REGISTRY_HEAP_OPTS
+      value: "-Xmx200m -Xms200m"
+    command: ["/bin/bash"]
+    args: ["-c", "echo 'Starting Schema Registry...'; /etc/confluent/docker/run"]
+    ports:
+    - name: http
+      containerPort: 8081
+      protocol: TCP
+    resources:
+      requests:
+        memory: "200Mi"
+        cpu: "250m"
+      limits:
+        memory: "250Mi"
+        cpu: "500m"
+    volumeMounts:
+    - name: tmp
+      mountPath: /tmp
+  volumes:
+  - name: tmp
+    emptyDir: {}
+  restartPolicy: Never

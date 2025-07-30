@@ -8,9 +8,9 @@ metadata:
     component: database
 data:
   postgresql.conf: |
-    # Memory Configuration (optimized for 1.5GB allocation)
-    shared_buffers = 384MB
-    effective_cache_size = 1GB
+    # Memory Configuration (optimized for 1GB allocation)
+    shared_buffers = 256MB
+    effective_cache_size = 512MB
     work_mem = 4MB
     maintenance_work_mem = 64MB
     
@@ -19,8 +19,8 @@ data:
     
     # WAL Configuration for CDC
     wal_level = logical
-    max_wal_senders = 3
-    max_replication_slots = 3
+    max_wal_senders = 4
+    max_replication_slots = 4
     max_logical_replication_workers = 4
     
     # Performance Tuning

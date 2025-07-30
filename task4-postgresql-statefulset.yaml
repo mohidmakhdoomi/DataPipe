@@ -56,6 +56,14 @@ spec:
               key: password
         - name: PGDATA
           value: "/var/lib/postgresql/data/pgdata"
+        - name: POSTGRES_INITDB_ARGS
+          value: "--data-checksums"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Start PostgreSQL with custom configuration
+          exec docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf
         ports:
         - name: postgresql
           containerPort: 5432
@@ -65,7 +73,7 @@ spec:
             memory: "1Gi"
             cpu: "500m"
           limits:
-            memory: "1.5Gi"
+            memory: "1Gi"
             cpu: "1"
         volumeMounts:
         - name: postgresql-data

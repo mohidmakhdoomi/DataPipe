@@ -32,7 +32,7 @@ data:
     socket.request.max.bytes=104857600
     
     # Log Configuration (optimized for CDC)
-    num.partitions=3
+    num.partitions=6
     default.replication.factor=3
     min.insync.replicas=2
     log.retention.hours=168
@@ -40,7 +40,7 @@ data:
     log.retention.check.interval.ms=300000
     log.cleanup.policy=delete
     
-    # Memory Optimization (for 500MB per broker)
+    # Memory Optimization (for 667MB per broker)
     log.flush.interval.messages=10000
     log.flush.interval.ms=1000
     
@@ -53,7 +53,7 @@ data:
     group.initial.rebalance.delay.ms=0
     
     # Compression
-    compression.type=snappy
+    compression.type=lz4
   
   server-1.properties: |
     # Broker Configuration
@@ -80,7 +80,7 @@ data:
     socket.request.max.bytes=104857600
     
     # Log Configuration (optimized for CDC)
-    num.partitions=3
+    num.partitions=6
     default.replication.factor=3
     min.insync.replicas=2
     log.retention.hours=168
@@ -88,7 +88,7 @@ data:
     log.retention.check.interval.ms=300000
     log.cleanup.policy=delete
     
-    # Memory Optimization (for 500MB per broker)
+    # Memory Optimization (for 667MB per broker)
     log.flush.interval.messages=10000
     log.flush.interval.ms=1000
     
@@ -101,7 +101,7 @@ data:
     group.initial.rebalance.delay.ms=0
     
     # Compression
-    compression.type=snappy
+    compression.type=lz4
   
   server-2.properties: |
     # Broker Configuration
@@ -128,7 +128,7 @@ data:
     socket.request.max.bytes=104857600
     
     # Log Configuration (optimized for CDC)
-    num.partitions=3
+    num.partitions=6
     default.replication.factor=3
     min.insync.replicas=2
     log.retention.hours=168
@@ -136,7 +136,7 @@ data:
     log.retention.check.interval.ms=300000
     log.cleanup.policy=delete
     
-    # Memory Optimization (for 500MB per broker)
+    # Memory Optimization (for 667MB per broker)
     log.flush.interval.messages=10000
     log.flush.interval.ms=1000
     
@@ -149,7 +149,7 @@ data:
     group.initial.rebalance.delay.ms=0
     
     # Compression
-    compression.type=snappy
+    compression.type=lz4
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -197,7 +197,7 @@ spec:
             - ALL
         env:
         - name: KAFKA_HEAP_OPTS
-          value: "-Xmx384m -Xms384m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
+          value: "-Xmx667m -Xms667m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
         - name: KAFKA_JVM_PERFORMANCE_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true"
         ports:
@@ -231,10 +231,10 @@ spec:
           exec kafka-server-start /etc/kafka/server.properties
         resources:
           requests:
-            memory: "384Mi"
+            memory: "667Mi"
             cpu: "250m"
           limits:
-            memory: "500Mi"
+            memory: "750Mi"
             cpu: "500m"
         volumeMounts:
         - name: kafka-data
@@ -274,7 +274,7 @@ spec:
       storageClassName: standard
       resources:
         requests:
-          storage: 3Gi
+          storage: 3413Mi
 ---
 apiVersion: v1
 kind: Service
