@@ -1,5 +1,5 @@
 {
-    "kiroAgent.agentAutonomy": "Autopilot",
+    "kiroAgent.agentAutonomy": "Supervised",
     "kiroAgent.enableTabAutocomplete": false,
     "files.autoSave": "afterDelay"
 }
