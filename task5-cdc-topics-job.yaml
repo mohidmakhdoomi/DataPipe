@@ -1,0 +1,119 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-cdc-topics
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: topic-management
+spec:
+  template:
+    metadata:
+      labels:
+        app: kafka
+        component: topic-management
+    spec:
+      serviceAccountName: kafka-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      restartPolicy: OnFailure
+      containers:
+      - name: topic-creator
+        image: confluentinc/cp-kafka:7.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx256m -Xms256m"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Wait for Kafka cluster to be ready
+          echo "Waiting for Kafka cluster to be ready..."
+          until kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list > /dev/null 2>&1; do
+            echo "Kafka not ready, waiting 10 seconds..."
+            sleep 10
+          done
+          
+          echo "Kafka cluster is ready. Creating CDC topics..."
+          
+          # Create cdc.postgres.users topic
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic cdc.postgres.users \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+          
+          # Create cdc.postgres.products topic
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic cdc.postgres.products \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+          
+          # Create cdc.postgres.orders topic (additional e-commerce table)
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic cdc.postgres.orders \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+          
+          # Create cdc.postgres.order_items topic (additional e-commerce table)
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic cdc.postgres.order_items \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+          
+          echo "Verifying created topics..."
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list
+          
+          echo "Topic creation completed successfully!"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

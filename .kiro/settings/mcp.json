@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "clear-thought": {
+    "clear-thought-proxy": {
       "command": "mcp-proxy",
       "args": [
         "--transport",
@@ -8,17 +8,17 @@
         "http://localhost:3000/mcp"
       ],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
     "clear-thought-starter": {
       "command": "sh .kiro/settings/startClearThoughtDocker.sh",
       "args": [],
       "env": {},
-      "disabled": false,
+      "disabled": true,
       "autoApprove": []
     },
-    "clear-thought-dev-stdio": {
+    "clear-thought": {
       "command": "docker",
       "args": [
         "run",
@@ -27,7 +27,7 @@
         "waldzellai/clear-thought"
       ],
       "env": {},
-      "disabled": true,
+      "disabled": false,
       "autoApprove": []
     },
     "zen": {
@@ -40,7 +40,7 @@
         "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/.env",
         "-v",
         "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logs:/app/logs",
-        "zen-mcp-server:latest"
+        "zen-mcp-server"
       ],
       "env": {},
       "disabled": false,
@@ -61,32 +61,6 @@
         "docgen"
       ]
     },
-    "terraform": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "hashicorp/terraform-mcp-server"
-      ],
-      "env": {},
-      "disabled": true,
-      "autoApprove": []
-    },
-    "sequentialthinking": {
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-i",
-        "mcp/sequentialthinking"
-      ],
-      "env": {},
-      "disabled": false,
-      "autoApprove": [
-        "sequentialthinking"
-      ]
-    },
     "Context7": {
       "command": "docker",
       "args": [
@@ -101,6 +75,32 @@
         "get-library-docs",
         "resolve-library-id"
       ]
+    },    
+    "sequentialthinking": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "mcp/sequentialthinking"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": [
+        "sequentialthinking"
+      ]
+    },
+    "terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server"
+      ],
+      "env": {},
+      "disabled": true,
+      "autoApprove": []
     },
     "aws-terraform": {
       "command": "docker",

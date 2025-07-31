@@ -1,0 +1,320 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-kraft-config
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: streaming
+data:
+  server-0.properties: |
+    # Broker Configuration
+    process.roles=broker,controller
+    node.id=0
+    controller.quorum.voters=0@kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9093,1@kafka-1.kafka-headless.data-ingestion.svc.cluster.local:9093,2@kafka-2.kafka-headless.data-ingestion.svc.cluster.local:9093
+    
+    # Listeners
+    listeners=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+    advertised.listeners=PLAINTEXT://kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092
+    controller.listener.names=CONTROLLER
+    listener.security.protocol.map=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    inter.broker.listener.name=PLAINTEXT
+    
+    # Storage Configuration
+    log.dirs=/var/lib/kafka/data
+    controller.log.dirs=/var/lib/kafka/metadata
+    
+    # Cluster Configuration
+    num.network.threads=3
+    num.io.threads=8
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+    
+    # Log Configuration (optimized for CDC)
+    num.partitions=6
+    default.replication.factor=3
+    min.insync.replicas=2
+    log.retention.hours=168
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000
+    log.cleanup.policy=delete
+    
+    # Memory Optimization (for 667MB per broker)
+    log.flush.interval.messages=10000
+    log.flush.interval.ms=1000
+    
+    # Replication Configuration
+    replica.fetch.max.bytes=1048576
+    replica.socket.timeout.ms=30000
+    replica.socket.receive.buffer.bytes=65536
+    
+    # Group Coordinator Configuration
+    group.initial.rebalance.delay.ms=0
+    
+    # Compression
+    compression.type=lz4
+  
+  server-1.properties: |
+    # Broker Configuration
+    process.roles=broker,controller
+    node.id=1
+    controller.quorum.voters=0@kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9093,1@kafka-1.kafka-headless.data-ingestion.svc.cluster.local:9093,2@kafka-2.kafka-headless.data-ingestion.svc.cluster.local:9093
+    
+    # Listeners
+    listeners=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+    advertised.listeners=PLAINTEXT://kafka-1.kafka-headless.data-ingestion.svc.cluster.local:9092
+    controller.listener.names=CONTROLLER
+    listener.security.protocol.map=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    inter.broker.listener.name=PLAINTEXT
+    
+    # Storage Configuration
+    log.dirs=/var/lib/kafka/data
+    controller.log.dirs=/var/lib/kafka/metadata
+    
+    # Cluster Configuration
+    num.network.threads=3
+    num.io.threads=8
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+    
+    # Log Configuration (optimized for CDC)
+    num.partitions=6
+    default.replication.factor=3
+    min.insync.replicas=2
+    log.retention.hours=168
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000
+    log.cleanup.policy=delete
+    
+    # Memory Optimization (for 667MB per broker)
+    log.flush.interval.messages=10000
+    log.flush.interval.ms=1000
+    
+    # Replication Configuration
+    replica.fetch.max.bytes=1048576
+    replica.socket.timeout.ms=30000
+    replica.socket.receive.buffer.bytes=65536
+    
+    # Group Coordinator Configuration
+    group.initial.rebalance.delay.ms=0
+    
+    # Compression
+    compression.type=lz4
+  
+  server-2.properties: |
+    # Broker Configuration
+    process.roles=broker,controller
+    node.id=2
+    controller.quorum.voters=0@kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9093,1@kafka-1.kafka-headless.data-ingestion.svc.cluster.local:9093,2@kafka-2.kafka-headless.data-ingestion.svc.cluster.local:9093
+    
+    # Listeners
+    listeners=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+    advertised.listeners=PLAINTEXT://kafka-2.kafka-headless.data-ingestion.svc.cluster.local:9092
+    controller.listener.names=CONTROLLER
+    listener.security.protocol.map=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    inter.broker.listener.name=PLAINTEXT
+    
+    # Storage Configuration
+    log.dirs=/var/lib/kafka/data
+    controller.log.dirs=/var/lib/kafka/metadata
+    
+    # Cluster Configuration
+    num.network.threads=3
+    num.io.threads=8
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+    
+    # Log Configuration (optimized for CDC)
+    num.partitions=6
+    default.replication.factor=3
+    min.insync.replicas=2
+    log.retention.hours=168
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000
+    log.cleanup.policy=delete
+    
+    # Memory Optimization (for 667MB per broker)
+    log.flush.interval.messages=10000
+    log.flush.interval.ms=1000
+    
+    # Replication Configuration
+    replica.fetch.max.bytes=1048576
+    replica.socket.timeout.ms=30000
+    replica.socket.receive.buffer.bytes=65536
+    
+    # Group Coordinator Configuration
+    group.initial.rebalance.delay.ms=0
+    
+    # Compression
+    compression.type=lz4
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: streaming
+spec:
+  serviceName: kafka-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: kafka
+      component: streaming
+  template:
+    metadata:
+      labels:
+        app: kafka
+        component: streaming
+    spec:
+      serviceAccountName: kafka-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:7.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx667m -Xms667m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
+        - name: KAFKA_JVM_PERFORMANCE_OPTS
+          value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true"
+        ports:
+        - name: kafka
+          containerPort: 9092
+          protocol: TCP
+        - name: controller
+          containerPort: 9093
+          protocol: TCP
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # Determine broker configuration based on pod ordinal
+          ORDINAL=${HOSTNAME##*-}
+          cp /etc/kafka-config/server-${ORDINAL}.properties /etc/kafka/server.properties
+          
+          # Create directories
+          mkdir -p /var/lib/kafka/data
+          mkdir -p /var/lib/kafka/metadata
+          
+          # Check if already formatted
+          if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+            echo "Formatting Kafka storage..."
+            # Generate cluster UUID (same for all brokers)
+            CLUSTER_UUID="MkU3OEVBNTcwNTJENDM2Qk"
+            kafka-storage format -t $CLUSTER_UUID -c /etc/kafka/server.properties --ignore-formatted
+          fi
+          
+          # Start Kafka
+          exec kafka-server-start /etc/kafka/server.properties
+        resources:
+          requests:
+            memory: "667Mi"
+            cpu: "250m"
+          limits:
+            memory: "750Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: kafka-data
+          mountPath: /var/lib/kafka
+        - name: kafka-config
+          mountPath: /etc/kafka-config
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 9092
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: kafka-config
+        configMap:
+          name: kafka-kraft-config
+      - name: tmp
+        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: kafka-data
+      labels:
+        app: kafka
+        component: streaming
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: streaming-local-path
+      resources:
+        requests:
+          storage: 3413Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-headless
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: streaming
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: kafka
+    port: 9092
+    targetPort: 9092
+    protocol: TCP
+  - name: controller
+    port: 9093
+    targetPort: 9093
+    protocol: TCP
+  selector:
+    app: kafka
+    component: streaming
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: streaming
+spec:
+  type: ClusterIP
+  ports:
+  - name: kafka
+    port: 9092
+    targetPort: 9092
+    protocol: TCP
+  selector:
+    app: kafka
+    component: streaming
