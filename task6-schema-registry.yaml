@@ -1,0 +1,200 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: schema-registry-sa
+  namespace: data-ingestion
+  labels:
+    app: schema-registry
+    component: schema-management
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schema-registry-config
+  namespace: data-ingestion
+  labels:
+    app: schema-registry
+    component: schema-management
+data:
+  schema-registry.properties: |
+    # Kafka Connection Configuration
+    kafkastore.bootstrap.servers=kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092,kafka-1.kafka-headless.data-ingestion.svc.cluster.local:9092,kafka-2.kafka-headless.data-ingestion.svc.cluster.local:9092
+    kafkastore.topic=_schemas
+    kafkastore.topic.replication.factor=3
+    
+    # Schema Registry Configuration
+    listeners=http://0.0.0.0:8081
+    host.name=schema-registry
+    debug=true
+    
+    # Schema Compatibility Configuration
+    schema.compatibility.level=BACKWARD
+    
+    # Performance Configuration
+    kafkastore.init.timeout.ms=60000
+    kafkastore.timeout.ms=500
+    
+    # Security Configuration
+    kafkastore.security.protocol=PLAINTEXT
+    
+    # Logging Configuration
+    log4j.root.loglevel=DEBUG
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry
+  namespace: data-ingestion
+  labels:
+    app: schema-registry
+    component: schema-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schema-registry
+      component: schema-management
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+        component: schema-management
+    spec:
+      serviceAccountName: schema-registry-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: schema-registry
+        image: confluentinc/cp-schema-registry:7.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+        - name: SCHEMA_REGISTRY_HOST_NAME
+          value: "schema-registry"
+        - name: SCHEMA_REGISTRY_LISTENERS
+          value: "http://0.0.0.0:8081"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
+          value: "_schemas"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR
+          value: "3"
+        - name: SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL
+          value: "BACKWARD"
+        - name: SCHEMA_REGISTRY_DEBUG
+          value: "true"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_INIT_TIMEOUT_MS
+          value: "300000"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS
+          value: "10000"
+        - name: SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL
+          value: "DEBUG"
+        - name: SCHEMA_REGISTRY_GROUP_ID
+          value: "schema-registry"
+        - name: SCHEMA_REGISTRY_HEAP_OPTS
+          value: "-Xmx256m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20"
+        ports:
+        - name: http
+          containerPort: 8081
+          protocol: TCP
+        resources:
+          requests:
+            memory: "384Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: schema-registry-tmp
+          mountPath: /etc/schema-registry
+        - name: config
+          mountPath: /etc/schema-registry/schema-registry.properties
+          subPath: schema-registry.properties
+        - name: tmp
+          mountPath: /tmp
+        livenessProbe:
+          httpGet:
+            path: /subjects
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /subjects
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /subjects
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
+      volumes:
+      - name: config
+        configMap:
+          name: schema-registry-config
+      - name: schema-registry-tmp
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schema-registry
+  namespace: data-ingestion
+  labels:
+    app: schema-registry
+    component: schema-management
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8081
+    targetPort: 8081
+    protocol: TCP
+  selector:
+    app: schema-registry
+    component: schema-management
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schema-registry-nodeport
+  namespace: data-ingestion
+  labels:
+    app: schema-registry
+    component: schema-management
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 8081
+    targetPort: 8081
+    nodePort: 30081
+    protocol: TCP
+  selector:
+    app: schema-registry
+    component: schema-management
