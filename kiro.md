@@ -112,9 +112,24 @@
 
 ### **Key Implementation Files**
 - `task4-postgresql-configmap.yaml` / `task4-postgresql-statefulset.yaml` - PostgreSQL with CDC
-- `task5-kafka-kraft-3brokers.yaml` - 3-broker Kafka cluster
+- `task5-kafka-kraft-3brokers.yaml` / `task5-cdc-topics-job.yaml` - 3-broker Kafka cluster and topic creation
 - `task5-cdc-topics-job.yaml` - CDC topic creation
-- `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (updated)
+- `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (KEEP THIS UPDATED!)
+- `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
+- `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
+
+### Configuration Files
+- `kind-config.yaml` - 3-node Kind cluster (1 control-plane + 2 workers) configuration
+- `01-namespace.yaml` - Data ingestion namespace
+- `02-service-accounts.yaml` - Service accounts for components
+- `03-network-policies.yaml` - Network isolation policies
+- `04-secrets.yaml` - Secret management
+- `storage-classes.yaml` - Differentiated storage classes for workload types
+- `data-services-pvcs.yaml` - Persistent volume claims for all services
+- `task4-postgresql-configmap.yaml` - PostgreSQL configuration
+- `task4-postgresql-statefulset.yaml` - PostgreSQL deployment
+- `task5-kafka-kraft-3brokers.yaml` - Kafka cluster deployment
+- `task5-cdc-topics-job.yaml` - CDC topics creation
 
 ## 🚀 **NEXT ACTIONS**
 
@@ -126,6 +141,8 @@
 ## 💡 **KEY LEARNINGS**
 
 ### **Resource Optimization**
+- `task5-kafka-kraft-3brokers.yaml` takes 3 minutes for all kafka pods to be running
+- `task5-cdc-topics-job.yaml` takes 1 minute for all kafka topics to be created
 - 3-broker Kafka cluster provides high availability within resource constraints
 - Persistent storage: 16.5Gi allocated across differentiated storage classes
 - Phased implementation prevents resource exhaustion

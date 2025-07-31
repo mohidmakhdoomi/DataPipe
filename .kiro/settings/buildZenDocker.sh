@@ -2,4 +2,4 @@
 
 
 cd .kiro/settings/zen-mcp-server
-docker build --no-cache -t zen-mcp-server:latest .
+docker build --no-cache -t zen-mcp-server .

@@ -127,7 +127,7 @@ spec:
         component: database
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: standard
+      storageClassName: database-local-path
       resources:
         requests:
           storage: 5Gi

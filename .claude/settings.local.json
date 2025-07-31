@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__zen__thinkdeep",
+      "mcp__zen__consensus",
+      "Bash(kubectl logs:*)",
+      "Bash(kubectl get pods:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(kubectl get:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "clear-thought",
+    "zen",
+    "Context7"
+  ]
+}

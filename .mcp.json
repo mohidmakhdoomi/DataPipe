@@ -1,0 +1,41 @@
+{
+    "mcpServers": {
+      "clear-thought": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "waldzellai/clear-thought"
+        ],
+        "env": {},
+        "disabled": false,
+        "autoApprove": []
+      },
+      "zen": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "--env-file",
+          "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/.env",
+          "-v",
+          "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logsClaude:/app/logs",
+          "zen-mcp-server"
+        ],
+        "env": {}
+      },
+      "Context7": {
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "context7-mcp"
+        ],
+        "env": {}
+      }
+    }
+  }
+  

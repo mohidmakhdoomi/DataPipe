@@ -271,7 +271,7 @@ spec:
         component: streaming
     spec:
       accessModes: ["ReadWriteOnce"]
-      storageClassName: standard
+      storageClassName: streaming-local-path
       resources:
         requests:
           storage: 3413Mi
