@@ -1,14 +1,4 @@
 apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: schema-registry-sa
-  namespace: data-ingestion
-  labels:
-    app: schema-registry
-    component: schema-management
-automountServiceAccountToken: false
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: schema-registry-config
@@ -40,6 +30,9 @@ data:
     
     # Logging Configuration
     log4j.root.loglevel=INFO
+    
+    # Group ID Configuration
+    group.id=schema-registry
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -85,30 +78,12 @@ spec:
             drop:
             - ALL
         env:
-        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
-          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
-        - name: SCHEMA_REGISTRY_HOST_NAME
-          value: "schema-registry"
-        - name: SCHEMA_REGISTRY_LISTENERS
-          value: "http://0.0.0.0:8081"
-        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
-          value: "_schemas"
-        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR
-          value: "3"
-        - name: SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL
-          value: "BACKWARD"
-        - name: SCHEMA_REGISTRY_DEBUG
-          value: "false"
-        - name: SCHEMA_REGISTRY_KAFKASTORE_INIT_TIMEOUT_MS
-          value: "300000"
-        - name: SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS
-          value: "10000"
-        - name: SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL
-          value: "INFO"
-        - name: SCHEMA_REGISTRY_GROUP_ID
-          value: "schema-registry"
+        # JVM Configuration - kept as env var for container-level tuning
         - name: SCHEMA_REGISTRY_HEAP_OPTS
           value: "-Xmx256m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20"
+        # Point to the properties file for all other configuration
+        - name: SCHEMA_REGISTRY_CONFIG_FILE
+          value: "/etc/confluent/docker/schema-registry.properties"
         ports:
         - name: http
           containerPort: 8081
