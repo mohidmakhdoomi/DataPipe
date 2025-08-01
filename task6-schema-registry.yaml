@@ -6,33 +6,35 @@ metadata:
   labels:
     app: schema-registry
     component: schema-management
+  annotations:
+    description: "Schema Registry configuration using environment variables"
+    last-updated: "2025-08-01"
 data:
-  schema-registry.properties: |
-    # Kafka Connection Configuration
-    kafkastore.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
-    kafkastore.topic=_schemas
-    kafkastore.topic.replication.factor=3
-    
-    # Schema Registry Configuration
-    listeners=http://0.0.0.0:8081
-    host.name=schema-registry
-    debug=false
-    
-    # Schema Compatibility Configuration
-    schema.compatibility.level=BACKWARD
-    
-    # Performance Configuration
-    kafkastore.init.timeout.ms=300000
-    kafkastore.timeout.ms=10000
-    
-    # Security Configuration
-    kafkastore.security.protocol=PLAINTEXT
-    
-    # Logging Configuration
-    log4j.root.loglevel=INFO
-    
-    # Group ID Configuration
-    group.id=schema-registry
+  # Kafka Connection Configuration
+  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+  SCHEMA_REGISTRY_KAFKASTORE_TOPIC: "_schemas"
+  SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: "3"
+  
+  # Schema Registry Configuration  
+  SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+  SCHEMA_REGISTRY_HOST_NAME: "schema-registry"
+  SCHEMA_REGISTRY_DEBUG: "false"
+  
+  # Schema Compatibility Configuration
+  SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: "BACKWARD"
+  
+  # Performance Configuration
+  SCHEMA_REGISTRY_KAFKASTORE_INIT_TIMEOUT_MS: "300000"
+  SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS: "10000"
+  
+  # Security Configuration
+  SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "PLAINTEXT"
+  
+  # Logging Configuration
+  SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: "INFO"
+  
+  # Group ID Configuration
+  SCHEMA_REGISTRY_SCHEMA_REGISTRY_GROUP_ID: "schema-registry"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -77,13 +79,14 @@ spec:
           capabilities:
             drop:
             - ALL
+        # Load all configuration from ConfigMap as environment variables
+        envFrom:
+        - configMapRef:
+            name: schema-registry-config
         env:
         # JVM Configuration - kept as env var for container-level tuning
         - name: SCHEMA_REGISTRY_HEAP_OPTS
           value: "-Xmx256m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20"
-        # Point to the properties file for all other configuration
-        - name: SCHEMA_REGISTRY_CONFIG_FILE
-          value: "/etc/confluent/docker/schema-registry.properties"
         ports:
         - name: http
           containerPort: 8081
@@ -98,31 +101,34 @@ spec:
         volumeMounts:
         - name: schema-registry-tmp
           mountPath: /etc/schema-registry
-        - name: config
-          mountPath: /etc/confluent/docker/schema-registry.properties
-          subPath: schema-registry.properties
         - name: tmp
           mountPath: /tmp
         livenessProbe:
-          httpGet:
-            path: /subjects
-            port: 8081
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "curl --fail http://localhost:8081/subjects"
           initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
-          httpGet:
-            path: /subjects
-            port: 8081
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "curl --fail http://localhost:8081/subjects"
           initialDelaySeconds: 30
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
         startupProbe:
-          httpGet:
-            path: /subjects
-            port: 8081
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "curl --fail http://localhost:8081/subjects"
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3
@@ -132,9 +138,6 @@ spec:
         emptyDir: {}
       - name: tmp
         emptyDir: {}
-      - name: config
-        configMap:
-          name: schema-registry-config
 ---
 apiVersion: v1
 kind: Service
