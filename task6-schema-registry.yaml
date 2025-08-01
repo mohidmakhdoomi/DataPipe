@@ -75,7 +75,7 @@ spec:
         image: confluentinc/cp-schema-registry:7.4.0
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           runAsNonRoot: true
           runAsUser: 1000
           runAsGroup: 1000
@@ -91,6 +91,22 @@ spec:
           value: "schema-registry"
         - name: SCHEMA_REGISTRY_LISTENERS
           value: "http://0.0.0.0:8081"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
+          value: "_schemas"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR
+          value: "3"
+        - name: SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL
+          value: "BACKWARD"
+        - name: SCHEMA_REGISTRY_DEBUG
+          value: "false"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_INIT_TIMEOUT_MS
+          value: "300000"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS
+          value: "10000"
+        - name: SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL
+          value: "INFO"
+        - name: SCHEMA_REGISTRY_GROUP_ID
+          value: "schema-registry"
         - name: SCHEMA_REGISTRY_HEAP_OPTS
           value: "-Xmx256m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20"
         ports:
@@ -100,7 +116,7 @@ spec:
         resources:
           requests:
             memory: "384Mi"
-            cpu: "100m"
+            cpu: "250m"
           limits:
             memory: "512Mi"
             cpu: "500m"
@@ -108,7 +124,7 @@ spec:
         - name: schema-registry-tmp
           mountPath: /etc/schema-registry
         - name: config
-          mountPath: /etc/confluent/docker/schema-registry.properties.template
+          mountPath: /etc/confluent/docker/schema-registry.properties
           subPath: schema-registry.properties
         - name: tmp
           mountPath: /tmp
@@ -137,13 +153,13 @@ spec:
           timeoutSeconds: 3
           failureThreshold: 12
       volumes:
-      - name: config
-        configMap:
-          name: schema-registry-config
       - name: schema-registry-tmp
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      - name: config
+        configMap:
+          name: schema-registry-config
 ---
 apiVersion: v1
 kind: Service
