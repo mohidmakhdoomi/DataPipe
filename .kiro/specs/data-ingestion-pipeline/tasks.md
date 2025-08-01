@@ -101,6 +101,8 @@ Phase 4: Production (Tasks 13-16)
   **✅ COMPLETED:** 3-broker Kafka cluster deployed with KRaft mode, 10Gi total storage (3413Mi per broker), 2GB memory allocation, CDC topics created with 6 partitions, LZ4 compression, and 7-day retention. All specification requirements met exactly.
 
 - [ ] 6. Deploy Confluent Schema Registry for schema management
+
+
   - Create Schema Registry deployment with Kafka backend
   - Configure schema compatibility rules (backward compatibility)
   - Set up schema registry topics with proper replication

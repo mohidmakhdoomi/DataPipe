@@ -35,6 +35,16 @@ data:
   
   # Group ID Configuration
   SCHEMA_REGISTRY_SCHEMA_REGISTRY_GROUP_ID: "schema-registry"
+  
+  # Authentication Configuration
+  SCHEMA_REGISTRY_AUTHENTICATION_METHOD: "BASIC"
+  SCHEMA_REGISTRY_AUTHENTICATION_REALM: "SchemaRegistry"
+  SCHEMA_REGISTRY_AUTHENTICATION_ROLES: "admin,developer,readonly"
+  SCHEMA_REGISTRY_BASIC_AUTH_CREDENTIALS_SOURCE: "USER_INFO"
+  
+  # Authorization Configuration
+  SCHEMA_REGISTRY_AUTHORIZATION_ENABLED: "true"
+  SCHEMA_REGISTRY_SUPER_USERS: "User:admin"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -87,6 +97,23 @@ spec:
         # JVM Configuration - kept as env var for container-level tuning
         - name: SCHEMA_REGISTRY_HEAP_OPTS
           value: "-Xmx256m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20"
+        # Authentication credentials from Secret
+        - name: SCHEMA_REGISTRY_BASIC_AUTH_USER_INFO
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: user-info
+        # Probe credentials for health checks
+        - name: PROBE_USER
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: probe-user
+        - name: PROBE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: probe-password
         ports:
         - name: http
           containerPort: 8081
@@ -108,7 +135,7 @@ spec:
             command:
             - "/bin/sh"
             - "-c"
-            - "curl --fail http://localhost:8081/subjects"
+            - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
           initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
@@ -118,7 +145,7 @@ spec:
             command:
             - "/bin/sh"
             - "-c"
-            - "curl --fail http://localhost:8081/subjects"
+            - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
           initialDelaySeconds: 30
           periodSeconds: 5
           timeoutSeconds: 3
@@ -128,7 +155,7 @@ spec:
             command:
             - "/bin/sh"
             - "-c"
-            - "curl --fail http://localhost:8081/subjects"
+            - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 3
