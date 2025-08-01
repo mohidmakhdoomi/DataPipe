@@ -44,25 +44,6 @@ kubectl get pvc
 kubectl get pv
 ```
 
-### Validation and Testing
-```bash
-# Run cluster validation
-kubectl apply -f test-validation.yaml
-kubectl logs job/cluster-validation
-
-# Test storage persistence
-kubectl apply -f storage-canary-test.yaml
-kubectl logs job/storage-canary-test
-
-# Validate storage persistence
-kubectl apply -f storage-persistence-validation.yaml
-kubectl logs job/storage-persistence-validation
-
-# Task-specific validations
-kubectl apply -f task3-validation.yaml  # Namespace and RBAC validation
-kubectl apply -f kafka-connectivity-test.yaml  # Kafka cluster connectivity
-```
-
 ### Service Deployments
 ```bash
 # Deploy PostgreSQL (Task 4)
@@ -147,7 +128,6 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `storage-canary-test.yaml` - Storage performance testing
 - `storage-persistence-validation.yaml` - Data persistence validation
 - `task3-validation.yaml` - Namespace and RBAC validation
-- `kafka-connectivity-test.yaml` - Kafka cluster connectivity test
 
 ### Key Principles
 1. Resource efficiency within 4GB constraint for data ingestion
