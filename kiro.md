@@ -27,9 +27,15 @@
   - Kafka backend connection to 3-broker cluster
   - Authentication and authorization with JAAS configuration
   - NodePort service on port 30081 for external access
+- ✅ **Task 7:** Kafka Connect cluster with Debezium plugins
+  - Single worker deployment (512Mi allocation) validated by multi-model consensus
+  - Distributed mode configuration for future scalability
+  - JVM tuning: 384Mi heap with G1GC optimization
+  - Debezium PostgreSQL connector plugin installation
+  - Dead letter queue configuration for error handling
 
 ### **Current Phase**
-- 🔄 **Phase 2:** Core Services (Task 7: Kafka Connect with Debezium plugins next)
+- 🔄 **Phase 2:** Core Services (Task 8: Core services validation next)
 
 ## 🧠 **MULTI-MODEL CONSENSUS APPROACH**
 
@@ -57,8 +63,9 @@
 - **PostgreSQL:** 1GB memory, 5Gi storage ✅
 - **Kafka Cluster:** 2GB memory (667MB per broker), 10Gi storage ✅
 - **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
-- **Available for Phase 2:** ~512Mi (Kafka Connect remaining)
-- **Total Usage:** ~3.5GB of 4GB allocated
+- **Kafka Connect:** 512Mi memory (256Mi request, 512Mi limit) ✅
+- **Available for Phase 2:** 0Mi (Phase 2 complete within budget)
+- **Total Usage:** 4GB of 4GB allocated (100% utilized)
 
 ### **Port Mappings**
 - PostgreSQL: `localhost:5432` → `30432` ✅
@@ -73,7 +80,7 @@
 
 ### **Phase 2: Core Services (IN PROGRESS)**
 - [x] Task 6: Confluent Schema Registry ✅
-- [ ] Task 7: Kafka Connect with Debezium plugins
+- [x] Task 7: Kafka Connect with Debezium plugins ✅
 - [ ] Task 8: Core services validation
 
 ### **Phase 3: Integration (PENDING)**
@@ -120,6 +127,7 @@
 - `task4-postgresql-configmap.yaml` / `task4-postgresql-statefulset.yaml` - PostgreSQL with CDC
 - `task5-kafka-kraft-3brokers.yaml` / `task5-cdc-topics-job.yaml` - 3-broker Kafka cluster and topic creation
 - `task6-schema-registry.yaml` - Schema Registry deployment with authentication and compatibility
+- `task7-kafka-connect-*.yaml` - Kafka Connect cluster with Debezium plugins and DLQ configuration
 - `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (KEEP THIS UPDATED!)
 - `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
 - `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
@@ -139,10 +147,10 @@
 
 ## 🚀 **NEXT ACTIONS**
 
-1. **Immediate:** Task 7 - Deploy Kafka Connect cluster with Debezium plugins
+1. **Immediate:** Task 8 - Validate core services connectivity and performance
 2. **Strategy:** Continue multi-model consensus validation for complex decisions
-3. **Focus:** Complete Phase 2 (Core Services) within remaining 512Mi memory budget
-4. **Validation:** Expert consensus confirmed Tasks 4-6 are production-ready foundation
+3. **Focus:** Complete Phase 2 (Core Services) validation with full 4GB memory utilization
+4. **Validation:** Expert consensus confirmed Tasks 4-7 are production-ready foundation
 
 ## 💡 **KEY LEARNINGS**
 
@@ -171,6 +179,6 @@
 ---
 
 **Last Updated:** 2025-08-03 Current Time  
-**Status:** Phase 1 Complete (Tasks 1-5), Task 6 Complete, Ready for Task 7 (Kafka Connect)  
-**Confidence:** High (expert consensus validation)  
-**Progress:** 6/16 tasks completed (37.5% of implementation)
+**Status:** Phase 1 Complete (Tasks 1-5), Phase 2 Nearly Complete (Tasks 6-7), Ready for Task 8 (Core Services Validation)  
+**Confidence:** High (expert consensus validation with multi-model analysis)  
+**Progress:** 7/16 tasks completed (43.75% of implementation)

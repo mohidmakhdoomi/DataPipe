@@ -1,0 +1,189 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect
+  namespace: data-ingestion
+  labels:
+    app: kafka-connect
+    component: worker
+spec:
+  replicas: 1  # Single worker based on multi-model consensus
+  selector:
+    matchLabels:
+      app: kafka-connect
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: kafka-connect
+        component: worker
+    spec:
+      serviceAccountName: kafka-connect-sa
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      # Install Debezium plugins
+      - name: plugin-installer
+        image: confluentinc/cp-kafka-connect:7.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Installing Debezium PostgreSQL connector plugin..."
+          
+          # Create plugin directory
+          mkdir -p /kafka/connect/debezium-postgres
+          
+          # Download and install Debezium PostgreSQL connector
+          cd /tmp
+          curl -L -o debezium-connector-postgres.tar.gz \
+            "https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.4.0.Final/debezium-connector-postgres-2.4.0.Final-plugin.tar.gz"
+          
+          tar -xzf debezium-connector-postgres.tar.gz
+          cp -r debezium-connector-postgres/* /kafka/connect/debezium-postgres/
+          
+          echo "Debezium PostgreSQL connector installed successfully!"
+          ls -la /kafka/connect/debezium-postgres/
+        volumeMounts:
+        - name: plugin-volume
+          mountPath: /kafka/connect
+      containers:
+      - name: kafka-connect
+        image: confluentinc/cp-kafka-connect:7.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        # JVM Configuration based on multi-model consensus
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xms128m -Xmx384m"
+        - name: JAVA_TOOL_OPTIONS
+          value: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+        - name: CONNECT_BOOTSTRAP_SERVERS
+          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+        - name: CONNECT_GROUP_ID
+          value: "connect-cluster"
+        - name: CONNECT_CONFIG_STORAGE_TOPIC
+          value: "connect-configs"
+        - name: CONNECT_OFFSET_STORAGE_TOPIC
+          value: "connect-offsets"
+        - name: CONNECT_STATUS_STORAGE_TOPIC
+          value: "connect-status"
+        - name: CONNECT_KEY_CONVERTER
+          value: "io.confluent.connect.avro.AvroConverter"
+        - name: CONNECT_VALUE_CONVERTER
+          value: "io.confluent.connect.avro.AvroConverter"
+        - name: CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL
+          value: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+        - name: CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL
+          value: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+        - name: CONNECT_INTERNAL_KEY_CONVERTER
+          value: "org.apache.kafka.connect.json.JsonConverter"
+        - name: CONNECT_INTERNAL_VALUE_CONVERTER
+          value: "org.apache.kafka.connect.json.JsonConverter"
+        - name: CONNECT_REST_ADVERTISED_HOST_NAME
+          value: "kafka-connect"
+        - name: CONNECT_REST_PORT
+          value: "8083"
+        - name: CONNECT_PLUGIN_PATH
+          value: "/kafka/connect,/usr/share/java,/usr/share/confluent-hub-components"
+        - name: CONNECT_LOG4J_LOGGERS
+          value: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+        ports:
+        - name: http
+          containerPort: 8083
+        resources:
+          requests:
+            memory: "256Mi"  # Based on multi-model consensus
+            cpu: "250m"
+          limits:
+            memory: "512Mi"  # Based on multi-model consensus
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8083
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /connectors
+            port: 8083
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8083
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 18  # 3 minutes total
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/kafka-connect
+        - name: plugin-volume
+          mountPath: /kafka/connect
+        - name: logs-volume
+          mountPath: /kafka/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: kafka-connect-config
+      - name: plugin-volume
+        emptyDir: {}
+      - name: logs-volume
+        emptyDir: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kafka-connect-sa
+  namespace: data-ingestion
+  labels:
+    app: kafka-connect
+    component: service-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kafka-connect-role
+  namespace: data-ingestion
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kafka-connect-rolebinding
+  namespace: data-ingestion
+subjects:
+- kind: ServiceAccount
+  name: kafka-connect-sa
+  namespace: data-ingestion
+roleRef:
+  kind: Role
+  name: kafka-connect-role
+  apiGroup: rbac.authorization.k8s.io

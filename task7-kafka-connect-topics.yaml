@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-connect-topics-setup
+  namespace: data-ingestion
+  labels:
+    app: kafka-connect
+    component: topic-setup
+spec:
+  template:
+    metadata:
+      labels:
+        app: kafka-connect
+        component: topic-setup
+    spec:
+      serviceAccountName: kafka-sa
+      restartPolicy: OnFailure
+      containers:
+      - name: kafka-topics-setup
+        image: confluentinc/cp-kafka:7.4.0
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Setting up Kafka Connect internal topics..."
+          
+          # Wait for Kafka to be ready
+          until kafka-topics --bootstrap-server kafka-headless:9092 --list > /dev/null 2>&1; do
+            echo "Waiting for Kafka to be ready..."
+            sleep 5
+          done
+          
+          # Create Kafka Connect internal topics
+          echo "Creating connect-configs topic..."
+          kafka-topics --bootstrap-server kafka-headless:9092 \
+            --create --if-not-exists \
+            --topic connect-configs \
+            --partitions 1 \
+            --replication-factor 3 \
+            --config cleanup.policy=compact \
+            --config compression.type=lz4
+          
+          echo "Creating connect-offsets topic..."
+          kafka-topics --bootstrap-server kafka-headless:9092 \
+            --create --if-not-exists \
+            --topic connect-offsets \
+            --partitions 25 \
+            --replication-factor 3 \
+            --config cleanup.policy=compact \
+            --config compression.type=lz4
+          
+          echo "Creating connect-status topic..."
+          kafka-topics --bootstrap-server kafka-headless:9092 \
+            --create --if-not-exists \
+            --topic connect-status \
+            --partitions 5 \
+            --replication-factor 3 \
+            --config cleanup.policy=compact \
+            --config compression.type=lz4
+          
+          # Create Dead Letter Queue topic
+          echo "Creating connect-dlq topic..."
+          kafka-topics --bootstrap-server kafka-headless:9092 \
+            --create --if-not-exists \
+            --topic connect-dlq \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4
+          
+          echo "Kafka Connect topics created successfully!"
+          
+          # List all topics to verify
+          echo "Current topics:"
+          kafka-topics --bootstrap-server kafka-headless:9092 --list
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
