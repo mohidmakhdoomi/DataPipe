@@ -1,22 +1,23 @@
 # Kind Configuration for Data Ingestion Pipeline
-# Optimized single-node cluster for 4GB RAM constraint
-# Based on multi-model consensus analysis
+# 3-node cluster architecture (1 control-plane + 2 workers)
+# Supports 3-broker Kafka cluster with replication factor 3
+# Based on working desktop cluster configuration
 
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: data-ingestion
 
-# Single control-plane node that also hosts workloads
-# This optimization reduces Kubernetes overhead from ~1.5GB to ~700-900MB
+# 3-node cluster: 1 control-plane + 2 worker nodes
+# This architecture supports distributed services with proper replication
 nodes:
 - role: control-plane
-  # Enable the control-plane to schedule workloads (remove NoSchedule taint)
+  # Control-plane node with ingress capabilities
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: "ingress-ready=true,workload-type=data-services"
+        node-labels: "ingress-ready=true"
   
   # Port mappings for direct host access to services
   # Critical for local development and testing
@@ -44,6 +45,24 @@ nodes:
     hostPort: 8083
     protocol: TCP
     listenAddress: "127.0.0.1"
+
+# Worker node 1 - hosts data services workloads
+- role: worker
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload-type=data-services"
+
+# Worker node 2 - hosts data services workloads  
+- role: worker
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload-type=data-services"
 
 # Containerd configuration for efficient image management
 containerdConfigPatches:

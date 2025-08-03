@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "mcp__zen__thinkdeep",
+      "mcp__zen__consensus",
+      "Bash(kubectl logs:*)",
+      "Bash(kubectl get pods:*)",
+      "Bash(kubectl describe:*)",
+      "Bash(kubectl get:*)",
+      "mcp__zen__chat",
+      "mcp__zen__analyze"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "clear-thought",
+    "zen",
+    "Context7"
+  ]
+}

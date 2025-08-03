@@ -1,0 +1,213 @@
+# Default deny all ingress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: data-ingestion
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+# Default deny all egress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: data-ingestion
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+# Allow DNS resolution for all pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: data-ingestion
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+# PostgreSQL network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql-netpol
+  namespace: data-ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: postgresql
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow connections from Debezium pods only
+  - from:
+    - podSelector:
+        matchLabels:
+          app: debezium-connect
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+# Kafka network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-netpol
+  namespace: data-ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: kafka
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow connections from Debezium pods (client port)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: debezium-connect
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow connections from Schema Registry pods
+  - from:
+    - podSelector:
+        matchLabels:
+          app: schema-registry
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow inter-broker communication
+  - from:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
+    - protocol: TCP
+      port: 9094
+---
+# Debezium/Kafka Connect network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: debezium-connect-netpol
+  namespace: data-ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: debezium-connect
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow connections to Kafka Connect REST API (for management)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: admin-tools
+    ports:
+    - protocol: TCP
+      port: 8083
+  egress:
+  # Allow egress to PostgreSQL
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgresql
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow egress to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # Allow egress to AWS S3 (HTTPS)
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 169.254.169.254/32  # Block IMDS
+    ports:
+    - protocol: TCP
+      port: 443
+---
+# Schema Registry network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schema-registry-netpol
+  namespace: data-ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: schema-registry
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow connections to Schema Registry REST API (for management and clients)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: debezium-connect
+    - namespaceSelector:
+        matchLabels:
+          name: admin-tools
+    ports:
+    - protocol: TCP
+      port: 8081
+  egress:
+  # Allow egress to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+---
+# Block access to cloud metadata service
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: block-metadata-service
+  namespace: data-ingestion
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 169.254.169.254/32
