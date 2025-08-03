@@ -28,7 +28,17 @@
       ],
       "env": {},
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "sequentialthinking",
+        "mentalmodel",
+        "debuggingapproach",
+        "collaborativereasoning",
+        "decisionframework",
+        "metacognitivemonitoring",
+        "scientificmethod",
+        "structuredargumentation",
+        "visualreasoning"
+      ]
     },
     "zen": {
       "command": "docker",
@@ -75,7 +85,7 @@
         "get-library-docs",
         "resolve-library-id"
       ]
-    },    
+    },
     "sequentialthinking": {
       "command": "docker",
       "args": [

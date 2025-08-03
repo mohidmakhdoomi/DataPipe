@@ -1,4 +1,3 @@
----
 # Default deny all ingress traffic
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -88,6 +87,14 @@ spec:
     ports:
     - protocol: TCP
       port: 9092
+  # Allow connections from Schema Registry pods
+  - from:
+    - podSelector:
+        matchLabels:
+          app: schema-registry
+    ports:
+    - protocol: TCP
+      port: 9092
   # Allow inter-broker communication
   - from:
     - podSelector:
@@ -152,6 +159,41 @@ spec:
     ports:
     - protocol: TCP
       port: 443
+---
+# Schema Registry network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schema-registry-netpol
+  namespace: data-ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: schema-registry
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow connections to Schema Registry REST API (for management and clients)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: debezium-connect
+    - namespaceSelector:
+        matchLabels:
+          name: admin-tools
+    ports:
+    - protocol: TCP
+      port: 8081
+  egress:
+  # Allow egress to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
 ---
 # Block access to cloud metadata service
 apiVersion: networking.k8s.io/v1
