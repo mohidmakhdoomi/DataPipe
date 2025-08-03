@@ -1,21 +1,53 @@
-# task6-schema-registry.yaml
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: schema-registry-jaas
+  name: schema-registry-config
   namespace: data-ingestion
   labels:
     app: schema-registry
     component: schema-management
-    release: task6
 data:
   jaas.conf: |
     SchemaRegistry {
       org.eclipse.jetty.jaas.spi.PropertyFileLoginModule required
       file="/etc/schema-registry/user.properties";
     };
-
+  # Kafka Connection Configuration
+  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+  SCHEMA_REGISTRY_KAFKASTORE_TOPIC: "_schemas"
+  SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR: "3"
+  
+  # Schema Registry Configuration  
+  SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+  SCHEMA_REGISTRY_HOST_NAME: "schema-registry"
+  SCHEMA_REGISTRY_DEBUG: "false"
+  
+  # Schema Compatibility Configuration
+  SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: "BACKWARD"
+  
+  # Performance Configuration
+  SCHEMA_REGISTRY_KAFKASTORE_INIT_TIMEOUT_MS: "300000"
+  SCHEMA_REGISTRY_KAFKASTORE_TIMEOUT_MS: "10000"
+  
+  # Security Configuration
+  SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "PLAINTEXT"
+  
+  # Logging Configuration
+  SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: "INFO"
+  
+  # Group ID Configuration
+  SCHEMA_REGISTRY_SCHEMA_REGISTRY_GROUP_ID: "schema-registry"
+  
+  # JAAS Configuration
+  SCHEMA_REGISTRY_OPTS: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf"
+  
+  # Authentication Configuration
+  SCHEMA_REGISTRY_AUTHENTICATION_METHOD: "BASIC"
+  SCHEMA_REGISTRY_AUTHENTICATION_REALM: "SchemaRegistry"
+  SCHEMA_REGISTRY_AUTHENTICATION_ROLES: "admin,developer,readonly"
+  
+  # Authorization Configuration
+  SCHEMA_REGISTRY_SUPER_USERS: "User:admin"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -24,19 +56,18 @@ metadata:
   namespace: data-ingestion
   labels:
     app: schema-registry
-    component: schema-management
-    release: task6
+    component: schema-management   
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: schema-registry
+      component: schema-management
   template:
     metadata:
       labels:
         app: schema-registry
-        component: schema-management
-        release: task6
+        component: schema-management      
     spec:
       serviceAccountName: schema-registry-sa
       securityContext:
@@ -46,58 +77,72 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-      automountServiceAccountToken: false
       enableServiceLinks: false  # needed to prevent "PORT is deprecated. Please use SCHEMA_REGISTRY_LISTENERS instead."
       containers:
       - name: schema-registry
+        image: confluentinc/cp-schema-registry:7.4.0
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-        image: confluentinc/cp-schema-registry:7.4.0
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8081
-          name: http
+        # Load all configuration from ConfigMap as environment variables
+        envFrom:
+        - configMapRef:
+            name: schema-registry-config
         env:
-        - name: SCHEMA_REGISTRY_HOST_NAME
-          value: "schema-registry"
-        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
-          value: "_schemas"
-        - name: SCHEMA_REGISTRY_SUPER_USERS
-          value: "User:admin"
-        - name: SCHEMA_REGISTRY_LISTENERS
-          value: "http://0.0.0.0:8081"
-        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
-          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
-        - name: SCHEMA_REGISTRY_COMPATIBILITY_LEVEL
-          value: "BACKWARD"
-        - name: SCHEMA_REGISTRY_AUTHENTICATION_METHOD
-          value: "BASIC"
-        - name: SCHEMA_REGISTRY_AUTHENTICATION_REALM
-          value: "SchemaRegistry"
-        - name: SCHEMA_REGISTRY_AUTHENTICATION_ROLES
-          value: "admin"
-        - name: SCHEMA_REGISTRY_OPTS
-          value: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf"
+        # Probe credentials for health checks
+        - name: PROBE_USER
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: probe-user
+        - name: PROBE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: probe-password
+        ports:
+        - name: http
+          containerPort: 8081
         resources:
+          requests:
+            memory: "384Mi"
+            cpu: "250m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-        readinessProbe:
-          tcpSocket:
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 10
+
         livenessProbe:
-          tcpSocket:
-            port: 8081
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
           initialDelaySeconds: 30
-          periodSeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          exec:
+            command:
+            - "/bin/sh"
+            - "-c"
+            - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
         volumeMounts:
         - name: jaas-config
           mountPath: /etc/schema-registry/jaas.conf
@@ -108,44 +153,48 @@ spec:
       volumes:
       - name: jaas-config
         configMap:
-          name: schema-registry-jaas
+          name: schema-registry-config
       - name: auth-secret
         secret:
           secretName: schema-registry-auth
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
   name: schema-registry
   namespace: data-ingestion
   labels:
     app: schema-registry
     component: schema-management
-    release: task6
+    
 spec:
+  type: ClusterIP
   selector:
     app: schema-registry
+    component: schema-management
   ports:
-  - protocol: TCP
+  - name: http
+    protocol: TCP
     port: 8081
-    targetPort: http
-  type: ClusterIP
+    targetPort: 8081
+
 ---
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
-  name: schema-registry-ext
+  name: schema-registry-nodeport
   namespace: data-ingestion
   labels:
     app: schema-registry
     component: schema-management
-    release: task6
 spec:
+  type: NodePort
   selector:
     app: schema-registry
+    component: schema-management
   ports:
-  - protocol: TCP
-    port: 30081
-    targetPort: http
-    nodePort: 30082
-  type: NodePort
+  - name: http
+    port: 8081
+    targetPort: 8081
+    nodePort: 30081
+    protocol: TCP
