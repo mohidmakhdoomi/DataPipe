@@ -198,7 +198,7 @@ topics:
 ```yaml
 schema-registry:
   resources:
-    requests: { memory: "256Mi", cpu: "250m" }
+    requests: { memory: "384Mi", cpu: "250m" }
     limits: { memory: "512Mi", cpu: "500m" }
   config:
     kafkastore.bootstrap.servers: "kafka-0:9092,kafka-1:9092,kafka-2:9092"
@@ -517,7 +517,7 @@ container_limits:
     gc_pause_threshold: "50ms"
   schema_registry:
     memory: "512Mi"
-    memory_request: "256Mi"
+    memory_request: "384Mi"
     jvm_optimization: true
   kafka_connect:
     memory: "512Mi"
