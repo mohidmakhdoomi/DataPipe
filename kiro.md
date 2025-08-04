@@ -5,21 +5,21 @@
 **Project:** Data Ingestion Pipeline  
 **Architecture:** PostgreSQL → Debezium CDC → Kafka → S3 Archival  
 **Environment:** Local development on Windows Docker Desktop + Kubernetes (Kind)  
-**Constraint:** 4GB total RAM allocation  
+**Constraint:** 4Gi total RAM allocation  
 
 ## 📋 **CURRENT STATUS**
 
 ### **Completed Tasks (Phase 1 Foundation)**
 - ✅ **Task 1:** Kind Kubernetes cluster setup
-- ✅ **Task 2:** Persistent volume provisioning (16.5Gi total allocated)
+- ✅ **Task 2:** Persistent volume provisioning (15.0Gi total allocated)
 - ✅ **Task 3:** Kubernetes namespaces and RBAC configuration
 - ✅ **Task 4:** PostgreSQL deployment with CDC configuration
-  - 5Gi storage, 1GB memory allocation
+  - 5Gi storage, 1Gi memory allocation
   - Logical replication enabled (wal_level=logical, max_replication_slots=4)
   - E-commerce schema: users, products, orders, order_items
   - CDC user and publication configured
 - ✅ **Task 5:** 3-broker Kafka cluster with KRaft mode
-  - 10Gi total storage (3413Mi per broker), 2GB memory allocation
+  - 10Gi total storage (3413Mi per broker), 2Gi memory allocation
   - CDC topics created: cdc.postgres.users, cdc.postgres.products, cdc.postgres.orders, cdc.postgres.order_items
   - 6 partitions, LZ4 compression, 7-day retention
 - ✅ **Task 6:** Confluent Schema Registry deployment
@@ -30,7 +30,7 @@
 - ✅ **Task 7:** Kafka Connect cluster with Debezium plugins
   - Single worker deployment (512Mi allocation) validated by multi-model consensus
   - Distributed mode configuration for future scalability
-  - JVM tuning: 384Mi heap with G1GC optimization
+  - JVM tuning: 512Mi heap with G1GC optimization
   - Debezium PostgreSQL connector plugin installation
   - Dead letter queue configuration for error handling
 
@@ -65,7 +65,7 @@
 - **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
 - **Kafka Connect:** 512Mi memory (256Mi request, 512Mi limit) ✅
 - **Available for Phase 2:** 0Mi (Phase 2 complete within budget)
-- **Total Usage:** 4GB of 4GB allocated (100% utilized)
+- **Total Usage:** 4Gi of 4Gi allocated (100% utilized)
 
 ### **Port Mappings**
 - PostgreSQL: `localhost:5432` → `30432` ✅
@@ -116,7 +116,7 @@
 - [ ] End-to-end data integrity validation (Task 12)
 
 ### **Performance Requirements**
-- [x] Resource usage: 3.5GB of 4GB allocated ✅
+- [x] Resource usage: 3.5Gi of 4Gi allocated ✅
 - [ ] Sustained throughput: 100-1,000 events/sec (pending integration)
 - [ ] Processing latency: <5 seconds (pending integration)
 - [ ] Recovery time: <1 minute for failures (pending monitoring)
@@ -149,7 +149,7 @@
 
 1. **Immediate:** Task 8 - Validate core services connectivity and performance
 2. **Strategy:** Continue multi-model consensus validation for complex decisions
-3. **Focus:** Complete Phase 2 (Core Services) validation with full 4GB memory utilization
+3. **Focus:** Complete Phase 2 (Core Services) validation with full 4Gi memory utilization
 4. **Validation:** Expert consensus confirmed Tasks 4-7 are production-ready foundation
 
 ## 💡 **KEY LEARNINGS**
@@ -158,16 +158,16 @@
 - `task5-kafka-kraft-3brokers.yaml` takes 3 minutes for all kafka pods to be running
 - `task5-cdc-topics-job.yaml` takes 1 minute for all kafka topics to be created
 - 3-broker Kafka cluster provides high availability within resource constraints
-- Persistent storage: 16.5Gi allocated across differentiated storage classes
+- Persistent storage: 15.0Gi allocated across differentiated storage classes
 - Phased implementation prevents resource exhaustion
 - Memory tuning essential for Java-based services
 
 ### **Validated Architecture Decisions**
 - **Kubernetes Cluster:** 3-node Kind cluster (1 control-plane + 2 workers) for high availability
-- **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 1GB memory
+- **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 1Gi memory
 - **Kafka KRaft:** 3-broker cluster eliminates ZooKeeper, 10Gi storage exactly per specification
 - **Topic Configuration:** 6 partitions, LZ4 compression, 7-day retention for all CDC topics
-- **Resource Efficiency:** 3GB of 4GB allocated, 1GB remaining for Schema Registry/Kafka Connect
+- **Resource Efficiency:** 3Gi of 4Gi allocated, 1Gi remaining for Schema Registry/Kafka Connect
 
 ### **Expert Consensus Results**
 - **Multi-model validation:** 7-9/10 confidence across Claude Opus, Gemini Pro, Grok-4, OpenAI o3
