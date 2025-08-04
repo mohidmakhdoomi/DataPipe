@@ -43,12 +43,19 @@ spec:
         - /bin/bash
         - -c
         - |
-          # Wait for Kafka cluster to be ready
-          echo "Waiting for Kafka cluster to be ready..."
-          until kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list > /dev/null 2>&1; do
-            echo "Kafka not ready, waiting 10 seconds..."
+          # Wait for Kafka to be ready with timeout
+          TIMEOUT=300  # 5 minutes
+          ELAPSED=0
+          until kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list > /dev/null 2>&1 || [ $ELAPSED -ge $TIMEOUT ]; do
+            echo "Waiting for Kafka to be ready... ($ELAPSED seconds elapsed)"
             sleep 10
+            ELAPSED=$((ELAPSED + 10))
           done
+          
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "ERROR: Kafka failed to become ready within $TIMEOUT seconds"
+            exit 1
+          fi
           
           echo "Kafka cluster is ready. Creating CDC topics..."
           
