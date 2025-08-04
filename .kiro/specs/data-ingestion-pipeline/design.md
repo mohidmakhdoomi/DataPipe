@@ -448,14 +448,14 @@ network_policies:
 
 ## Performance and Scalability
 
-### Resource Allocation (4GB Total)
+### Resource Allocation (4Gi Total)
 ```yaml
 resource_allocation:
-  postgresql: 1GB RAM, 1 CPU
-  kafka_brokers: 2GB RAM (shared HA cluster allocation), 3 CPU
-  schema_registry: 0.5GB RAM, 0.5 CPU
-  kafka_connect: 0.5GB RAM, 0.5 CPU
-  total: 4GB RAM, 5 CPU
+  postgresql: 1Gi RAM, 1 CPU
+  kafka_brokers: 2Gi RAM (shared HA cluster allocation), 3 CPU
+  schema_registry: 0.5Gi RAM, 0.5 CPU
+  kafka_connect: 0.5Gi RAM, 0.5 CPU
+  total: 4Gi RAM, 5 CPU
 ```
 
 ### Performance Optimization

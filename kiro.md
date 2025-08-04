@@ -60,8 +60,8 @@
 - **Network:** Port mappings for direct host access
 
 ### **Resource Allocation (Validated)**
-- **PostgreSQL:** 1GB memory, 5Gi storage ✅
-- **Kafka Cluster:** 2GB memory (667MB per broker), 10Gi storage ✅
+- **PostgreSQL:** 1Gi memory, 5Gi storage ✅
+- **Kafka Cluster:** 2Gi memory (682Mi limit per broker), 10Gi storage ✅
 - **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
 - **Kafka Connect:** 512Mi memory (256Mi request, 512Mi limit) ✅
 - **Available for Phase 2:** 0Mi (Phase 2 complete within budget)

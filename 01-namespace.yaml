@@ -32,7 +32,7 @@ metadata:
 spec:
   limits:
   - default:
-      memory: "512Mi"
+      memory: "256Mi"
       cpu: "500m"
     defaultRequest:
       memory: "256Mi"

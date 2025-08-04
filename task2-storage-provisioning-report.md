@@ -28,14 +28,11 @@ This implementation was validated through comprehensive analysis using:
 ### **Storage Classes Created**
 - ✅ **database-local-path** - Optimized for PostgreSQL (random I/O, ACID compliance)
 - ✅ **streaming-local-path** - Optimized for Kafka (sequential writes, high throughput)
-- ✅ **metadata-local-path** - Optimized for Schema Registry/Kafka Connect (small, fast access)
 
 ### **Storage Allocation Strategy**
 - **PostgreSQL:** 5Gi (database files, WAL logs, CDC replication slots)
 - **Kafka Cluster:** 10Gi total (3.3Gi + 3.3Gi + 3.4Gi for 3 brokers)
-- **Schema Registry:** 512Mi (schema metadata storage)
-- **Kafka Connect:** 1Gi (connector offsets and configurations)
-- **Total Allocated:** ~16.5Gi
+- **Total Allocated:** ~15.0Gi
 
 ### **Key Configuration Features**
 - **Reclaim Policy:** Retain (data persistence for development)
@@ -50,12 +47,10 @@ This implementation was validated through comprehensive analysis using:
 ### **Canary Testing**
 - ✅ **Database Storage:** Successfully wrote 10MB test file with random I/O simulation
 - ✅ **Streaming Storage:** Successfully wrote 102 log entries with sequential write simulation
-- ✅ **Metadata Storage:** Successfully wrote JSON schema test files
 
 ### **Persistence Validation**
 - ✅ **Database Persistence:** All test files (text, binary, logs) persisted across pod restarts
 - ✅ **Streaming Persistence:** All 102 log entries persisted with correct timestamps
-- ✅ **Metadata Persistence:** JSON schema files and metadata persisted correctly
 
 ### **Performance Characteristics**
 - **Write Performance:** 99.0MB/s for database workload (10MB in 0.1s)
@@ -69,22 +64,19 @@ This implementation was validated through comprehensive analysis using:
 
 ### **Storage Allocation Summary**
 ```
-PostgreSQL:      5.0Gi  (30.3%)
-Kafka Brokers:   10.0Gi (60.6%)
-Schema Registry: 0.5Gi  (3.0%)
-Kafka Connect:   1.0Gi  (6.1%)
-Total:          16.5Gi  (100%)
+PostgreSQL:      5.0Gi  (33.3%)
+Kafka Brokers:   10.0Gi (66.7%)
+Total:          15.0Gi  (100%)
 ```
 
 ### **Storage Class Distribution**
 ```
-database-local-path:  5.0Gi  (30.3%)
-streaming-local-path: 10.0Gi (60.6%)
-metadata-local-path:  1.5Gi  (9.1%)
+database-local-path:  5.0Gi  (33.3%)
+streaming-local-path: 10.0Gi (66.7%)
 ```
 
 ### **PVC Status**
-- **Created:** 6 production PVCs
+- **Created:** 4 production PVCs
 - **Status:** Pending (WaitForFirstConsumer - expected behavior)
 - **Binding:** Will bind automatically when pods are scheduled
 - **Validation:** All storage classes tested and verified
@@ -189,7 +181,7 @@ Task 2 has been **successfully completed** with all acceptance criteria met:
 2. ✅ **Storage classes created** for PostgreSQL (5Gi) and Kafka (10Gi)
 3. ✅ **Volume creation and mounting tested** with comprehensive canary validation
 4. ✅ **Persistence verified** across pod restarts and lifecycle operations
-5. ✅ **Storage allocation documented** with 16.5Gi total for data services
+5. ✅ **Storage allocation documented** with 15.0Gi total for data services
 
 The persistent volume provisioning foundation is solid, thoroughly tested, and ready to support all subsequent stateful services in the data ingestion pipeline.
 

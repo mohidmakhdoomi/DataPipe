@@ -71,7 +71,7 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
   - Task 4: PostgreSQL deployment with CDC
   - Task 5: 3-broker Kafka cluster with KRaft
 - **Current Task**: Task 6 (Confluent Schema Registry)
-- **Constraint**: 4GB total RAM allocation for data ingestion pipeline (out of 24GB total system allocation)
+- **Constraint**: 4Gi total RAM allocation for data ingestion pipeline (out of 24GB total system allocation)
 
 ### Resource Allocation Strategy
 - **System Total**: 24GB RAM, 10 CPU cores, 1TB storage
@@ -79,14 +79,14 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
   - Kubernetes overhead: ~622MB
   - Available for workloads: ~3.4GB
   - Component budgets:
-    - PostgreSQL: 1GB
-    - Kafka: 2GB (3 brokers with HA)
-    - Schema Registry: 512MB
-    - Kafka Connect/Debezium: 512MB
+    - PostgreSQL: 1Gi
+    - Kafka: 2Gi (3 brokers with HA)
+    - Schema Registry: 512Mi
+    - Kafka Connect/Debezium: 512Mi
 
 ### Storage Architecture
-- Three differentiated storage classes: database-local-path, streaming-local-path, metadata-local-path
-- Total allocation: 16.5Gi (PostgreSQL 5Gi + Kafka 10Gi + Schema Registry 512Mi + Kafka Connect 1Gi)
+- Three differentiated storage classes: database-local-path, streaming-local-path
+- Total allocation: 15.0Gi (PostgreSQL 5Gi + Kafka 10Gi)
 - Reclaim policy: Retain (prevents data loss in development)
 - Volume binding: WaitForFirstConsumer (optimal pod placement)
 
@@ -122,12 +122,6 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `task1-validation-report.md` - Cluster setup validation
 - `task2-storage-provisioning-report.md` - Storage provisioning validation
 - `task3-completion-report.md` - Namespace and RBAC setup report
-
-### Validation Scripts
-- `test-validation.yaml` - Cluster health validation
-- `storage-canary-test.yaml` - Storage performance testing
-- `storage-persistence-validation.yaml` - Data persistence validation
-- `task3-validation.yaml` - Namespace and RBAC validation
 
 ### Key Principles
 1. Resource efficiency within 4GB constraint for data ingestion
