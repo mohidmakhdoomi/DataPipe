@@ -31,7 +31,7 @@ This implementation was validated through comprehensive analysis using:
 
 ### **Storage Allocation Strategy**
 - **PostgreSQL:** 5Gi (database files, WAL logs, CDC replication slots)
-- **Kafka Cluster:** 10Gi total (3.3Gi + 3.3Gi + 3.3Gi for 3 brokers)
+- **Kafka Cluster:** 10Gi total (3.3Gi + 3.3Gi + 3.4Gi for 3 brokers)
 - **Total Allocated:** ~15.0Gi
 
 ### **Key Configuration Features**
