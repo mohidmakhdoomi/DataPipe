@@ -107,6 +107,15 @@ spec:
       port: 9093
     - protocol: TCP
       port: 9094
+  # Allow connections from Kafka Connect topic setup jobs
+  - from:
+    - podSelector:
+        matchLabels:
+          app: kafka-connect
+          component: topic-setup
+    ports:
+    - protocol: TCP
+      port: 9092
 ---
 # Debezium/Kafka Connect network policy
 apiVersion: networking.k8s.io/v1
@@ -187,6 +196,29 @@ spec:
       port: 8081
   egress:
   # Allow egress to Kafka
+  - to:
+    - podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+---
+# Network policy for Kafka Connect topic setup job
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-connect-topics-setup-netpol
+  namespace: data-ingestion
+spec:
+  podSelector:
+    matchLabels:
+      app: kafka-connect
+      component: topic-setup
+  policyTypes:
+  - Egress
+  egress:
+  # Allow egress to Kafka brokers
   - to:
     - podSelector:
         matchLabels:
