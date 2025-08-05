@@ -47,7 +47,6 @@ kubectl get pv
 ### Service Deployments
 ```bash
 # Deploy PostgreSQL (Task 4)
-kubectl apply -f task4-postgresql-configmap.yaml
 kubectl apply -f task4-postgresql-statefulset.yaml
 
 # Deploy Kafka (Task 5)
@@ -112,7 +111,6 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `04-secrets.yaml` - Secret management
 - `storage-classes.yaml` - Differentiated storage classes for workload types
 - `data-services-pvcs.yaml` - Persistent volume claims for all services
-- `task4-postgresql-configmap.yaml` - PostgreSQL configuration
 - `task4-postgresql-statefulset.yaml` - PostgreSQL deployment
 - `task5-kafka-kraft-3brokers.yaml` - Kafka cluster deployment
 - `task5-cdc-topics-job.yaml` - CDC topics creation
