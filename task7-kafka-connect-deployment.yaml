@@ -96,6 +96,28 @@ data:
     log4j.logger.org.apache.kafka.connect.runtime.WorkerSourceTask=WARN
     log4j.logger.org.apache.kafka.connect.runtime.WorkerSinkTask=WARN
     log4j.logger.org.reflections=ERROR
+
+  # JVM Configuration based on multi-model consensus
+  KAFKA_HEAP_OPTS: "-Xms128m -Xmx512m"
+  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+  CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+  CONNECT_GROUP_ID: "connect-cluster"
+  CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+  CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+  CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
+  CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+  CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+  CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+  CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+  CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+  CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+  CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+  CONNECT_REST_PORT: "8083"
+  CONNECT_PLUGIN_PATH: "/kafka/connect,/usr/share/java/kafka,/usr/share/java/confluent-common"
+  CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+  KAFKA_OPTS: "-Dlog4j.configuration=file:/kafka/config/connect-log4j.properties"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+  CONFLUENT_TELEMETRY_ENABLED: "false"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -161,64 +183,15 @@ spec:
       - name: kafka-connect
         image: confluentinc/cp-kafka-connect:7.4.0
         command: ["/bin/bash"]
-        args:
-          - -c
-          - |
-            echo "Bypassing health check, starting Kafka Connect directly..."
-            # Set the bootstrap servers explicitly
-            export CONNECT_BOOTSTRAP_SERVERS="${KAFKA_BOOTSTRAP_SERVERS}"
-            # Skip the health check
-            export KAFKA_READY_CHECK_DISABLED=true
-            # Run the actual connect process
-            /etc/confluent/docker/configure
-            exec /etc/confluent/docker/launch
+        args: ["/etc/confluent/docker/run"]
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-        # JVM Configuration based on multi-model consensus
-        env:
-        - name: KAFKA_HEAP_OPTS
-          value: "-Xms128m -Xmx512m"
-        - name: JAVA_TOOL_OPTIONS
-          value: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
-        - name: CONNECT_BOOTSTRAP_SERVERS
-          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
-        - name: CONNECT_GROUP_ID
-          value: "connect-cluster"
-        - name: CONNECT_CONFIG_STORAGE_TOPIC
-          value: "connect-configs"
-        - name: CONNECT_OFFSET_STORAGE_TOPIC
-          value: "connect-offsets"
-        - name: CONNECT_STATUS_STORAGE_TOPIC
-          value: "connect-status"
-        - name: CONNECT_KEY_CONVERTER
-          value: "io.confluent.connect.avro.AvroConverter"
-        - name: CONNECT_VALUE_CONVERTER
-          value: "io.confluent.connect.avro.AvroConverter"
-        - name: CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL
-          value: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
-        - name: CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL
-          value: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
-        - name: CONNECT_INTERNAL_KEY_CONVERTER
-          value: "org.apache.kafka.connect.json.JsonConverter"
-        - name: CONNECT_INTERNAL_VALUE_CONVERTER
-          value: "org.apache.kafka.connect.json.JsonConverter"
-        - name: CONNECT_REST_ADVERTISED_HOST_NAME
-          value: "kafka-connect"
-        - name: CONNECT_REST_PORT
-          value: "8083"
-        - name: CONNECT_PLUGIN_PATH
-          value: "/kafka/connect,/usr/share/java/kafka,/usr/share/java/confluent-common"
-        - name: CONNECT_LOG4J_LOGGERS
-          value: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
-        - name: KAFKA_OPTS
-          value: "-Dlog4j.configuration=file:/kafka/config/connect-log4j.properties"
-        - name: KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
-        - name: CONFLUENT_TELEMETRY_ENABLED
-          value: "false"
+        envFrom:
+        - configMapRef:
+            name: kafka-connect-config
         ports:
         - name: http
           containerPort: 8083
