@@ -15,6 +15,7 @@ data:
     maintenance_work_mem = 64MB
     
     # Connection Configuration
+    listen_addresses = '*'
     max_connections = 100
     
     # WAL Configuration for CDC
