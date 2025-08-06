@@ -146,6 +146,7 @@
 - `task6-schema-registry.yaml` - Schema Registry deployment
 - `task7-kafka-connect-topics.yaml` - Kafka Connect topics creation
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
+- `task7-debezium-connector-config.json` - Configuration that validates Kafka Connect + Debezium + PostgreSQL + Schema Registry work together
 
 ## 🚀 **NEXT ACTIONS**
 
@@ -158,7 +159,6 @@
 
 ### **Resource Optimization**
 - `task5-kafka-kraft-3brokers.yaml` takes 3 minutes for all kafka pods to be running
-- `task5-cdc-topics-job.yaml` takes 1 minute for all kafka topics to be created
 - 3-broker Kafka cluster provides high availability within resource constraints
 - Persistent storage: 15.0Gi allocated across differentiated storage classes
 - Phased implementation prevents resource exhaustion
