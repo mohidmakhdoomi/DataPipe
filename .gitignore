@@ -1,6 +1,8 @@
 # Based on https://github.com/github/gitignore/blob/main/Python.gitignore
 # and https://github.com/github/gitignore/blob/main/Terraform.gitignore
 
+task8-logs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
