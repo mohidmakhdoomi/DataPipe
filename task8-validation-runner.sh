@@ -23,7 +23,7 @@ log() {
 # Memory check function
 check_memory() {
     local current_mem=$(kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | awk '{sum+=$3+0} END {print sum}' || echo "0")
-    log "Current memory usage: ${current_mem}Mi / 4096Mi ($(echo "scale=1; $current_mem/4096*100" | bc -l)%)"
+    log "Current memory usage: ${current_mem}Mi / 4096Mi $(($current_mem*100/4096))%"
     
     if [[ ${current_mem:-0} -gt ${MAX_MEMORY_MI} ]]; then
         log "WARNING: Memory usage critical - ${current_mem}Mi exceeds ${MAX_MEMORY_MI}Mi threshold"
@@ -56,6 +56,12 @@ execute_phase() {
         local duration=$((end_time - start_time))
         log "Phase ${phase_num} completed successfully in ${duration} seconds"
         
+        # Post-phase checks
+        check_memory || {
+            log "ERROR: Memory check failed after Phase ${phase_num}"
+            return 1
+        }
+
         # Post-phase stabilization
         sleep $((phase_num * 5))  # Progressive delay: 5s, 10s, 15s...
         return 0

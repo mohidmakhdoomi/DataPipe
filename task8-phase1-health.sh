@@ -93,7 +93,7 @@ main() {
         sleep 120
         
         # Final check
-        local final_unhealthy=$(kubectl get pods -n ${NAMESPACE} --no-headers | grep -v "Running" | wc -l)
+        local final_unhealthy=$(kubectl get pods -n ${NAMESPACE} --no-headers | grep -v "Running\|Completed" | wc -l)
         if [[ $final_unhealthy -eq 0 ]]; then
             log "✅ All services remain stable - Phase 1 PASSED"
             return 0

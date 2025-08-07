@@ -31,21 +31,20 @@ while true; do
         done
         
         # Log total and check thresholds
-        percentage=$(echo "scale=1; $total_memory/4096*100" | bc -l 2>/dev/null || echo "0")
-        log "Total Memory: ${total_memory}Mi / 4096Mi (${percentage}%)"
+        log "Total Memory: ${total_memory}Mi / 4096Mi ($(($total_memory*100/4096))%)"
         
         # Alert on thresholds
-        if (( $(echo "$total_memory > $CRITICAL_THRESHOLD" | bc -l) )); then
-            log "🚨 CRITICAL: Memory usage ${total_memory}Mi exceeds critical threshold ${CRITICAL_THRESHOLD}Mi"
+        if (( $(($total_memory > $CRITICAL_THRESHOLD)) )); then
+            log "CRITICAL: Memory usage ${total_memory}Mi exceeds critical threshold ${CRITICAL_THRESHOLD}Mi"
             # Could trigger circuit breaker here
-        elif (( $(echo "$total_memory > $WARNING_THRESHOLD" | bc -l) )); then
-            log "⚠️  WARNING: Memory usage ${total_memory}Mi exceeds warning threshold ${WARNING_THRESHOLD}Mi"
+        elif (( $(($total_memory > $WARNING_THRESHOLD)) )); then
+            log "WARNING: Memory usage ${total_memory}Mi exceeds warning threshold ${WARNING_THRESHOLD}Mi"
         fi
         
         # Check for OOMKilled events
         oom_events=$(kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling --no-headers 2>/dev/null | wc -l)
         if [[ $oom_events -gt 0 ]]; then
-            log "🚨 CRITICAL: $oom_events OOMKilled events detected!"
+            log "CRITICAL: $oom_events OOMKilled events detected!"
             kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling >> "${LOG_DIR}/oom-events.log"
         fi
     else
