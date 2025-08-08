@@ -86,17 +86,17 @@ spec:
     - podSelector:
         matchLabels:
           app: kafka-connect
-  - from:
     - podSelector:
         matchLabels:
           app: schema-registry
-  - from:
     - podSelector:
         matchLabels:
           app: kafka
     ports:
-    - port: 9092
-    - port: 9093
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 9093
 ---
 # Kafka Connect network policy
 apiVersion: networking.k8s.io/v1
@@ -183,20 +183,3 @@ spec:
     ports:
     - protocol: TCP
       port: 9092
----
-# Block access to cloud metadata service
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: block-metadata-service
-  namespace: data-ingestion
-spec:
-  podSelector: {}
-  policyTypes:
-  - Egress
-  egress:
-  - to:
-    - ipBlock:
-        cidr: 0.0.0.0/0
-        except:
-        - 169.254.169.254/32

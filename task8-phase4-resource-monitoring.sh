@@ -79,12 +79,18 @@ monitor_resources() {
                     local pod=$(echo "$line" | awk '{print $1}')
                     local cpu=$(echo "$line" | awk '{print $2}' | sed 's/m//')
                     local mem=$(echo "$line" | awk '{print $3}' | sed 's/Mi//')
-                    
+                    if [[ $mem == *Gi ]]; then
+                        mem=`echo "${mem%??} 1024" | awk '{print $1*$2}'`
+                    fi
+
                     # Get memory limit
                     local limit=$(kubectl get pod "$pod" -n ${NAMESPACE} -o jsonpath='{.spec.containers[0].resources.limits.memory}' 2>/dev/null | sed 's/Mi//' || echo "0")
+                    if [[ $limit == *Gi ]]; then
+                        limit=`echo "${limit%??} 1024" | awk '{print $1*$2}'`
+                    fi
                     local percent=0
                     if [[ $limit -gt 0 ]]; then
-                        percent=$(echo "scale=2; $mem/$limit*100" | bc -l 2>/dev/null || echo "0")
+                        percent=$(($mem*100/$limit))
                     fi
                     
                     echo "$current_time,$pod,$mem,$limit,$cpu,$percent" >> "$csv_file"
@@ -100,8 +106,7 @@ monitor_resources() {
             fi
             
             # Log current usage
-            local percentage=$(echo "scale=1; $total_memory/4096*100" | bc -l 2>/dev/null || echo "0")
-            log "Total Memory: ${total_memory}Mi / 4096Mi (${percentage}%)"
+            log "Total Memory: ${total_memory}Mi / 4096Mi ($(($total_memory*100/4096))%)"
             
             # Check thresholds
             if [[ $total_memory -gt 3584 ]]; then  # 87.5% of 4Gi
@@ -119,14 +124,14 @@ monitor_resources() {
     # Calculate statistics
     local avg_memory=0
     if [[ $sample_count -gt 0 ]]; then
-        avg_memory=$((total_memory_samples / sample_count))
+        avg_memory=$((total_memory_samples / $sample_count))
     fi
     
     log "Resource monitoring completed:"
     log "  - Samples collected: $sample_count"
     log "  - Average memory usage: ${avg_memory}Mi"
     log "  - Peak memory usage: ${max_memory}Mi"
-    log "  - Peak percentage: $(echo "scale=1; $max_memory/4096*100" | bc -l)%"
+    log "  - Peak percentage: $(($max_memory*100/4096))%"
     
     # Check compliance
     if [[ $max_memory -le 3584 ]]; then  # 87.5% threshold

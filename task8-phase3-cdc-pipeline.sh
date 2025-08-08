@@ -13,6 +13,14 @@ log() {
 
 # Deploy Debezium connector
 deploy_cdc_connector() {
+    log "Checking for existing Debezium PostgreSQL CDC connector..."
+    
+    # Check if connector already exists by trying to get its status
+    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- curl -s http://localhost:8083/connectors/postgres-cdc-connector/status >/dev/null 2>&1; then
+        log "✅ CDC connector already exists, skipping deployment"
+        return 0
+    fi
+    
     log "Deploying Debezium PostgreSQL CDC connector..."
     
     local connector_config='{
@@ -24,7 +32,7 @@ deploy_cdc_connector() {
             "database.user": "debezium",
             "database.password": "debezium_password",
             "database.dbname": "ecommerce",
-            "database.server.name": "ecommerce-db",
+            "topic.prefix": "ecommerce-db",
             "table.include.list": "public.users,public.products,public.orders,public.order_items",
             "plugin.name": "pgoutput",
             "slot.name": "debezium_slot",
@@ -32,13 +40,16 @@ deploy_cdc_connector() {
             "key.converter": "io.confluent.connect.avro.AvroConverter",
             "value.converter": "io.confluent.connect.avro.AvroConverter",
             "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
-            "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+            "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
+            "key.converter.basic.auth.credentials.source": "USER_INFO",
+            "key.converter.basic.auth.user.info": "admin:admin-secret",
+            "value.converter.basic.auth.credentials.source": "USER_INFO",
+            "value.converter.basic.auth.user.info": "admin:admin-secret"
         }
     }'
     
     # Deploy connector via REST API
-    if kubectl run connector-deploy --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-       --namespace=${NAMESPACE} --timeout=60s -- \
+    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
        curl -X POST http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors \
        -H "Content-Type: application/json" \
        -d "$connector_config" >/dev/null 2>&1; then
@@ -59,10 +70,9 @@ wait_for_connector() {
     log "Waiting for CDC connector to be in RUNNING state..."
     
     while [[ $elapsed -lt $max_wait ]]; do
-        local status=$(kubectl run connector-status --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-                      --namespace=${NAMESPACE} --timeout=30s -- \
-                      curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/postgres-cdc-connector/status \
-                      2>/dev/null | grep -o '"state":"[^"]*"' | cut -d'"' -f4 || echo "UNKNOWN")
+        local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+                      curl -s http://localhost:8083/connectors/postgres-cdc-connector/status \
+                      2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
         if [[ "$status" == "RUNNING" ]]; then
             log "✅ CDC connector is RUNNING"
@@ -135,8 +145,7 @@ test_schema_registry() {
     log "Testing schema registration..."
     
     # Check if schemas are registered
-    if kubectl run schema-check --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-       --namespace=${NAMESPACE} --timeout=30s -- \
+    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
        curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "ecommerce-db"; then
         log "✅ CDC schemas registered in Schema Registry"
         return 0
@@ -172,12 +181,11 @@ main() {
     
     # Step 5: Verify connector health
     log "Verifying connector health..."
-    local connector_tasks=$(kubectl run connector-tasks --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-                           --namespace=${NAMESPACE} --timeout=30s -- \
+    local connector_tasks=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
                            curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/postgres-cdc-connector/tasks \
-                           2>/dev/null | grep -o '"state":"[^"]*"' | wc -l || echo "0")
+                           2>/dev/null | grep -o '"state":"[^"]*"' || true | wc -l)
     
-    if [[ $connector_tasks -gt 0 ]]; then
+    if (( connector_tasks > 0 )); then
         log "✅ CDC connector has $connector_tasks active task(s)"
     else
         log "⚠️  CDC connector task status unclear"
