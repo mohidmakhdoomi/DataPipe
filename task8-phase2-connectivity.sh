@@ -22,9 +22,8 @@ connectivity_check() {
     
     for i in $(seq 1 $max_attempts); do
         # Use a temporary pod for connectivity testing
-        if kubectl run connectivity-test-$service --rm -i --restart=Never --image=busybox:1.35 \
-           --namespace=${NAMESPACE} --timeout=30s -- \
-           sh -c "nc -z $service.$NAMESPACE.svc.cluster.local $port" >/dev/null 2>&1; then
+        # Test from kafka-connect pod, as it needs to connect to all other services
+        if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- sh -c "nc -z -w 5 $service.$NAMESPACE.svc.cluster.local $port" >/dev/null 2>&1; then
             log "✅ Connectivity to $service:$port confirmed"
             return 0
         fi
@@ -63,10 +62,7 @@ test_postgresql() {
 test_schema_registry() {
     log "Testing Schema Registry connectivity..."
     
-    # Test REST API endpoint
-    if kubectl run schema-test --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-       --namespace=${NAMESPACE} --timeout=30s -- \
-       curl -f -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects >/dev/null 2>&1; then
+    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects >/dev/null 2>&1; then
         log "✅ Schema Registry REST API accessible"
         return 0
     else
@@ -101,10 +97,8 @@ test_kafka() {
 test_kafka_connect() {
     log "Testing Kafka Connect connectivity..."
     
-    # Test REST API endpoint
-    if kubectl run connect-test --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-       --namespace=${NAMESPACE} --timeout=30s -- \
-       curl -f -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors >/dev/null 2>&1; then
+    # Test REST API endpoint from within the pod
+    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- curl -f -s http://localhost:8083/connectors >/dev/null 2>&1; then
         log "✅ Kafka Connect REST API accessible"
         return 0
     else
@@ -144,10 +138,8 @@ main() {
     done
     
     # DNS resolution test
-    log "Testing DNS resolution..."
-    if kubectl run dns-test --rm -i --restart=Never --image=busybox:1.35 \
-       --namespace=${NAMESPACE} --timeout=30s -- \
-       nslookup kafka.${NAMESPACE}.svc.cluster.local >/dev/null 2>&1; then
+    log "Testing DNS resolution from postgresql-0 pod..."
+    if kubectl exec -n ${NAMESPACE} postgresql-0 -- nslookup kafka.${NAMESPACE}.svc.cluster.local >/dev/null 2>&1; then
         log "✅ DNS resolution working"
     else
         log "❌ DNS resolution failed"
