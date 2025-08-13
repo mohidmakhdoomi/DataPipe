@@ -162,6 +162,7 @@ metadata:
 spec:
   serviceName: kafka-headless
   replicas: 3
+  podManagementPolicy: "Parallel"
   selector:
     matchLabels:
       app: kafka
