@@ -175,7 +175,7 @@ test_cdc_flow() {
     # Try to consume message with timeout
     if kubectl exec -n ${NAMESPACE} kafka-0 -- timeout 30 kafka-console-consumer \
        --bootstrap-server localhost:9092 \
-       --topic ecommerce-db.public.users \
+       --topic postgres.public.users \
        --from-beginning --max-messages 1 2>/dev/null | grep -q "$test_email"; then
         log "✅ CDC message found in Kafka topic"
         message_found=true
@@ -184,7 +184,7 @@ test_cdc_flow() {
         
         # Check topic exists and has messages
         local topic_info=$(kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-                          --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 2>/dev/null || echo "")
+                          --broker-list localhost:9092 --topic postgres.public.users --time -1 2>/dev/null || echo "")
         
         if [[ -n "$topic_info" ]]; then
             log "✅ CDC topic exists and has messages"
@@ -203,7 +203,7 @@ test_schema_registry() {
     
     # Check if schemas are registered
     if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
-       curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "ecommerce-db"; then
+       curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "postgres"; then
         log "✅ CDC schemas registered in Schema Registry"
         return 0
     else
