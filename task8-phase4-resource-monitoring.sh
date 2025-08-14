@@ -124,7 +124,7 @@ monitor_resources() {
     # Calculate statistics
     local avg_memory=0
     if [[ $sample_count -gt 0 ]]; then
-        avg_memory=$((total_memory_samples / $sample_count))
+        avg_memory=$((total_memory_samples / sample_count))
     fi
     
     log "Resource monitoring completed:"
