@@ -203,7 +203,7 @@ test_schema_registry() {
     
     # Check if schemas are registered
     if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
-       curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "postgres"; then
+       curl --fail -u "admin:admin-secret" http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "postgres"; then
         log "✅ CDC schemas registered in Schema Registry"
         return 0
     else
