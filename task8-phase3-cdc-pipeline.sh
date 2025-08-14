@@ -173,10 +173,10 @@ test_cdc_flow() {
     local message_found=false
     
     # Try to consume message with timeout
-    if kubectl exec -n ${NAMESPACE} kafka-0 -- timeout 30 kafka-console-consumer \
+    if kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-console-consumer \
        --bootstrap-server localhost:9092 \
        --topic postgres.public.users \
-       --from-beginning --max-messages 1 2>/dev/null | grep -q "$test_email"; then
+       --from-beginning --timeout-ms 4000 2>/dev/null | grep -q "$test_email"; then
         log "✅ CDC message found in Kafka topic"
         message_found=true
     else
@@ -240,7 +240,7 @@ main() {
     log "Verifying connector health..."
     local connector_tasks=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
                            curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/postgres-cdc-connector/tasks \
-                           2>/dev/null | grep -o '"state":"[^"]*"' || true | wc -l)
+                           2>/dev/null | grep -o '"task":[0-9]\+' | wc -l)
     
     if (( connector_tasks > 0 )); then
         log "✅ CDC connector has $connector_tasks active task(s)"
