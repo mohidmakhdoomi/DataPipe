@@ -21,19 +21,18 @@ while true; do
     
     if [[ -n "$memory_data" ]]; then
         # Calculate total memory usage
-        local total_memory=0
+        total_memory=0
         
         # Log individual pod usage
-        echo "$memory_data" | while read -r line; do
+        while read -r line; do
             pod_name=$(echo "$line" | awk '{print $1}')
             pod_memory=$(echo "$line" | awk '{print $3}' | sed 's/Mi//')
             if [[ $pod_memory == *Gi ]]; then
                 pod_memory=`echo "${pod_memory%??} 1024" | awk '{print $1*$2}'`
             fi
-            total_memory=`echo "${total_memory} ${pod_memory}" | awk '{print $1+$2}'`
+            total_memory=$((total_memory + pod_memory))
             log "Pod: $pod_name Memory: ${pod_memory}Mi"
-        done
-        
+        done <<< "$memory_data"
 
         # Log total and check thresholds
         log "Total Memory: ${total_memory}Mi / 4096Mi ($(($total_memory*100/4096))%)"
