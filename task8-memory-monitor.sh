@@ -21,7 +21,7 @@ while true; do
     
     if [[ -n "$memory_data" ]]; then
         # Calculate total memory usage
-        total_memory=0
+        local total_memory=0
         
         # Log individual pod usage
         echo "$memory_data" | while read -r line; do
@@ -30,7 +30,7 @@ while true; do
             if [[ $pod_memory == *Gi ]]; then
                 pod_memory=`echo "${pod_memory%??} 1024" | awk '{print $1*$2}'`
             fi
-            total_memory=$((total_memory + pod_memory))
+            total_memory=`echo "${total_memory} ${pod_memory}" | awk '{print $1+$2}'`
             log "Pod: $pod_name Memory: ${pod_memory}Mi"
         done
         
