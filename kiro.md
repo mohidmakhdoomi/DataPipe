@@ -156,7 +156,6 @@
 ## 💡 **KEY LEARNINGS**
 
 ### **Resource Optimization**
-- `task5-kafka-kraft-3brokers.yaml` takes 3 minutes for all kafka pods to be running
 - 3-broker Kafka cluster provides high availability within resource constraints
 - Persistent storage: 15.0Gi allocated across differentiated storage classes
 - Phased implementation prevents resource exhaustion

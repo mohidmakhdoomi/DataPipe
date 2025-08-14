@@ -134,6 +134,13 @@ spec:
   - to:
     - podSelector:
         matchLabels:
+          app: kafka-connect
+    ports:
+    - protocol: TCP
+      port: 8083
+  - to:
+    - podSelector:
+        matchLabels:
           app: postgresql
     ports:
     - protocol: TCP
