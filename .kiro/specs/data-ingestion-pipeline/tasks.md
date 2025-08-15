@@ -140,7 +140,7 @@ Phase 4: Production (Tasks 13-16)
   - NodePort service on port 30083 for external REST API access
   - Resource allocation: 256Mi request, 512Mi limit within budget constraints
 
-- [ ] 8. Validate core services connectivity and performance
+- [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
   - Monitor resource consumption and adjust allocations within 4Gi limit
   - Verify container memory limits enforcement:
