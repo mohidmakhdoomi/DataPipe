@@ -215,7 +215,7 @@ main() {
     
     # Step 6: Final health check
     log "Performing final health check..."
-    local unhealthy_pods=$(kubectl get pods -n ${NAMESPACE} --no-headers | grep -v "Running" | wc -l)
+    local unhealthy_pods=$(kubectl get pods -n ${NAMESPACE} --no-headers | grep -v "Running\|Completed" | wc -l)
     
     if [[ $unhealthy_pods -eq 0 ]]; then
         log "✅ All pods healthy after restart"
