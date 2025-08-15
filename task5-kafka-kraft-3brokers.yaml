@@ -162,6 +162,7 @@ metadata:
 spec:
   serviceName: kafka-headless
   replicas: 3
+  podManagementPolicy: "Parallel"
   selector:
     matchLabels:
       app: kafka
@@ -318,3 +319,25 @@ spec:
   selector:
     app: kafka
     component: streaming
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-nodeport
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: streaming
+  annotations:
+    description: "NodePort service for Kafka - DEV ONLY"
+spec:
+  type: NodePort
+  selector:
+    app: kafka
+    component: streaming
+  ports:
+  - name: kafka
+    protocol: TCP
+    port: 9092
+    targetPort: 9092
+    nodePort: 30092  # Maps to kind-config.yaml hostPort: 9092

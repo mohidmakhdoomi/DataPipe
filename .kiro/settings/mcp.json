@@ -52,7 +52,14 @@
         "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logs:/app/logs",
         "zen-mcp-server"
       ],
-      "env": {},
+      "timeout": 360000,
+      "env": {
+        "MCP_SERVER_REQUEST_TIMEOUT": "360000",
+        "DEFAULT_REQUEST_TIMEOUT_MSEC": "360000",
+        "MCP_TIMEOUT": "360000",
+        "DEFAULT_TOOL_CALL_TIMEOUT": "360000",
+        "CUSTOM_CONNECT_TIMEOUT": "360000"
+      },
       "disabled": false,
       "autoApprove": [
         "chat",
