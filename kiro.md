@@ -166,7 +166,7 @@
 - **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 1Gi memory
 - **Kafka KRaft:** 3-broker cluster eliminates ZooKeeper, 10Gi storage exactly per specification
 - **Topic Configuration:** 6 partitions, LZ4 compression, 7-day retention for all CDC topics
-- **Resource Efficiency:** 3Gi of 4Gi allocated, 1Gi remaining for Schema Registry/Kafka Connect
+- **Resource Efficiency:** 4Gi of 4Gi allocated
 
 ### **Expert Consensus Results**
 - **Multi-model validation:** 7-9/10 confidence across Claude Opus, Gemini Pro, Grok-4, OpenAI o3
@@ -178,6 +178,6 @@
 ---
 
 **Last Updated:** 2025-08-03 Current Time  
-**Status:** Phase 1 Complete (Tasks 1-5), Phase 2 Nearly Complete (Tasks 6-7), Ready for Task 8 (Core Services Validation)  
+**Status:** Phase 1 Complete (Tasks 1-5), Phase 2 Nearly Complete (Tasks 6-7), Started Task 8 (Core Services Validation)  
 **Confidence:** High (expert consensus validation with multi-model analysis)  
 **Progress:** 7/16 tasks completed (43.75% of implementation)
