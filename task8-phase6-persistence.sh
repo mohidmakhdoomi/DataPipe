@@ -38,9 +38,9 @@ force_pod_restarts() {
     log "Forcing pod restarts to test persistence..."
     
     # Get current pod names
-    local pg_pod=$(kubectl get pods -n ${NAMESPACE} -l app=postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    local kafka_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka -o jsonpath='{.items[1].metadata.name}' 2>/dev/null || echo "kafka-1")
-    local connect_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+    local pg_pod=$(kubectl get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+    local kafka_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[1].metadata.name}' 2>/dev/null || echo "kafka-1")
+    local connect_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
     
     log "Targeting pods for restart: $pg_pod, $kafka_pod, $connect_pod"
     
@@ -77,7 +77,7 @@ wait_for_restart() {
     
     # Wait for PostgreSQL
     log "Waiting for PostgreSQL to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=postgresql -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ PostgreSQL pod restarted and ready"
     else
         log "⚠️  PostgreSQL pod restart timeout (may still be starting)"
@@ -85,7 +85,7 @@ wait_for_restart() {
     
     # Wait for Kafka
     log "Waiting for Kafka to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=kafka -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Kafka pods restarted and ready"
     else
         log "⚠️  Kafka pod restart timeout (may still be starting)"
@@ -93,7 +93,7 @@ wait_for_restart() {
     
     # Wait for Kafka Connect
     log "Waiting for Kafka Connect to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=kafka-connect -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Kafka Connect pod restarted and ready"
     else
         log "⚠️  Kafka Connect pod restart timeout (may still be starting)"
@@ -172,10 +172,9 @@ test_cdc_recovery() {
     local elapsed=0
     
     while [[ $elapsed -lt $max_wait ]]; do
-        local status=$(kubectl run connector-status-check --rm -i --restart=Never --image=curlimages/curl:8.4.0 \
-                      --namespace=${NAMESPACE} --timeout=30s -- \
-                      curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/postgres-cdc-connector/status \
-                      2>/dev/null | grep -o '"state":"[^"]*"' | cut -d'"' -f4 || echo "UNKNOWN")
+        local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+                      curl -s http://localhost:8083/connectors/postgres-cdc-connector/status \
+                      2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
         if [[ "$status" == "RUNNING" ]]; then
             log "✅ CDC connector recovered and running"
