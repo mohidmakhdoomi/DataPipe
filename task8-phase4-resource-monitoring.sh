@@ -118,7 +118,7 @@ monitor_resources() {
             log "⚠️  Unable to retrieve metrics data"
         fi
         
-        sleep 10
+        sleep 8
     done
     
     # Calculate statistics
