@@ -1,3 +1,124 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-connect-config
+  namespace: data-ingestion
+  labels:
+    app: kafka-connect
+    component: configuration
+data:
+  # Kafka Connect Worker Configuration
+  connect-distributed.properties: |
+    # Kafka Connection
+    bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
+    
+    # Worker Configuration
+    group.id=connect-cluster
+    
+    # Internal Topics (created by topic setup job)
+    config.storage.topic=connect-configs
+    config.storage.replication.factor=3
+    offset.storage.topic=connect-offsets
+    offset.storage.replication.factor=3
+    offset.storage.partitions=25
+    status.storage.topic=connect-status
+    status.storage.replication.factor=3
+    status.storage.partitions=5
+    
+    # Converters - Avro with Schema Registry
+    key.converter=io.confluent.connect.avro.AvroConverter
+    value.converter=io.confluent.connect.avro.AvroConverter
+    key.converter.schema.registry.url=http://schema-registry.data-ingestion.svc.cluster.local:8081
+    value.converter.schema.registry.url=http://schema-registry.data-ingestion.svc.cluster.local:8081
+    
+    # Internal Converters
+    internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+    internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+    internal.key.converter.schemas.enable=false
+    internal.value.converter.schemas.enable=false
+    
+    # REST API Configuration
+    rest.port=8083
+    rest.host.name=0.0.0.0
+    rest.advertised.host.name=kafka-connect
+    rest.advertised.port=8083
+    
+    # Plugin Configuration
+    plugin.path=/kafka/connect,/usr/share/java/kafka,/usr/share/java/confluent-common
+    
+    # Worker Settings
+    task.shutdown.graceful.timeout.ms=10000
+    offset.flush.interval.ms=10000
+    offset.flush.timeout.ms=5000
+    
+    # Producer Settings
+    producer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
+    producer.compression.type=lz4
+    producer.max.request.size=1048576
+    producer.buffer.memory=33554432
+    producer.batch.size=16384
+    producer.linger.ms=10
+    producer.acks=1
+    
+    # Consumer Settings
+    consumer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
+    consumer.max.poll.records=500
+    consumer.max.poll.interval.ms=300000
+    consumer.session.timeout.ms=30000
+    consumer.heartbeat.interval.ms=3000
+    consumer.auto.offset.reset=earliest
+    
+    # Error Handling
+    errors.retry.timeout=300000
+    errors.retry.delay.max.ms=60000
+    errors.tolerance=none
+    
+    # Logging
+    connect.logs.dir=/kafka/logs
+    
+  # Log4j Configuration
+  connect-log4j.properties: |
+    log4j.rootLogger=INFO, stdout, connectAppender
+    
+    # Console appender
+    log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+    log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+    log4j.appender.stdout.layout.ConversionPattern=[%d] %p %m (%c)%n
+    
+    # Connect appender
+    log4j.appender.connectAppender=org.apache.log4j.DailyRollingFileAppender
+    log4j.appender.connectAppender.DatePattern='.'yyyy-MM-dd-HH
+    log4j.appender.connectAppender.File=/kafka/logs/connect.log
+    log4j.appender.connectAppender.layout=org.apache.log4j.PatternLayout
+    log4j.appender.connectAppender.layout.ConversionPattern=[%d] %p %m (%c)%n
+    
+    # Reduce verbosity for some packages
+    log4j.logger.org.apache.kafka.connect.runtime.WorkerSourceTask=WARN
+    log4j.logger.org.apache.kafka.connect.runtime.WorkerSinkTask=WARN
+    log4j.logger.org.reflections=ERROR
+
+  # JVM Configuration based on multi-model consensus
+  KAFKA_HEAP_OPTS: "-Xms128m -Xmx512m"
+  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+  CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+  CONNECT_GROUP_ID: "connect-cluster"
+  CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+  CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+  CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
+  CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+  CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
+  CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+  CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
+  CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+  CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+  CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+  CONNECT_REST_PORT: "8083"
+  CONNECT_PLUGIN_PATH: "/kafka/connect,/usr/share/java/kafka,/usr/share/java/confluent-common"
+  CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+  KAFKA_OPTS: "-Dlog4j.configuration=file:/kafka/config/connect-log4j.properties"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
+  CONFLUENT_TELEMETRY_ENABLED: "false"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -61,56 +182,25 @@ spec:
       containers:
       - name: kafka-connect
         image: confluentinc/cp-kafka-connect:7.4.0
+        command: ["/bin/bash"]
+        args: ["/etc/confluent/docker/run"]
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-        # JVM Configuration based on multi-model consensus
-        env:
-        - name: KAFKA_HEAP_OPTS
-          value: "-Xms128m -Xmx384m"
-        - name: JAVA_TOOL_OPTIONS
-          value: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
-        - name: CONNECT_BOOTSTRAP_SERVERS
-          value: "kafka-headless.data-ingestion.svc.cluster.local:9092"
-        - name: CONNECT_GROUP_ID
-          value: "connect-cluster"
-        - name: CONNECT_CONFIG_STORAGE_TOPIC
-          value: "connect-configs"
-        - name: CONNECT_OFFSET_STORAGE_TOPIC
-          value: "connect-offsets"
-        - name: CONNECT_STATUS_STORAGE_TOPIC
-          value: "connect-status"
-        - name: CONNECT_KEY_CONVERTER
-          value: "io.confluent.connect.avro.AvroConverter"
-        - name: CONNECT_VALUE_CONVERTER
-          value: "io.confluent.connect.avro.AvroConverter"
-        - name: CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL
-          value: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
-        - name: CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL
-          value: "http://schema-registry.data-ingestion.svc.cluster.local:8081"
-        - name: CONNECT_INTERNAL_KEY_CONVERTER
-          value: "org.apache.kafka.connect.json.JsonConverter"
-        - name: CONNECT_INTERNAL_VALUE_CONVERTER
-          value: "org.apache.kafka.connect.json.JsonConverter"
-        - name: CONNECT_REST_ADVERTISED_HOST_NAME
-          value: "kafka-connect"
-        - name: CONNECT_REST_PORT
-          value: "8083"
-        - name: CONNECT_PLUGIN_PATH
-          value: "/kafka/connect,/usr/share/java,/usr/share/confluent-hub-components"
-        - name: CONNECT_LOG4J_LOGGERS
-          value: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+        envFrom:
+        - configMapRef:
+            name: kafka-connect-config
         ports:
         - name: http
           containerPort: 8083
         resources:
           requests:
-            memory: "256Mi"  # Based on multi-model consensus
-            cpu: "250m"
+            memory: "256Mi"
+            cpu: "500m"
           limits:
-            memory: "512Mi"  # Based on multi-model consensus
+            memory: "512Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
@@ -132,13 +222,13 @@ spec:
           httpGet:
             path: /
             port: 8083
-          initialDelaySeconds: 10
+          initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 18  # 3 minutes total
+          failureThreshold: 30  # Total: 30 + (30*10) = 330s (5.5 minutes)
         volumeMounts:
         - name: config-volume
-          mountPath: /etc/kafka-connect
+          mountPath: /kafka/config
         - name: plugin-volume
           mountPath: /kafka/connect
         - name: logs-volume
@@ -153,37 +243,230 @@ spec:
         emptyDir: {}
 ---
 apiVersion: v1
-kind: ServiceAccount
+kind: Service
 metadata:
-  name: kafka-connect-sa
+  name: kafka-connect
   namespace: data-ingestion
   labels:
     app: kafka-connect
-    component: service-account
+    component: service
+spec:
+  type: ClusterIP
+  selector:
+    app: kafka-connect
+    component: worker
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8083
+    targetPort: 8083
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+apiVersion: v1
+kind: Service
 metadata:
-  name: kafka-connect-role
+  name: kafka-connect-nodeport
   namespace: data-ingestion
-rules:
-- apiGroups: [""]
-  resources: ["configmaps", "secrets"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
+  labels:
+    app: kafka-connect
+    component: external-service
+spec:
+  type: NodePort
+  selector:
+    app: kafka-connect
+    component: worker
+  ports:
+  - name: http
+    port: 8083
+    targetPort: 8083
+    nodePort: 30083
+    protocol: TCP
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: kafka-connect-rolebinding
+  name: debezium-connector-config
   namespace: data-ingestion
-subjects:
-- kind: ServiceAccount
-  name: kafka-connect-sa
+  labels:
+    app: kafka-connect
+    component: connector-config
+data:
+  postgres-cdc-connector.json: |
+    {
+      "name": "postgres-cdc-connector",
+      "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "tasks.max": "1",
+        
+        "database.hostname": "postgresql.data-ingestion.svc.cluster.local",
+        "database.port": "5432",
+        "database.user": "debezium",
+        "database.password": "debezium_password",
+        "database.dbname": "ecommerce",
+        "database.server.name": "postgres",
+        "topic.prefix": "postgres",
+        
+        "table.include.list": "public.users,public.products,public.orders,public.order_items",
+        "plugin.name": "pgoutput",
+        "slot.name": "debezium_slot",
+        "publication.name": "dbz_publication",
+        
+        "key.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
+        "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
+        "key.converter.basic.auth.credentials.source": "USER_INFO",
+        "key.converter.basic.auth.user.info": "admin:admin-secret",
+        "value.converter.basic.auth.credentials.source": "USER_INFO",
+        "value.converter.basic.auth.user.info": "admin:admin-secret",
+        
+        "transforms": "unwrap",
+        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+        "transforms.unwrap.drop.tombstones": "false",
+        "transforms.unwrap.delete.handling.mode": "rewrite",
+        "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms",
+        
+        "snapshot.mode": "initial",
+        "snapshot.fetch.size": "1000",
+        "max.batch.size": "2048",
+        "max.queue.size": "8192",
+        "poll.interval.ms": "1000",
+        
+        "decimal.handling.mode": "string",
+        "time.precision.mode": "adaptive_time_microseconds",
+        "binary.handling.mode": "bytes",
+        
+        "heartbeat.interval.ms": "30000",
+        "heartbeat.topics.prefix": "__debezium-heartbeat",
+        
+        "schema.history.internal.kafka.bootstrap.servers": "kafka-headless.data-ingestion.svc.cluster.local:9092",
+        "schema.history.internal.kafka.topic": "schema-changes.postgres",
+        "schema.history.internal.kafka.recovery.attempts": "100",
+        "schema.history.internal.kafka.recovery.poll.interval.ms": "5000",
+        
+        "errors.tolerance": "all",
+        "errors.log.enable": "true",
+        "errors.log.include.messages": "true",
+        "errors.deadletterqueue.topic.name": "connect-dlq",
+        "errors.deadletterqueue.topic.replication.factor": "3",
+        "errors.deadletterqueue.context.headers.enable": "true",
+        "errors.retry.delay.max.ms": "60000",
+        "errors.retry.timeout": "300000",
+        
+        "topic.creation.enable": "true",
+        "topic.creation.default.replication.factor": "3",
+        "topic.creation.default.partitions": "6",
+        "topic.creation.default.cleanup.policy": "delete",
+        "topic.creation.default.compression.type": "lz4",
+        "topic.creation.default.retention.ms": "604800000",
+        
+        "provide.transaction.metadata": "false",
+        "skipped.operations": "none",
+        "tombstones.on.delete": "true",
+        
+        "publication.autocreate.mode": "all_tables",
+        "slot.drop.on.stop": "false",
+        "slot.max.retries": "6",
+        "slot.retry.delay.ms": "10000",
+        
+        "status.update.interval.ms": "10000",
+        "retriable.restart.connector.wait.ms": "10000"
+      }
+    }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: debezium-connector-deployer
   namespace: data-ingestion
-roleRef:
-  kind: Role
-  name: kafka-connect-role
-  apiGroup: rbac.authorization.k8s.io
+  labels:
+    app: kafka-connect
+    component: connector-deployer
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: kafka-connect
+        component: connector-deployer
+    spec:
+      serviceAccountName: kafka-connect-sa
+      restartPolicy: OnFailure
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: connector-deployer
+        image: curlimages/curl:8.5.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          
+          CONNECT_URL="http://kafka-connect.data-ingestion.svc.cluster.local:8083"
+          CONNECTOR_NAME="postgres-cdc-connector"
+          CONFIG_FILE="/config/postgres-cdc-connector.json"
+          
+          echo "Waiting for Kafka Connect to be ready at $CONNECT_URL..."
+          until curl -sf "$CONNECT_URL/connectors" > /dev/null; do
+            echo "Kafka Connect not ready, retrying in 5s..."
+            sleep 5
+          done
+          echo "Kafka Connect is ready!"
+          
+          # Check if connector already exists
+          STATUS_CODE=$(curl -w "%{http_code}" -s -o /dev/null "$CONNECT_URL/connectors/$CONNECTOR_NAME")
+          
+          if [ "$STATUS_CODE" -eq 404 ]; then
+            echo "Connector '$CONNECTOR_NAME' does not exist. Creating..."
+            curl -X POST \
+              -H "Content-Type: application/json" \
+              -d @"$CONFIG_FILE" \
+              "$CONNECT_URL/connectors" \
+              --fail-with-body
+            echo "Connector created successfully!"
+          elif [ "$STATUS_CODE" -eq 200 ]; then
+            echo "Connector '$CONNECTOR_NAME' already exists. Updating configuration..."
+            # Extract just the config section for PUT request
+            CONFIG_DATA=$(cat "$CONFIG_FILE" | sed -n 's/.*"config":\s*\({.*}\).*/\1/p')
+            curl -X PUT \
+              -H "Content-Type: application/json" \
+              -d "$CONFIG_DATA" \
+              "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" \
+              --fail-with-body
+            echo "Connector configuration updated successfully!"
+          else
+            echo "Unexpected response code: $STATUS_CODE"
+            exit 1
+          fi
+          
+          # Verify connector status
+          sleep 3
+          echo "Verifying connector status..."
+          curl -s "$CONNECT_URL/connectors/$CONNECTOR_NAME/status" | grep -q '"state":"RUNNING"' && \
+            echo "✅ Connector is running successfully!" || \
+            echo "⚠️  Connector may still be starting up. Check status manually."
+        volumeMounts:
+        - name: connector-config
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: connector-config
+        configMap:
+          name: debezium-connector-config

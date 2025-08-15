@@ -8,7 +8,7 @@ This is a data pipeline project implementing a Lambda Architecture for high-thro
 
 Current implementation phase: Data Ingestion Pipeline (PostgreSQL → Debezium CDC → Kafka → S3 Archival)
 
-**Task Progress**: Tasks 1-5 completed ✅ | Currently on Task 6 (Schema Registry)
+**Task Progress**: Tasks 1-8 completed ✅ | Currently on Task 9 (Debezium CDC Connector)
 
 ## Key Commands
 
@@ -47,12 +47,17 @@ kubectl get pv
 ### Service Deployments
 ```bash
 # Deploy PostgreSQL (Task 4)
-kubectl apply -f task4-postgresql-configmap.yaml
 kubectl apply -f task4-postgresql-statefulset.yaml
 
 # Deploy Kafka (Task 5)
 kubectl apply -f task5-kafka-kraft-3brokers.yaml
 kubectl apply -f task5-cdc-topics-job.yaml
+
+# Deploy Schema Registry (Task 6)
+kubectl apply -f task6-schema-registry.yaml
+
+# Deploy Kafka Connect (Task 7)
+kubectl apply -f task7-kafka-connect-deployment.yaml
 
 # Check service status
 kubectl get statefulset -n data-ingestion
@@ -64,29 +69,31 @@ kubectl get pods -n data-ingestion -l app=kafka
 
 ### Current Status
 Currently working on the data-ingestion-pipeline spec, the requirements, design and tasks are located in directory `.kiro/specs/data-ingestion-pipeline/`
-- **Completed**: Tasks 1-5 ✅
+- **Completed**: Tasks 1-8 ✅
   - Task 1: Kind cluster setup
   - Task 2: Persistent volume provisioning
   - Task 3: Kubernetes namespaces and RBAC
   - Task 4: PostgreSQL deployment with CDC
   - Task 5: 3-broker Kafka cluster with KRaft
-- **Current Task**: Task 6 (Confluent Schema Registry)
-- **Constraint**: 4GB total RAM allocation for data ingestion pipeline (out of 24GB total system allocation)
+  - Task 6: Confluent Schema Registry
+  - Task 7: Kafka Connect cluster with Debezium plugins
+  - Task 8: Core services validation
+- **Current Task**: Task 9 (Debezium CDC Connector)
+- **Constraint**: 4Gi total RAM allocation for data ingestion pipeline (out of 24GB total system allocation)
 
 ### Resource Allocation Strategy
 - **System Total**: 24GB RAM, 10 CPU cores, 1TB storage
 - **Data Ingestion Pipeline**: 4GB RAM allocation
-  - Kubernetes overhead: ~622MB
-  - Available for workloads: ~3.4GB
+  - Available for workloads: 4GB
   - Component budgets:
-    - PostgreSQL: 1GB
-    - Kafka: 2GB (3 brokers with HA)
-    - Schema Registry: 512MB
-    - Kafka Connect/Debezium: 512MB
+    - PostgreSQL: 1Gi
+    - Kafka: 2Gi (3 brokers with HA)
+    - Schema Registry: 512Mi
+    - Kafka Connect/Debezium: 512Mi
 
 ### Storage Architecture
-- Three differentiated storage classes: database-local-path, streaming-local-path, metadata-local-path
-- Total allocation: 16.5Gi (PostgreSQL 5Gi + Kafka 10Gi + Schema Registry 512Mi + Kafka Connect 1Gi)
+- Three differentiated storage classes: database-local-path, streaming-local-path
+- Total allocation: 15.0Gi (PostgreSQL 5Gi + Kafka 10Gi)
 - Reclaim policy: Retain (prevents data loss in development)
 - Volume binding: WaitForFirstConsumer (optimal pod placement)
 
@@ -112,22 +119,17 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `04-secrets.yaml` - Secret management
 - `storage-classes.yaml` - Differentiated storage classes for workload types
 - `data-services-pvcs.yaml` - Persistent volume claims for all services
-- `task4-postgresql-configmap.yaml` - PostgreSQL configuration
 - `task4-postgresql-statefulset.yaml` - PostgreSQL deployment
 - `task5-kafka-kraft-3brokers.yaml` - Kafka cluster deployment
 - `task5-cdc-topics-job.yaml` - CDC topics creation
+- `task6-schema-registry.yaml` - Schema Registry deployment
+- `task7-kafka-connect-topics.yaml` - Kafka Connect topics creation
+- `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
+- `task7-debezium-connector-config.json` - Configuration that validates Kafka Connect + Debezium + PostgreSQL + Schema Registry work together
 
 ### Additional Documentation
 - `kiro.md` - Kiro Project memory and status tracking
-- `task1-validation-report.md` - Cluster setup validation
-- `task2-storage-provisioning-report.md` - Storage provisioning validation
-- `task3-completion-report.md` - Namespace and RBAC setup report
-
-### Validation Scripts
-- `test-validation.yaml` - Cluster health validation
-- `storage-canary-test.yaml` - Storage performance testing
-- `storage-persistence-validation.yaml` - Data persistence validation
-- `task3-validation.yaml` - Namespace and RBAC validation
+- `task8-logs/task8-validation-report.md` - Core services validation report
 
 ### Key Principles
 1. Resource efficiency within 4GB constraint for data ingestion

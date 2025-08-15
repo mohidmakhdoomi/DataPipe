@@ -162,6 +162,7 @@ metadata:
 spec:
   serviceName: kafka-headless
   replicas: 3
+  podManagementPolicy: "Parallel"
   selector:
     matchLabels:
       app: kafka
@@ -197,7 +198,7 @@ spec:
             - ALL
         env:
         - name: KAFKA_HEAP_OPTS
-          value: "-Xmx667m -Xms667m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
+          value: "-Xmx667m -Xms512m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
         - name: KAFKA_JVM_PERFORMANCE_OPTS
           value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true"
         ports:
@@ -231,10 +232,10 @@ spec:
           exec kafka-server-start /etc/kafka/server.properties
         resources:
           requests:
-            memory: "667Mi"
+            memory: "512Mi"
             cpu: "250m"
           limits:
-            memory: "750Mi"
+            memory: "682Mi"
             cpu: "500m"
         volumeMounts:
         - name: kafka-data
@@ -318,3 +319,25 @@ spec:
   selector:
     app: kafka
     component: streaming
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-nodeport
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: streaming
+  annotations:
+    description: "NodePort service for Kafka - DEV ONLY"
+spec:
+  type: NodePort
+  selector:
+    app: kafka
+    component: streaming
+  ports:
+  - name: kafka
+    protocol: TCP
+    port: 9092
+    targetPort: 9092
+    nodePort: 30092  # Maps to kind-config.yaml hostPort: 9092

@@ -10,16 +10,21 @@
     "database.password": "debezium_password",
     "database.dbname": "ecommerce",
     "database.server.name": "postgres",
+    "topic.prefix": "postgres",
     
     "table.include.list": "public.users,public.products,public.orders,public.order_items",
     "plugin.name": "pgoutput",
     "slot.name": "debezium_slot",
-    "publication.name": "debezium_publication",
+    "publication.name": "dbz_publication",
     
     "key.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
+    "key.converter.basic.auth.credentials.source": "USER_INFO",
+    "key.converter.basic.auth.user.info": "admin:admin-secret",
+    "value.converter.basic.auth.credentials.source": "USER_INFO",
+    "value.converter.basic.auth.user.info": "admin:admin-secret",
     
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
@@ -65,7 +70,7 @@
     "skipped.operations": "none",
     "tombstones.on.delete": "true",
     
-    "publication.autocreate.mode": "filtered",
+    "publication.autocreate.mode": "all_tables",
     "slot.drop.on.stop": "false",
     "slot.max.retries": "6",
     "slot.retry.delay.ms": "10000",

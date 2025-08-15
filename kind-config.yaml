@@ -1,14 +1,11 @@
 # Kind Configuration for Data Ingestion Pipeline
 # 3-node cluster architecture (1 control-plane + 2 workers)
-# Supports 3-broker Kafka cluster with replication factor 3
-# Based on working desktop cluster configuration
 
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: data-ingestion
 
 # 3-node cluster: 1 control-plane + 2 worker nodes
-# This architecture supports distributed services with proper replication
 nodes:
 - role: control-plane
   # Control-plane node with ingress capabilities

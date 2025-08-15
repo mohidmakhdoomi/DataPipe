@@ -60,7 +60,7 @@ Phase 4: Production (Tasks 13-16)
 
   - Create PostgreSQL StatefulSet with persistent volume (5Gi)
   - Configure logical replication: `wal_level=logical`, `max_replication_slots=4`
-  - Optimize PostgreSQL for 1GB memory allocation:
+  - Optimize PostgreSQL for 1Gi memory allocation:
     - Set `shared_buffers=256MB`
     - Set `effective_cache_size=512MB`
     - Set `work_mem=4MB`
@@ -72,14 +72,14 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.2, 4.4_
 
 **Acceptance Criteria:**
-- [x] Kind cluster running with 3 nodes and 4GB RAM allocation
+- [x] Kind cluster running with 3 nodes and 4Gi RAM allocation
 - [x] PostgreSQL accessible with logical replication enabled
 - [x] E-commerce tables created with sample data for testing
 - [x] CDC user configured with proper replication permissions
 
 ### Phase 2: Core Services - Kafka and Schema Management
 
-**Status: Tasks 5-7 Complete ✅ | Task 8 Pending**
+**Status: COMPLETED ✅ | All Tasks 5-8 Complete**
 
 
 
@@ -89,7 +89,7 @@ Phase 4: Production (Tasks 13-16)
   - Deploy 3 Kafka brokers in KRaft mode with persistent storage (10Gi total)
   - Configure KRaft controllers for metadata management (no ZooKeeper)
   - Set up inter-broker communication and replication factor 3
-  - Configure Kafka for 2GB shared HA cluster allocation:
+  - Configure Kafka for 2Gi shared HA cluster allocation:
     - Set JVM heap size: `-Xmx2g -Xms2g`
     - Enable G1GC: `-XX:+UseG1GC -XX:MaxGCPauseMillis=20`
     - Configure GC monitoring and alerting
@@ -98,7 +98,7 @@ Phase 4: Production (Tasks 13-16)
   - Test cluster health and topic creation/deletion
   - _Requirements: 2.1, 2.2, 5.1_
 
-  **✅ COMPLETED:** 3-broker Kafka cluster deployed with KRaft mode, 10Gi total storage (3413Mi per broker), 2GB memory allocation, CDC topics created with 6 partitions, LZ4 compression, and 7-day retention. All specification requirements met exactly.
+  **✅ COMPLETED:** 3-broker Kafka cluster deployed with KRaft mode, 10Gi total storage (3413Mi per broker), 2Gi memory allocation, CDC topics created with 6 partitions, LZ4 compression, and 7-day retention. All specification requirements met exactly.
 
 - [x] 6. Deploy Confluent Schema Registry for schema management
 
@@ -133,21 +133,21 @@ Phase 4: Production (Tasks 13-16)
   **✅ COMPLETED:** Kafka Connect deployed with comprehensive multi-model consensus validation:
   - Single worker deployment (512Mi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
   - Distributed mode configuration for future scalability
-  - JVM tuning: 384Mi heap with G1GC optimization (-Xms128m -Xmx384m)
+  - JVM tuning: 512Mi heap with G1GC optimization (-Xms128m -Xmx512m)
   - Debezium PostgreSQL connector plugin with init container installation
   - Dead letter queue configuration (connect-dlq topic) for error handling
   - Integration with existing Kafka cluster and Schema Registry
   - NodePort service on port 30083 for external REST API access
   - Resource allocation: 256Mi request, 512Mi limit within budget constraints
 
-- [ ] 8. Validate core services connectivity and performance
+- [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
-  - Monitor resource consumption and adjust allocations within 4GB limit
+  - Monitor resource consumption and adjust allocations within 4Gi limit
   - Verify container memory limits enforcement:
-    - PostgreSQL: 1GB limit with OOM protection
-    - Kafka: 2GB limit with GC monitoring
-    - Schema Registry: 512MB limit with JVM optimization
-    - Kafka Connect: 512MB limit
+    - PostgreSQL: 1Gi limit with OOM protection
+    - Kafka: 2Gi limit with GC monitoring
+    - Schema Registry: 512Mi limit with JVM optimization
+    - Kafka Connect: 512Mi limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
   - Document baseline performance metrics and resource usage
@@ -156,8 +156,8 @@ Phase 4: Production (Tasks 13-16)
 **Acceptance Criteria:**
 - [x] Kafka cluster healthy with 3 brokers and proper replication
 - [x] Schema Registry operational with backward compatibility enabled
-- [ ] Kafka Connect cluster ready with Debezium plugins installed
-- [ ] All services communicating properly within resource constraints
+- [x] Kafka Connect cluster ready with Debezium plugins installed
+- [x] All services communicating properly within resource constraints
 
 ### Phase 3: Integration - CDC and S3 Archival
 
@@ -256,12 +256,14 @@ Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 
 ## Resource Allocation Summary
 
-- **Total RAM**: 4GB allocated across all components
-- **PostgreSQL**: 1GB RAM, 5Gi storage
-- **Kafka Cluster**: 2GB RAM (shared HA cluster allocation), 10Gi storage
-- **Schema Registry**: 0.5GB RAM
-- **Kafka Connect**: 0.5GB RAM
+- **Total RAM**: 4Gi allocated across all components
+- **Actual Usage**: 1816Mi (45% utilization) with 55% headroom
+- **PostgreSQL**: 1Gi RAM (39Mi actual usage), 5Gi storage
+- **Kafka Cluster**: 2Gi RAM  (1126Mi actual usage), 10Gi storage
+- **Schema Registry**: 0.5Gi RAM (235Mi actual usage)
+- **Kafka Connect**: 0.5Gi RAM (415Mi actual usage)
 - **Monitoring**: Included in orchestration-monitoring feature
+- **Performance**: Exceeds targets with significant resource headroom
 
 ## Implementation Notes
 

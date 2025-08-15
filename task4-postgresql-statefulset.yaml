@@ -1,3 +1,161 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-config
+  namespace: data-ingestion
+  labels:
+    app: postgresql
+    component: database
+data:
+  postgresql.conf: |
+    # Memory Configuration (optimized for 1GB allocation)
+    shared_buffers = 256MB
+    effective_cache_size = 512MB
+    work_mem = 4MB
+    maintenance_work_mem = 64MB
+    
+    # Connection Configuration
+    listen_addresses = '*'
+    max_connections = 100
+    
+    # WAL Configuration for CDC
+    wal_level = logical
+    max_wal_senders = 4
+    max_replication_slots = 4
+    max_logical_replication_workers = 4
+    
+    # Performance Tuning
+    checkpoint_completion_target = 0.9
+    wal_buffers = 16MB
+    default_statistics_target = 100
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    
+    # Logging Configuration
+    log_destination = 'stderr'
+    logging_collector = on
+    log_directory = 'log'
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+    log_statement = 'mod'
+    log_min_duration_statement = 1000
+    
+    # Replication Configuration
+    hot_standby = on
+    wal_keep_size = 1GB
+    max_slot_wal_keep_size = 2GB
+  
+  init-schema.sql: |
+    -- Create database for e-commerce
+    CREATE DATABASE ecommerce;
+    
+    -- Connect to ecommerce database
+    \c ecommerce;
+    
+    -- Create users table
+    CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    
+    -- Create products table
+    CREATE TABLE products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+        stock_quantity INTEGER DEFAULT 0 CHECK (stock_quantity >= 0),
+        category VARCHAR(100),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    
+    -- Create orders table
+    CREATE TABLE orders (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
+        total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
+        shipping_address TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+    
+    -- Create order_items table
+    CREATE TABLE order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+        quantity INTEGER NOT NULL CHECK (quantity > 0),
+        unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price >= 0),
+        created_at TIMESTAMP DEFAULT NOW()
+    );
+    
+    -- Create indexes for performance
+    CREATE INDEX idx_users_email ON users(email);
+    CREATE INDEX idx_products_category ON products(category);
+    CREATE INDEX idx_products_price ON products(price);
+    CREATE INDEX idx_orders_user_id ON orders(user_id);
+    CREATE INDEX idx_orders_status ON orders(status);
+    CREATE INDEX idx_orders_created_at ON orders(created_at);
+    CREATE INDEX idx_order_items_order_id ON order_items(order_id);
+    CREATE INDEX idx_order_items_product_id ON order_items(product_id);
+    
+    -- Create debezium user for CDC
+    CREATE USER debezium WITH REPLICATION PASSWORD 'debezium_password';
+    GRANT CONNECT ON DATABASE ecommerce TO debezium;
+    GRANT USAGE ON SCHEMA public TO debezium;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO debezium;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO debezium;
+    
+    -- Create publication for CDC
+    CREATE PUBLICATION dbz_publication FOR ALL TABLES;
+    
+    -- Insert sample data
+    INSERT INTO users (email, first_name, last_name) VALUES
+    ('john.doe@example.com', 'John', 'Doe'),
+    ('jane.smith@example.com', 'Jane', 'Smith'),
+    ('bob.johnson@example.com', 'Bob', 'Johnson');
+    
+    INSERT INTO products (name, description, price, stock_quantity, category) VALUES
+    ('Laptop', 'High-performance laptop', 999.99, 50, 'Electronics'),
+    ('Smartphone', 'Latest smartphone model', 699.99, 100, 'Electronics'),
+    ('Book', 'Programming guide', 49.99, 200, 'Books'),
+    ('Headphones', 'Wireless headphones', 199.99, 75, 'Electronics');
+    
+    INSERT INTO orders (user_id, status, total_amount, shipping_address) VALUES
+    (1, 'pending', 999.99, '123 Main St, City, State'),
+    (2, 'processing', 749.98, '456 Oak Ave, City, State'),
+    (3, 'shipped', 49.99, '789 Pine Rd, City, State');
+    
+    INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
+    (1, 1, 1, 999.99),
+    (2, 2, 1, 699.99),
+    (2, 4, 1, 49.99),
+    (3, 3, 1, 49.99);
+    
+    -- Create function to update updated_at timestamp
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = NOW();
+        RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+    
+    -- Create triggers for updated_at
+    CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    
+    CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    
+    CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -170,3 +328,25 @@ spec:
   selector:
     app: postgresql
     component: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-nodeport
+  namespace: data-ingestion
+  labels:
+    app: postgresql
+    component: database
+  annotations:
+    description: "NodePort service for PostgreSQL - DEV ONLY"
+spec:
+  type: NodePort
+  selector:
+    app: postgresql
+    component: database
+  ports:
+  - name: postgresql
+    protocol: TCP
+    port: 5432
+    targetPort: 5432
+    nodePort: 30432  # Maps to kind-config.yaml hostPort: 5432
