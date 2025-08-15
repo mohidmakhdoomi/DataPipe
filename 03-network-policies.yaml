@@ -108,6 +108,15 @@ spec:
       port: 9092
     - protocol: TCP
       port: 9093
+  # Allow NodePort traffic from Kind node network (for performance testing)
+  - from:
+    - ipBlock:
+        cidr: 172.18.0.0/16  # Kind's default node network
+    - ipBlock:
+        cidr: 10.244.0.0/16  # Kind's default pod CIDR
+    ports:
+    - protocol: TCP
+      port: 9092
   egress:
   - to:
     - podSelector:
