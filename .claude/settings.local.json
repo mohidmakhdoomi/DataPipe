@@ -9,7 +9,8 @@
       "Bash(kubectl describe:*)",
       "Bash(kubectl get:*)",
       "mcp__zen__chat",
-      "mcp__zen__analyze"
+      "mcp__zen__analyze",
+      "mcp__zen__challenge"
     ]
   },
   "enableAllProjectMcpServers": true,

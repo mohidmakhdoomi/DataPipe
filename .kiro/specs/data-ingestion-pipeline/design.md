@@ -527,7 +527,6 @@ container_limits:
 ### System Memory Considerations
 - Total application allocation: 4GB
 - System memory reservation: 2GB (handled at cluster level)
-- Container memory overhead: Included in limits
 - OOM killer protection: Enabled via cgroups
 
 ## Deployment Architecture
