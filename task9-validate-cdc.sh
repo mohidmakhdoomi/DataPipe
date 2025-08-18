@@ -194,14 +194,30 @@ test_cdc_update() {
     
     log "Testing UPDATE operation..."
     
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
-       psql -U postgres -d ecommerce -c \
-       "UPDATE users SET first_name='Updated' WHERE email='$test_email';" >/dev/null 2>&1; then
+    local update_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -qAt -U postgres -d ecommerce -c \
+       "UPDATE users SET first_name='Updated' WHERE email='$test_email' RETURNING id;" 2>/dev/null)
+
+    if [[ -n "$update_result" ]] && echo "$update_result" | grep -wq "[0-9]\+"; then
         log "✅ UPDATE operation executed"
         
         log "Waiting 3 seconds for CDC to process..."
         sleep 3
-        return 0
+        
+        # Check for DELETE event with proper rewrite format
+        log "Checking if UPDATE event appeared in Kafka..."
+        if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+           kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+           --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
+           --property schema.registry.basic.auth.user.info=admin:admin-secret \
+           --property schema.registry.url=http://localhost:8081 \
+           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"u"}' | grep -q "\"id\":$update_result,"; then
+            log "✅ UPDATE operation found with proper format"
+            return 0
+        else
+            log "⚠️  UPDATE operation not found - check configuration"
+            return 1
+        fi
     else
         log "❌ UPDATE operation failed"
         return 1
@@ -230,9 +246,7 @@ test_cdc_delete() {
     # Now perform the DELETE with verification
     local delete_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
-       "DELETE FROM users WHERE email = '$test_email' RETURNING id;" 2>/dev/null)
-
-    
+       "DELETE FROM users WHERE email = '$test_email' RETURNING id;" 2>/dev/null)    
     
     if [[ -n "$delete_result" ]] && echo "$delete_result" | grep -wq "[0-9]\+"; then
         log "✅ DELETE operation executed successfully (record deleted)"
@@ -240,12 +254,10 @@ test_cdc_delete() {
         
         log "Waiting 3 seconds for CDC to process DELETE..."
         sleep 3
-
-        delete_result=${delete_result//[$'\n\r']/}
         
         # Check for DELETE event with proper rewrite format
         log "Checking if DELETE event appeared in Kafka with proper rewrite format..."
-        if kubectl exec -n ${NAMESPACE} deploy/schema-registry -- \
+        if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
            kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
            --property schema.registry.basic.auth.user.info=admin:admin-secret \
@@ -283,7 +295,7 @@ check_connector_logs() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql)" | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_DIR}/validate.log"; then
         log "✅ Resource usage information retrieved"
         return 0
     else

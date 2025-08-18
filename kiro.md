@@ -131,6 +131,7 @@
 - `task5-kafka-kraft-3brokers.yaml` / `task5-cdc-topics-job.yaml` - 3-broker Kafka cluster / topic creation
 - `task6-schema-registry.yaml` - Schema Registry with authentication
 - `task7-kafka-connect-topics.yaml` / `task7-kafka-connect-deployment.yaml` - topic creation / Kafka Connect cluster with Debezium plugins and DLQ configuration
+- `task9-deploy-connector.sh` - deploys Debezium Connector configuration
 - `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (KEEP THIS UPDATED!)
 - `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
 - `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
@@ -149,7 +150,8 @@
 - `task6-schema-registry.yaml` - Schema Registry deployment
 - `task7-kafka-connect-topics.yaml` - Kafka Connect topics creation
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
-- `task7-debezium-connector-config.json` - Configuration that validates Kafka Connect + Debezium + PostgreSQL + Schema Registry work together
+- `task9-debezium-connector-config.json` - Configuration for Debezium PostgreSQL CDC connector
+- `task9-deploy-connector.sh` - Debezium Connector configuration deployment
 
 ## 🚀 **NEXT ACTIONS**
 
