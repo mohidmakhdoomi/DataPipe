@@ -7,6 +7,7 @@ set -euo pipefail
 readonly NAMESPACE="data-ingestion"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task8-logs"
 readonly CONFIG_FILE="task9-debezium-connector-config.json"
+readonly CONNECTOR_NAME="postgres-cdc-connector"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 3: $*" | tee -a "${LOG_DIR}/phase3.log"
@@ -16,8 +17,12 @@ log() {
 deploy_cdc_connector() {
     log "Checking for existing Debezium PostgreSQL CDC connector..."
     
+    local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+        curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status \
+        2>/dev/null)
+    
     # Check if connector already exists by trying to get its status
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- curl -s http://localhost:8083/connectors/postgres-cdc-connector/status >/dev/null 2>&1; then
+    if [[ -n "$status" ]] && echo "$status" | grep -qv "error_code\":404,\"message\":\"No status found for connector ${CONNECTOR_NAME}\""; then
         log "✅ CDC connector already exists, skipping deployment"
         return 0
     fi
@@ -49,7 +54,7 @@ wait_for_connector() {
     
     while [[ $elapsed -lt $max_wait ]]; do
         local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
-                      curl -s http://localhost:8083/connectors/postgres-cdc-connector/status \
+                      curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status \
                       2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
         if [[ "$status" == "RUNNING" ]]; then
@@ -160,7 +165,7 @@ main() {
     # Step 5: Verify connector health
     log "Verifying connector health..."
     local connector_tasks=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
-                           curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/postgres-cdc-connector/tasks \
+                           curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/${CONNECTOR_NAME}/tasks \
                            2>/dev/null | grep -o '"task":[0-9]\+' | wc -l)
     
     if (( connector_tasks > 0 )); then

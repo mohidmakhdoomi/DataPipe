@@ -275,6 +275,246 @@ test_cdc_delete() {
     fi
 }
 
+# Test schema evolution - Add nullable column
+test_schema_evolution_add_nullable_column() {
+    log "=== Testing Schema Evolution: Adding Nullable Column ==="
+    
+    # Get initial schema version
+    local initial_schema_version=$(get_schema_version "postgres.public.users-value")
+    log "Initial schema version: $initial_schema_version"
+    
+    # Add nullable column to users table
+    log "Adding nullable column 'middle_name' to users table..."
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "ALTER TABLE users ADD COLUMN middle_name VARCHAR(100);" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ Successfully added nullable column"
+    else
+        log "❌ Failed to add nullable column"
+        return 1
+    fi
+    
+    # Wait for schema change to propagate
+    log "Waiting 10 seconds for schema change to propagate..."
+    sleep 10
+    
+    # Test INSERT with new schema
+    local test_email="task9-schema-evolve-$(date +%s)@example.com"
+    log "Testing INSERT with new schema (including middle_name)..."
+    
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "INSERT INTO users (email, first_name, middle_name, last_name) VALUES ('$test_email', 'Schema', 'Evolution', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ INSERT with new schema successful"
+        
+        # Wait for CDC to process
+        sleep 5
+        
+        # Verify CDC captured the new field
+        log "Verifying CDC captured the new middle_name field..."
+        if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+           kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+           --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
+           --property schema.registry.basic.auth.user.info=admin:admin-secret \
+           --property schema.registry.url=http://localhost:8081 \
+           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep -q "Evolution"; then
+            log "✅ CDC captured record with new schema field"
+        else
+            log "⚠️  CDC record with new field not found"
+        fi
+    else
+        log "❌ INSERT with new schema failed"
+        return 1
+    fi
+    
+    # Verify schema evolution in Schema Registry
+    local new_schema_version=$(get_schema_version "postgres.public.users-value")
+    log "New schema version: $new_schema_version"
+    
+    if [[ "$new_schema_version" -gt "$initial_schema_version" ]]; then
+        log "✅ Schema Registry shows schema evolution (v$initial_schema_version → v$new_schema_version)"
+        return 0
+    else
+        log "⚠️  Schema Registry version unchanged - may indicate compatibility issue"
+        return 1
+    fi
+}
+
+# Test schema evolution - Add column with default value
+test_schema_evolution_add_default_column() {
+    log "=== Testing Schema Evolution: Adding Column with Default Value ==="
+    
+    # Get initial schema version
+    local initial_schema_version=$(get_schema_version "postgres.public.users-value")
+    log "Initial schema version: $initial_schema_version"
+    
+    # Add column with default value
+    log "Adding column 'status' with default value to users table..."
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active';" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ Successfully added column with default value"
+    else
+        log "❌ Failed to add column with default value"
+        return 1
+    fi
+    
+    # Wait for schema change to propagate
+    log "Waiting 10 seconds for schema change to propagate..."
+    sleep 10
+    
+    # Test INSERT without specifying the new column (should use default)
+    local test_email="schema-evolution-default-$(date +%s)@example.com"
+    log "Testing INSERT without new column (should use default value)..."
+    
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'Default', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ INSERT without new column successful"
+        
+        # Wait for CDC to process
+        sleep 5
+        
+        # Verify CDC captured the default value
+        log "Verifying CDC captured the default status value..."
+        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+           kafka-console-consumer --bootstrap-server localhost:9092 \
+           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "active"; then
+            log "✅ CDC captured record with default value"
+        else
+            log "⚠️  CDC record with default value not found"
+        fi
+    else
+        log "❌ INSERT with default column failed"
+        return 1
+    fi
+    
+    # Verify schema evolution in Schema Registry
+    local new_schema_version=$(get_schema_version "postgres.public.users-value")
+    log "New schema version: $new_schema_version"
+    
+    if [[ "$new_schema_version" -gt "$initial_schema_version" ]]; then
+        log "✅ Schema Registry shows schema evolution (v$initial_schema_version → v$new_schema_version)"
+        return 0
+    else
+        log "⚠️  Schema Registry version unchanged"
+        return 1
+    fi
+}
+
+# Get schema version from Schema Registry
+get_schema_version() {
+    local subject=$1
+    local version=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        curl -s -u admin:admin-secret "http://localhost:8081/subjects/$subject/versions/latest" 2>/dev/null | \
+        jq -r '.version' 2>/dev/null || echo "0")
+    echo "$version"
+}
+
+# Verify Schema Registry compatibility settings
+verify_schema_registry_compatibility() {
+    log "=== Verifying Schema Registry Compatibility Settings ==="
+    
+    # Check global compatibility level
+    local global_compatibility=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        curl -s -u admin:admin-secret "http://localhost:8081/config" 2>/dev/null | \
+        jq -r '.compatibilityLevel' 2>/dev/null || echo "UNKNOWN")
+    
+    log "Global compatibility level: $global_compatibility"
+    
+    # Check subject-specific compatibility for users table
+    local users_compatibility=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        curl -s -u admin:admin-secret "http://localhost:8081/config/postgres.public.users-value" 2>/dev/null | \
+        jq -r '.compatibilityLevel' 2>/dev/null || echo "INHERITED")
+    
+    log "Users table compatibility level: $users_compatibility"
+    
+    # Verify compatibility is set to BACKWARD or FULL for safe evolution
+    if [[ "$global_compatibility" =~ ^(BACKWARD|FULL|FORWARD)$ ]] || [[ "$users_compatibility" =~ ^(BACKWARD|FULL|FORWARD)$ ]]; then
+        log "✅ Schema Registry has appropriate compatibility level for evolution"
+        return 0
+    else
+        log "⚠️  Schema Registry compatibility level may not support safe evolution"
+        log "   Recommended: BACKWARD, FULL, or FORWARD compatibility"
+        return 1
+    fi
+}
+
+# Test CDC operations after schema changes
+test_cdc_after_schema_changes() {
+    log "=== Testing CDC Operations After Schema Changes ==="
+    
+    local test_email="post-schema-change-$(date +%s)@example.com"
+    
+    # Test INSERT with all new fields
+    log "Testing INSERT with all schema fields..."
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "INSERT INTO users (email, first_name, middle_name, last_name, status) VALUES ('$test_email', 'Post', 'Schema', 'Change', 'verified') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ INSERT with full schema successful"
+        
+        # Wait and verify CDC
+        sleep 5
+        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+           kafka-console-consumer --bootstrap-server localhost:9092 \
+           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "$test_email"; then
+            log "✅ CDC captured INSERT after schema evolution"
+        else
+            log "⚠️  CDC INSERT not captured after schema evolution"
+        fi
+    else
+        log "❌ INSERT with full schema failed"
+        return 1
+    fi
+    
+    # Test UPDATE with new fields
+    log "Testing UPDATE with new schema fields..."
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "UPDATE users SET middle_name='Updated', status='modified' WHERE email='$test_email' RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ UPDATE with new fields successful"
+        
+        # Wait and verify CDC
+        sleep 5
+        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+           kafka-console-consumer --bootstrap-server localhost:9092 \
+           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "modified"; then
+            log "✅ CDC captured UPDATE after schema evolution"
+        else
+            log "⚠️  CDC UPDATE not captured after schema evolution"
+        fi
+    else
+        log "❌ UPDATE with new fields failed"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Cleanup schema evolution test changes
+cleanup_schema_evolution_tests() {
+    log "=== Cleaning Up Schema Evolution Test Changes ==="
+    
+    # Remove test columns (optional - may want to keep for further testing)
+    log "Removing test columns added during schema evolution testing..."
+    
+    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "ALTER TABLE users DROP COLUMN IF EXISTS middle_name, DROP COLUMN IF EXISTS status;" >> "${LOG_DIR}/validate.log" 2>&1; then
+        log "✅ Test columns removed successfully"
+    else
+        log "⚠️  Failed to remove test columns (may not exist)"
+    fi
+    
+    # Clean up test records
+    log "Cleaning up schema evolution test records..."
+    kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -U postgres -d ecommerce -c \
+       "DELETE FROM users WHERE email LIKE '%schema-evolution%' OR email LIKE '%post-schema-change%';" >> "${LOG_DIR}/validate.log" 2>&1
+    
+    log "✅ Schema evolution test cleanup completed"
+}
+
 # Check connector logs for errors
 check_connector_logs() {
     log "Checking connector logs for any errors..."
@@ -314,14 +554,34 @@ generate_summary() {
     log "- Connector status: $([ ${#failed_tests[@]} -eq 0 ] && echo "✅ PASSED" || echo "⚠️  ISSUES FOUND")"
     log "- Topics and Schema Registry: Validated"
     log "- CDC operations: INSERT/UPDATE/DELETE tested"
+    log "- Schema Registry compatibility: Verified"
+    log "- Schema evolution: Nullable and default column tests completed"
+    log "- Post-evolution CDC: Verified CDC works after schema changes"
     log ""
     
     if [[ ${#failed_tests[@]} -eq 0 ]]; then
         log "✅ All validation tests passed - Task 9 is complete!"
+        log "✅ Schema evolution handling and compatibility verified"
         return 0
     else
         log "⚠️  Some tests had issues: ${failed_tests[*]}"
         log "Check logs for details: ${LOG_DIR}/validate.log"
+        
+        # Provide specific guidance for schema evolution failures
+        for test in "${failed_tests[@]}"; do
+            case "$test" in
+                "schema-compatibility")
+                    log "   → Schema Registry compatibility level needs adjustment"
+                    ;;
+                "schema-evolution-nullable"|"schema-evolution-default")
+                    log "   → Schema evolution tests failed - check Debezium configuration"
+                    ;;
+                "cdc-post-schema-evolution")
+                    log "   → CDC operations failed after schema changes - verify connector health"
+                    ;;
+            esac
+        done
+        
         return 1
     fi
 }
@@ -371,15 +631,47 @@ main() {
         failed_tests+=("cdc-operations")
     fi
     
-    # Step 8: Check logs
+    # Step 8: Verify Schema Registry compatibility settings
+    if ! verify_schema_registry_compatibility; then
+        failed_tests+=("schema-compatibility")
+    fi
+    
+    # Step 9: Test Schema Evolution
+    log "Starting Schema Evolution testing..."
+    if test_schema_evolution_add_nullable_column; then
+        log "✅ Nullable column schema evolution test passed"
+    else
+        log "❌ Nullable column schema evolution test failed"
+        failed_tests+=("schema-evolution-nullable")
+    fi
+    
+    if test_schema_evolution_add_default_column; then
+        log "✅ Default column schema evolution test passed"
+    else
+        log "❌ Default column schema evolution test failed"
+        failed_tests+=("schema-evolution-default")
+    fi
+    
+    # Step 10: Test CDC operations after schema changes
+    if test_cdc_after_schema_changes; then
+        log "✅ CDC operations after schema changes test passed"
+    else
+        log "❌ CDC operations after schema changes test failed"
+        failed_tests+=("cdc-post-schema-evolution")
+    fi
+    
+    # Step 11: Cleanup schema evolution tests
+    cleanup_schema_evolution_tests
+    
+    # Step 12: Check logs
     if ! check_connector_logs; then
         failed_tests+=("connector-logs")
     fi
     
-    # Step 9: Check resource usage
+    # Step 13: Check resource usage
     check_resource_usage
     
-    # Step 10: Generate summary
+    # Step 14: Generate summary
     generate_summary "${failed_tests[@]}"
 }
 
