@@ -125,7 +125,9 @@ test_cdc_flow() {
 
 # Test schema registration
 test_schema_registry() {
-    log "Testing schema registration..."
+    log "Waiting for schema registration..."
+    sleep 15
+    log "Testing schema registration..."    
     
     # Check if schemas are registered
     if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
