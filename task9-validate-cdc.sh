@@ -200,6 +200,7 @@ test_cdc_update() {
 
     if [[ -n "$update_result" ]] && echo "$update_result" | grep -wq "[0-9]\+"; then
         log "✅ UPDATE operation executed"
+        echo "$update_result" >> "${LOG_DIR}/validate.log"
         
         log "Waiting 3 seconds for CDC to process..."
         sleep 3
@@ -302,10 +303,14 @@ test_schema_evolution_add_nullable_column() {
     local test_email="task9-schema-evolve-$(date +%s)@example.com"
     log "Testing INSERT with new schema (including middle_name)..."
     
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
-       psql -U postgres -d ecommerce -c \
-       "INSERT INTO users (email, first_name, middle_name, last_name) VALUES ('$test_email', 'Schema', 'Evolution', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+
+    local insert_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+       psql -qAt -U postgres -d ecommerce -c \
+       "INSERT INTO users (email, first_name, middle_name, last_name) VALUES ('$test_email', 'Schema', 'Evolution', 'Test') RETURNING id;" 2>/dev/null)
+
+    if [[ -n "$insert_result" ]] && echo "$insert_result" | grep -wq "[0-9]\+"; then
         log "✅ INSERT with new schema successful"
+        echo "$insert_result" >> "${LOG_DIR}/validate.log"
         
         # Wait for CDC to process
         sleep 5
@@ -317,7 +322,7 @@ test_schema_evolution_add_nullable_column() {
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
            --property schema.registry.basic.auth.user.info=admin:admin-secret \
            --property schema.registry.url=http://localhost:8081 \
-           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep -q "Evolution"; then
+           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep -q "\"id\":$insert_result," | grep -q "Evolution"; then
             log "✅ CDC captured record with new schema field"
         else
             log "⚠️  CDC record with new field not found"
