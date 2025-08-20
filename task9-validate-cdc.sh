@@ -322,7 +322,7 @@ test_schema_evolution_add_nullable_column() {
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
            --property schema.registry.basic.auth.user.info=admin:admin-secret \
            --property schema.registry.url=http://localhost:8081 \
-           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep -q "\"id\":$insert_result," | grep -q "Evolution"; then
+           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep "\"id\":$insert_result," | grep -q "Evolution"; then
             log "✅ CDC captured record with new schema field"
         else
             log "⚠️  CDC record with new field not found"
