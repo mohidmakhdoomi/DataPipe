@@ -194,7 +194,7 @@ data_quality_check = KubernetesPodOperator(
     image='data-pipeline/quality-checker:latest',
     env_vars={
         'EXECUTION_DATE': '{{ ds }}',
-        'S3_BUCKET': 'data-lake-ingestion',
+        'S3_BUCKET': 'data-lake-ingestion-datapipe',
         'QUALITY_THRESHOLD': '0.95'
     },
     resources={
@@ -215,7 +215,7 @@ spark_batch_job = KubernetesPodOperator(
     env_vars={
         'EXECUTION_DATE': '{{ ds }}',
         'SPARK_MASTER': 'k8s://https://kubernetes.default.svc:443',
-        'S3_INPUT_PATH': 's3://data-lake-ingestion/{{ ds }}/',
+        'S3_INPUT_PATH': 's3://data-lake-ingestion-datapipe/{{ ds }}/',
         'SNOWFLAKE_WAREHOUSE': 'COMPUTE_WH'
     },
     resources={

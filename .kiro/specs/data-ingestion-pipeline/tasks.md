@@ -174,7 +174,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.2, 1.4, 5.4_
 
 - [ ] 10. Implement Kafka Connect S3 Sink connector for archival
-  - Configure AWS S3 credentials and bucket access (`data-lake-ingestion`)
+  - Configure AWS S3 credentials and bucket access (`data-lake-ingestion-datapipe`)
   - Deploy S3 Sink connector with Parquet format conversion
   - Set up time-based partitioning: `year=YYYY/month=MM/day=dd/hour=HH`
   - Configure batch settings: 1000 records or 60 seconds flush interval
