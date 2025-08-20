@@ -57,10 +57,13 @@ wait_for_kafka_connect() {
 # Check if connector exists and handle cleanup
 handle_existing_connector() {
     log "Checking if connector already exists..."
+
+    local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+        curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status \
+        2>/dev/null)
     
     # Check if connector already exists by trying to get its status (like task8-phase3)
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
-       curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status >/dev/null 2>&1; then
+    if [[ -n "$status" ]] && echo "$status" | grep -qv "error_code\":404,\"message\":\"No status found for connector ${CONNECTOR_NAME}\""; then
         log "⚠️  Connector exists. Deleting existing connector..."
         if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
            curl -X DELETE http://localhost:8083/connectors/${CONNECTOR_NAME} >/dev/null 2>&1; then
