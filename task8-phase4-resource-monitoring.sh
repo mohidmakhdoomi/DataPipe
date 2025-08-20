@@ -12,48 +12,6 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 4: $*" | tee -a "${LOG_DIR}/phase4.log"
 }
 
-# Install metrics-server if needed
-install_metrics_server() {
-    log "Checking if metrics-server is available..."
-    
-    if kubectl top nodes >/dev/null 2>&1; then
-        log "✅ Metrics-server is already available"
-        return 0
-    fi
-    
-    log "Installing metrics-server..."
-    if kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null 2>&1; then
-        log "✅ Metrics-server installation initiated"
-        
-        # Wait for metrics-server to be ready
-        log "Waiting for metrics-server to be ready..."
-        if kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=120s >/dev/null 2>&1; then
-            log "✅ Metrics-server is ready"
-            
-            # Wait for metrics to be available
-            local wait_count=0
-            while [[ $wait_count -lt 12 ]]; do  # Wait up to 2 minutes
-                if kubectl top nodes >/dev/null 2>&1; then
-                    log "✅ Metrics are now available"
-                    return 0
-                fi
-                log "⏳ Waiting for metrics to be available..."
-                sleep 10
-                wait_count=$((wait_count + 1))
-            done
-            
-            log "⚠️  Metrics-server installed but metrics not yet available"
-            return 1
-        else
-            log "❌ Metrics-server failed to become ready"
-            return 1
-        fi
-    else
-        log "❌ Failed to install metrics-server"
-        return 1
-    fi
-}
-
 # Monitor resource usage
 monitor_resources() {
     log "Starting resource monitoring for ${MONITORING_DURATION} seconds..."
@@ -188,23 +146,17 @@ verify_resource_limits() {
 
 main() {
     log "=== Starting Phase 4: Resource Monitoring and Compliance ==="
-    
-    # Step 1: Ensure metrics-server is available
-    if ! install_metrics_server; then
-        log "❌ Phase 4 failed - metrics-server not available"
-        return 1
-    fi
-    
-    # Step 2: Verify resource limits
+       
+    # Step 1: Verify resource limits
     verify_resource_limits
     
-    # Step 3: Monitor resource usage
+    # Step 2: Monitor resource usage
     if ! monitor_resources; then
         log "❌ Phase 4 failed - resource usage exceeded limits"
         return 1
     fi
     
-    # Step 4: Check for OOM events
+    # Step 3: Check for OOM events
     if ! check_oom_events; then
         log "⚠️  OOM events detected but continuing..."
     fi
