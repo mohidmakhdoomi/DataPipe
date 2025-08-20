@@ -6,6 +6,7 @@ set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task8-logs"
+readonly CONFIG_FILE="task9-debezium-connector-config.json"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 3: $*" | tee -a "${LOG_DIR}/phase3.log"
@@ -23,87 +24,7 @@ deploy_cdc_connector() {
     
     log "Deploying Debezium PostgreSQL CDC connector..."
     
-    local connector_config='{
-        "name": "postgres-cdc-connector",
-        "config": {
-            "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-            "tasks.max": "1",
-            
-            "database.hostname": "postgresql.data-ingestion.svc.cluster.local",
-            "database.port": "5432",
-            "database.user": "debezium",
-            "database.password": "debezium_password",
-            "database.dbname": "ecommerce",
-            "database.server.name": "postgres",
-            "topic.prefix": "postgres",
-            
-            "table.include.list": "public.users,public.products,public.orders,public.order_items",
-            "plugin.name": "pgoutput",
-            "slot.name": "debezium_slot",
-            "publication.name": "dbz_publication",
-            
-            "key.converter": "io.confluent.connect.avro.AvroConverter",
-            "value.converter": "io.confluent.connect.avro.AvroConverter",
-            "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
-            "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
-            "key.converter.basic.auth.credentials.source": "USER_INFO",
-            "key.converter.basic.auth.user.info": "admin:admin-secret",
-            "value.converter.basic.auth.credentials.source": "USER_INFO",
-            "value.converter.basic.auth.user.info": "admin:admin-secret",
-            
-            "transforms": "unwrap",
-            "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
-            "transforms.unwrap.drop.tombstones": "false",
-            "transforms.unwrap.delete.handling.mode": "rewrite",
-            "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms",
-            
-            "snapshot.mode": "initial",
-            "snapshot.fetch.size": "1000",
-            "max.batch.size": "2048",
-            "max.queue.size": "8192",
-            "poll.interval.ms": "1000",
-            
-            "decimal.handling.mode": "string",
-            "time.precision.mode": "adaptive_time_microseconds",
-            "binary.handling.mode": "bytes",
-            
-            "heartbeat.interval.ms": "30000",
-            "heartbeat.topics.prefix": "__debezium-heartbeat",
-            
-            "schema.history.internal.kafka.bootstrap.servers": "kafka-headless.data-ingestion.svc.cluster.local:9092",
-            "schema.history.internal.kafka.topic": "schema-changes.postgres",
-            "schema.history.internal.kafka.recovery.attempts": "100",
-            "schema.history.internal.kafka.recovery.poll.interval.ms": "5000",
-            
-            "errors.tolerance": "all",
-            "errors.log.enable": "true",
-            "errors.log.include.messages": "true",
-            "errors.deadletterqueue.topic.name": "connect-dlq",
-            "errors.deadletterqueue.topic.replication.factor": "3",
-            "errors.deadletterqueue.context.headers.enable": "true",
-            "errors.retry.delay.max.ms": "60000",
-            "errors.retry.timeout": "300000",
-            
-            "topic.creation.enable": "true",
-            "topic.creation.default.replication.factor": "3",
-            "topic.creation.default.partitions": "6",
-            "topic.creation.default.cleanup.policy": "delete",
-            "topic.creation.default.compression.type": "lz4",
-            "topic.creation.default.retention.ms": "604800000",
-            
-            "provide.transaction.metadata": "false",
-            "skipped.operations": "none",
-            "tombstones.on.delete": "true",
-            
-            "publication.autocreate.mode": "all_tables",
-            "slot.drop.on.stop": "false",
-            "slot.max.retries": "6",
-            "slot.retry.delay.ms": "10000",
-            
-            "status.update.interval.ms": "10000",
-            "retriable.restart.connector.wait.ms": "10000"
-        }
-    }'
+    local connector_config=$(cat "${CONFIG_FILE}")
     
     # Deploy connector via REST API
     if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
