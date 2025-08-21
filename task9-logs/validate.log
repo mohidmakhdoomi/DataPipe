@@ -139,7 +139,7 @@ UPDATE 1
 ALTER TABLE
 [2025-08-20 20:13:41] Task 9 Validate: ✅ Test columns removed successfully
 [2025-08-20 20:13:41] Task 9 Validate: Cleaning up schema evolution test records...
-DELETE 2
+DELETE 3
 [2025-08-20 20:13:41] Task 9 Validate: ✅ Schema evolution test cleanup completed
 [2025-08-20 20:13:41] Task 9 Validate: Checking connector logs for any errors...
 [2025-08-20 20:13:41] Task 9 Validate: ✅ No errors found in recent logs

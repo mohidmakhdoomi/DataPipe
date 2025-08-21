@@ -369,7 +369,7 @@ test_schema_evolution_add_default_column() {
     sleep 10
     
     # Test INSERT without specifying the new column (should use default)
-    local test_email="schema-evolution-default-$(date +%s)@example.com"
+    local test_email="schema-evolve-default-$(date +%s)@example.com"
     log "Testing INSERT without new column (should use default value)..."
     
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
@@ -515,7 +515,7 @@ cleanup_schema_evolution_tests() {
     log "Cleaning up schema evolution test records..."
     kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "DELETE FROM users WHERE email LIKE '%schema-evolution%' OR email LIKE '%post-schema-change%';" >> "${LOG_DIR}/validate.log" 2>&1
+       "DELETE FROM users WHERE email LIKE '%schema-evolve%' OR email LIKE '%post-schema-change%';" >> "${LOG_DIR}/validate.log" 2>&1
     
     log "✅ Schema evolution test cleanup completed"
 }
