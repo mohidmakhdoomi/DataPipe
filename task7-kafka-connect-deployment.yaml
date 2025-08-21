@@ -62,8 +62,8 @@ data:
     
     # Consumer Settings
     consumer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
-    consumer.max.poll.records=500
-    consumer.max.poll.interval.ms=300000
+    consumer.max.poll.records=10000
+    consumer.max.poll.interval.ms=180000
     consumer.session.timeout.ms=30000
     consumer.heartbeat.interval.ms=3000
     consumer.auto.offset.reset=earliest
@@ -99,7 +99,7 @@ data:
 
   # JVM Configuration based on multi-model consensus
   KAFKA_HEAP_OPTS: "-Xms128m -Xmx512m"
-  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"
   CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
@@ -148,7 +148,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       initContainers:
-      # Install Debezium plugins
+      # Install Debezium and S3 Sink plugins
       - name: plugin-installer
         image: confluentinc/cp-kafka-connect:7.4.0
         securityContext:
@@ -163,8 +163,9 @@ spec:
           set -e
           echo "Installing Debezium PostgreSQL connector plugin..."
           
-          # Create plugin directory
+          # Create plugin directories
           mkdir -p /kafka/connect/debezium-postgres
+          mkdir -p /kafka/connect/s3-sink
           
           # Download and install Debezium PostgreSQL connector
           cd /tmp
@@ -175,7 +176,18 @@ spec:
           cp -r debezium-connector-postgres/* /kafka/connect/debezium-postgres/
           
           echo "Debezium PostgreSQL connector installed successfully!"
-          ls -la /kafka/connect/debezium-postgres/
+          
+          # Download and install S3 Sink connector
+          echo "Installing S3 Sink connector plugin..."
+          curl -L -o kafka-connect-s3.zip \
+            "https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-s3/versions/10.5.0/confluentinc-kafka-connect-s3-10.5.0.zip"
+          
+          unzip -q kafka-connect-s3.zip
+          cp -r confluentinc-kafka-connect-s3-10.5.0/lib/* /kafka/connect/s3-sink/
+          
+          echo "S3 Sink connector installed successfully!"
+          echo "Installed plugins:"
+          ls -la /kafka/connect/
         volumeMounts:
         - name: plugin-volume
           mountPath: /kafka/connect
@@ -233,6 +245,22 @@ spec:
           mountPath: /kafka/connect
         - name: logs-volume
           mountPath: /kafka/logs
+        - name: aws-credentials
+          mountPath: /etc/aws-credentials
+          readOnly: true
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: secret-access-key
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
       volumes:
       - name: config-volume
         configMap:
@@ -241,6 +269,10 @@ spec:
         emptyDir: {}
       - name: logs-volume
         emptyDir: {}
+      - name: aws-credentials
+        secret:
+          secretName: aws-credentials
+          defaultMode: 0400
 ---
 apiVersion: v1
 kind: Service
