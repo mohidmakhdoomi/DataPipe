@@ -1,52 +1,52 @@
-[2025-08-21 15:43:00] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
-[2025-08-21 15:43:00] Deployment: Deleting existing cluster if needed
-[2025-08-21 15:43:04] Deployment: Creating cluster using kind-config.yaml
-[2025-08-21 15:43:32] Deployment: Checking if metrics-server is available...
-[2025-08-21 15:43:32] Deployment: Installing metrics-server...
-[2025-08-21 15:43:33] Deployment: Metrics-server installation initiated
-[2025-08-21 15:43:34] Deployment: deployment.apps/metrics-server replaced
-[2025-08-21 15:43:34] Deployment: Waiting for metrics-server to be ready...
-[2025-08-21 15:44:34] Deployment: Metrics-server is ready
-[2025-08-21 15:44:34] Deployment: Metrics are now available
-[2025-08-21 15:44:34] Deployment: Applying 01-namespace.yaml
-[2025-08-21 15:44:34] Deployment: Applying 02-service-accounts.yaml
-[2025-08-21 15:44:35] Deployment: Applying 03-network-policies.yaml
-[2025-08-21 15:44:35] Deployment: Applying 04-secrets.yaml
-[2025-08-21 15:44:35] Deployment: Applying storage-classes.yaml
-[2025-08-21 15:44:36] Deployment: Applying data-services-pvcs.yaml
-[2025-08-21 15:44:36] Deployment: Applying task4-postgresql-statefulset.yaml
-[2025-08-21 15:44:36] Deployment: kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=45s 2>&1
-[2025-08-21 15:44:55] Deployment: pod -l app=postgresql,component=database is ready
-[2025-08-21 15:44:55] Deployment: Applying task5-kafka-kraft-3brokers.yaml
-[2025-08-21 15:44:55] Deployment: kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=105s 2>&1
-[2025-08-21 15:46:10] Deployment: pod -l app=kafka,component=streaming is ready
-[2025-08-21 15:46:10] Deployment: Applying task5-cdc-topics-job.yaml
-[2025-08-21 15:46:10] Deployment: kubectl wait --for=condition=complete job/create-cdc-topics -n data-ingestion --timeout=90s 2>&1
-[2025-08-21 15:47:11] Deployment: job/create-cdc-topics is complete
-[2025-08-21 15:47:11] Deployment: Applying task6-schema-registry.yaml
-[2025-08-21 15:47:11] Deployment: kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=108s 2>&1
-[2025-08-21 15:48:53] Deployment: pod -l app=schema-registry,component=schema-management is ready
-[2025-08-21 15:48:53] Deployment: Applying task7-kafka-connect-topics.yaml
-[2025-08-21 15:48:53] Deployment: kubectl wait --for=condition=complete job/kafka-connect-topics-setup -n data-ingestion --timeout=41s 2>&1
-[2025-08-21 15:49:22] Deployment: job/kafka-connect-topics-setup is complete
-[2025-08-21 15:49:23] Deployment: Applying task7-kafka-connect-deployment.yaml
-[2025-08-21 15:49:23] Deployment: kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=120s 2>&1
-[2025-08-21 15:50:44] Deployment: pod -l app=kafka-connect,component=worker is ready
-[2025-08-21 15:50:45] Deployment: Deploying Connector config postgres-cdc-connector
-[2025-08-21 15:50:45] Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-connector ===
-[2025-08-21 15:50:45] Deploy Connector: Validating prerequisites...
-[2025-08-21 15:50:45] Deploy Connector: SUCCESS Prerequisites validated
-[2025-08-21 15:50:45] Deploy Connector: Checking Kafka Connect service status...
-NAME                             READY   STATUS    RESTARTS   AGE
-kafka-connect-7b7d8885c5-k8g2m   1/1     Running   0          82s
-[2025-08-21 15:50:45] Deploy Connector: Waiting for Kafka Connect to be ready...
-pod/kafka-connect-7b7d8885c5-k8g2m condition met
-[2025-08-21 15:50:45] Deploy Connector: SUCCESS Kafka Connect is ready
-[2025-08-21 15:50:46] Deploy Connector: Checking if connector already exists...
-[2025-08-21 15:50:46] Deploy Connector: SUCCESS No existing connector found
-[2025-08-21 15:50:46] Deploy Connector: Deploying connector...
-[2025-08-21 15:50:47] Deploy Connector: SUCCESS Connector deployed successfully
-[2025-08-21 15:50:48] Deploy Connector: Checking connector status...
+[2025-08-21 18:09:38] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
+[2025-08-21 18:09:38] Deployment: Deleting existing cluster if needed
+[2025-08-21 18:09:38] Deployment: Creating cluster using kind-config.yaml
+[2025-08-21 18:10:07] Deployment: Checking if metrics-server is available...
+[2025-08-21 18:10:07] Deployment: Installing metrics-server...
+[2025-08-21 18:10:08] Deployment: Metrics-server installation initiated
+[2025-08-21 18:10:09] Deployment: deployment.apps/metrics-server replaced
+[2025-08-21 18:10:09] Deployment: Waiting for metrics-server to be ready...
+[2025-08-21 18:11:09] Deployment: Metrics-server is ready
+[2025-08-21 18:11:09] Deployment: Metrics are now available
+[2025-08-21 18:11:09] Deployment: Applying 01-namespace.yaml
+[2025-08-21 18:11:09] Deployment: Applying 02-service-accounts.yaml
+[2025-08-21 18:11:10] Deployment: Applying 03-network-policies.yaml
+[2025-08-21 18:11:10] Deployment: Applying 04-secrets.yaml
+[2025-08-21 18:11:10] Deployment: Applying storage-classes.yaml
+[2025-08-21 18:11:10] Deployment: Applying data-services-pvcs.yaml
+[2025-08-21 18:11:11] Deployment: Applying task4-postgresql-statefulset.yaml
+[2025-08-21 18:11:11] Deployment: kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=45s 2>&1
+[2025-08-21 18:11:29] Deployment: pod -l app=postgresql,component=database is ready
+[2025-08-21 18:11:29] Deployment: Applying task5-kafka-kraft-3brokers.yaml
+[2025-08-21 18:11:29] Deployment: kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=105s 2>&1
+[2025-08-21 18:12:40] Deployment: pod -l app=kafka,component=streaming is ready
+[2025-08-21 18:12:41] Deployment: Applying task5-cdc-topics-job.yaml
+[2025-08-21 18:12:41] Deployment: kubectl wait --for=condition=complete job/create-cdc-topics -n data-ingestion --timeout=90s 2>&1
+[2025-08-21 18:13:42] Deployment: job/create-cdc-topics is complete
+[2025-08-21 18:13:42] Deployment: Applying task6-schema-registry.yaml
+[2025-08-21 18:13:43] Deployment: kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=108s 2>&1
+[2025-08-21 18:14:59] Deployment: pod -l app=schema-registry,component=schema-management is ready
+[2025-08-21 18:14:59] Deployment: Applying task7-kafka-connect-topics.yaml
+[2025-08-21 18:14:59] Deployment: kubectl wait --for=condition=complete job/kafka-connect-topics-setup -n data-ingestion --timeout=41s 2>&1
+[2025-08-21 18:15:30] Deployment: job/kafka-connect-topics-setup is complete
+[2025-08-21 18:15:30] Deployment: Applying task7-kafka-connect-deployment.yaml
+[2025-08-21 18:15:30] Deployment: kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=120s 2>&1
+[2025-08-21 18:16:51] Deployment: pod -l app=kafka-connect,component=worker is ready
+[2025-08-21 18:16:51] Deployment: Deploying Connector config postgres-cdc-connector
+[2025-08-21 18:16:51] Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-connector ===
+[2025-08-21 18:16:51] Deploy Connector: Validating prerequisites...
+[2025-08-21 18:16:51] Deploy Connector: SUCCESS Prerequisites validated
+[2025-08-21 18:16:51] Deploy Connector: Checking Kafka Connect service status...
+NAME                            READY   STATUS    RESTARTS   AGE
+kafka-connect-cb977f6f4-2mzkh   1/1     Running   0          82s
+[2025-08-21 18:16:52] Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-cb977f6f4-2mzkh condition met
+[2025-08-21 18:16:52] Deploy Connector: SUCCESS Kafka Connect is ready
+[2025-08-21 18:16:52] Deploy Connector: Checking if connector already exists...
+[2025-08-21 18:16:52] Deploy Connector: SUCCESS No existing connector found
+[2025-08-21 18:16:52] Deploy Connector: Deploying connector...
+[2025-08-21 18:16:54] Deploy Connector: SUCCESS Connector deployed successfully
+[2025-08-21 18:16:54] Deploy Connector: Checking connector status...
 {
   "name": "postgres-cdc-connector",
   "connector": {
@@ -62,27 +62,27 @@ pod/kafka-connect-7b7d8885c5-k8g2m condition met
   ],
   "type": "source"
 }
-[2025-08-21 15:50:53] Deploy Connector: SUCCESS Connector is in RUNNING state
-[2025-08-21 15:50:53] Deploy Connector: Listing all connectors...
+[2025-08-21 18:16:59] Deploy Connector: SUCCESS Connector is in RUNNING state
+[2025-08-21 18:16:59] Deploy Connector: Listing all connectors...
 [
   "postgres-cdc-connector"
 ]
-[2025-08-21 15:50:54] Deploy Connector: SUCCESS Connector Deployment completed successfully
-[2025-08-21 15:50:54] Deployment: Deploying Connector config s3-sink-connector
-[2025-08-21 15:50:54] Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-connector ===
-[2025-08-21 15:50:54] Deploy Connector: Validating prerequisites...
-[2025-08-21 15:50:54] Deploy Connector: SUCCESS Prerequisites validated
-[2025-08-21 15:50:54] Deploy Connector: Checking Kafka Connect service status...
-NAME                             READY   STATUS    RESTARTS   AGE
-kafka-connect-7b7d8885c5-k8g2m   1/1     Running   0          91s
-[2025-08-21 15:50:54] Deploy Connector: Waiting for Kafka Connect to be ready...
-pod/kafka-connect-7b7d8885c5-k8g2m condition met
-[2025-08-21 15:50:54] Deploy Connector: SUCCESS Kafka Connect is ready
-[2025-08-21 15:50:55] Deploy Connector: Checking if connector already exists...
-[2025-08-21 15:50:55] Deploy Connector: SUCCESS No existing connector found
-[2025-08-21 15:50:55] Deploy Connector: Deploying connector...
-[2025-08-21 15:50:56] Deploy Connector: SUCCESS Connector deployed successfully
-[2025-08-21 15:50:56] Deploy Connector: Checking connector status...
+[2025-08-21 18:16:59] Deploy Connector: SUCCESS Connector Deployment completed successfully
+[2025-08-21 18:17:00] Deployment: Deploying Connector config s3-sink-connector
+[2025-08-21 18:17:00] Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-connector ===
+[2025-08-21 18:17:00] Deploy Connector: Validating prerequisites...
+[2025-08-21 18:17:00] Deploy Connector: SUCCESS Prerequisites validated
+[2025-08-21 18:17:00] Deploy Connector: Checking Kafka Connect service status...
+NAME                            READY   STATUS    RESTARTS   AGE
+kafka-connect-cb977f6f4-2mzkh   1/1     Running   0          90s
+[2025-08-21 18:17:00] Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-cb977f6f4-2mzkh condition met
+[2025-08-21 18:17:00] Deploy Connector: SUCCESS Kafka Connect is ready
+[2025-08-21 18:17:00] Deploy Connector: Checking if connector already exists...
+[2025-08-21 18:17:01] Deploy Connector: SUCCESS No existing connector found
+[2025-08-21 18:17:01] Deploy Connector: Deploying connector...
+[2025-08-21 18:17:02] Deploy Connector: SUCCESS Connector deployed successfully
+[2025-08-21 18:17:02] Deploy Connector: Checking connector status...
 {
   "name": "s3-sink-connector",
   "connector": {
@@ -92,36 +92,32 @@ pod/kafka-connect-7b7d8885c5-k8g2m condition met
   "tasks": [
     {
       "id": 0,
-      "state": "FAILED",
-      "worker_id": "kafka-connect:8083",
-      "trace": "org.apache.kafka.connect.errors.ConnectException: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENGDQDTRVAY7ZH3F; S3 Extended Request ID: kkFYZEoKSuHrSwyL5xfv1EsW93QoNNF+Q2X+udkpjuD5RZnVvorl6q8CDZGnG/JgalgbRLHtziU=; Proxy: null), S3 Extended Request ID: kkFYZEoKSuHrSwyL5xfv1EsW93QoNNF+Q2X+udkpjuD5RZnVvorl6q8CDZGnG/JgalgbRLHtziU=\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:142)\n\tat org.apache.kafka.connect.runtime.WorkerSinkTask.initializeAndStart(WorkerSinkTask.java:315)\n\tat org.apache.kafka.connect.runtime.WorkerTask.doRun(WorkerTask.java:200)\n\tat org.apache.kafka.connect.runtime.WorkerTask.run(WorkerTask.java:257)\n\tat org.apache.kafka.connect.runtime.isolation.Plugins.lambda$withClassLoader$1(Plugins.java:181)\n\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)\n\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)\n\tat java.base/java.lang.Thread.run(Thread.java:829)\nCaused by: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENGDQDTRVAY7ZH3F; S3 Extended Request ID: kkFYZEoKSuHrSwyL5xfv1EsW93QoNNF+Q2X+udkpjuD5RZnVvorl6q8CDZGnG/JgalgbRLHtziU=; Proxy: null), S3 Extended Request ID: kkFYZEoKSuHrSwyL5xfv1EsW93QoNNF+Q2X+udkpjuD5RZnVvorl6q8CDZGnG/JgalgbRLHtziU=\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1879)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleServiceErrorResponse(AmazonHttpClient.java:1418)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeOneRequest(AmazonHttpClient.java:1387)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeHelper(AmazonHttpClient.java:1157)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.doExecute(AmazonHttpClient.java:814)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeWithTimer(AmazonHttpClient.java:781)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.execute(AmazonHttpClient.java:755)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.access$500(AmazonHttpClient.java:715)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutionBuilderImpl.execute(AmazonHttpClient.java:697)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:561)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:541)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5456)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5403)\n\tat com.amazonaws.services.s3.AmazonS3Client.getAcl(AmazonS3Client.java:4062)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1278)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1268)\n\tat com.amazonaws.services.s3.AmazonS3Client.doesBucketExistV2(AmazonS3Client.java:1406)\n\tat io.confluent.connect.s3.storage.S3Storage.bucketExists(S3Storage.java:186)\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:114)\n\t... 9 more\n"
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
     },
     {
       "id": 1,
-      "state": "FAILED",
-      "worker_id": "kafka-connect:8083",
-      "trace": "org.apache.kafka.connect.errors.ConnectException: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENGE4CAC09Z2KAQS; S3 Extended Request ID: nAxANV49R331L4t9dnXtTJNW7UhKCbkmkrJ8aUwT7woFWCfgbwrXYl6aTJAwUkF+W8jgNo75MXE=; Proxy: null), S3 Extended Request ID: nAxANV49R331L4t9dnXtTJNW7UhKCbkmkrJ8aUwT7woFWCfgbwrXYl6aTJAwUkF+W8jgNo75MXE=\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:142)\n\tat org.apache.kafka.connect.runtime.WorkerSinkTask.initializeAndStart(WorkerSinkTask.java:315)\n\tat org.apache.kafka.connect.runtime.WorkerTask.doRun(WorkerTask.java:200)\n\tat org.apache.kafka.connect.runtime.WorkerTask.run(WorkerTask.java:257)\n\tat org.apache.kafka.connect.runtime.isolation.Plugins.lambda$withClassLoader$1(Plugins.java:181)\n\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)\n\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)\n\tat java.base/java.lang.Thread.run(Thread.java:829)\nCaused by: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENGE4CAC09Z2KAQS; S3 Extended Request ID: nAxANV49R331L4t9dnXtTJNW7UhKCbkmkrJ8aUwT7woFWCfgbwrXYl6aTJAwUkF+W8jgNo75MXE=; Proxy: null), S3 Extended Request ID: nAxANV49R331L4t9dnXtTJNW7UhKCbkmkrJ8aUwT7woFWCfgbwrXYl6aTJAwUkF+W8jgNo75MXE=\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1879)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleServiceErrorResponse(AmazonHttpClient.java:1418)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeOneRequest(AmazonHttpClient.java:1387)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeHelper(AmazonHttpClient.java:1157)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.doExecute(AmazonHttpClient.java:814)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeWithTimer(AmazonHttpClient.java:781)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.execute(AmazonHttpClient.java:755)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.access$500(AmazonHttpClient.java:715)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutionBuilderImpl.execute(AmazonHttpClient.java:697)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:561)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:541)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5456)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5403)\n\tat com.amazonaws.services.s3.AmazonS3Client.getAcl(AmazonS3Client.java:4062)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1278)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1268)\n\tat com.amazonaws.services.s3.AmazonS3Client.doesBucketExistV2(AmazonS3Client.java:1406)\n\tat io.confluent.connect.s3.storage.S3Storage.bucketExists(S3Storage.java:186)\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:114)\n\t... 9 more\n"
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
     },
     {
       "id": 2,
-      "state": "FAILED",
-      "worker_id": "kafka-connect:8083",
-      "trace": "org.apache.kafka.connect.errors.ConnectException: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENGA2H2FGEY1419A; S3 Extended Request ID: JYS6QwQW44hlymo3KyP1PSnpxsNgXGpmXoaFs7cIk+6vVMxQwEvsqqT0hNtux9umVmtJJ5qq0iY=; Proxy: null), S3 Extended Request ID: JYS6QwQW44hlymo3KyP1PSnpxsNgXGpmXoaFs7cIk+6vVMxQwEvsqqT0hNtux9umVmtJJ5qq0iY=\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:142)\n\tat org.apache.kafka.connect.runtime.WorkerSinkTask.initializeAndStart(WorkerSinkTask.java:315)\n\tat org.apache.kafka.connect.runtime.WorkerTask.doRun(WorkerTask.java:200)\n\tat org.apache.kafka.connect.runtime.WorkerTask.run(WorkerTask.java:257)\n\tat org.apache.kafka.connect.runtime.isolation.Plugins.lambda$withClassLoader$1(Plugins.java:181)\n\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)\n\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)\n\tat java.base/java.lang.Thread.run(Thread.java:829)\nCaused by: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENGA2H2FGEY1419A; S3 Extended Request ID: JYS6QwQW44hlymo3KyP1PSnpxsNgXGpmXoaFs7cIk+6vVMxQwEvsqqT0hNtux9umVmtJJ5qq0iY=; Proxy: null), S3 Extended Request ID: JYS6QwQW44hlymo3KyP1PSnpxsNgXGpmXoaFs7cIk+6vVMxQwEvsqqT0hNtux9umVmtJJ5qq0iY=\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1879)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleServiceErrorResponse(AmazonHttpClient.java:1418)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeOneRequest(AmazonHttpClient.java:1387)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeHelper(AmazonHttpClient.java:1157)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.doExecute(AmazonHttpClient.java:814)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeWithTimer(AmazonHttpClient.java:781)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.execute(AmazonHttpClient.java:755)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.access$500(AmazonHttpClient.java:715)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutionBuilderImpl.execute(AmazonHttpClient.java:697)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:561)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:541)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5456)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5403)\n\tat com.amazonaws.services.s3.AmazonS3Client.getAcl(AmazonS3Client.java:4062)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1278)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1268)\n\tat com.amazonaws.services.s3.AmazonS3Client.doesBucketExistV2(AmazonS3Client.java:1406)\n\tat io.confluent.connect.s3.storage.S3Storage.bucketExists(S3Storage.java:186)\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:114)\n\t... 9 more\n"
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
     },
     {
       "id": 3,
-      "state": "FAILED",
-      "worker_id": "kafka-connect:8083",
-      "trace": "org.apache.kafka.connect.errors.ConnectException: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENG0SW23ZDW0F3HT; S3 Extended Request ID: SdVmFFe1p7+J3OAPV10KKSI8zV7dp1J2cyHh70fahmiKd8OyTxXWx7AMg/ly/eZbOUA1kxiYOMc=; Proxy: null), S3 Extended Request ID: SdVmFFe1p7+J3OAPV10KKSI8zV7dp1J2cyHh70fahmiKd8OyTxXWx7AMg/ly/eZbOUA1kxiYOMc=\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:142)\n\tat org.apache.kafka.connect.runtime.WorkerSinkTask.initializeAndStart(WorkerSinkTask.java:315)\n\tat org.apache.kafka.connect.runtime.WorkerTask.doRun(WorkerTask.java:200)\n\tat org.apache.kafka.connect.runtime.WorkerTask.run(WorkerTask.java:257)\n\tat org.apache.kafka.connect.runtime.isolation.Plugins.lambda$withClassLoader$1(Plugins.java:181)\n\tat java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)\n\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)\n\tat java.base/java.lang.Thread.run(Thread.java:829)\nCaused by: com.amazonaws.services.s3.model.AmazonS3Exception: <YOUR-AKID>/YYYYMMDD/REGION/SERVICE/aws4_request\". (Service: Amazon S3; Status Code: 400; Error Code: AuthorizationHeaderMalformed; Request ID: ENG0SW23ZDW0F3HT; S3 Extended Request ID: SdVmFFe1p7+J3OAPV10KKSI8zV7dp1J2cyHh70fahmiKd8OyTxXWx7AMg/ly/eZbOUA1kxiYOMc=; Proxy: null), S3 Extended Request ID: SdVmFFe1p7+J3OAPV10KKSI8zV7dp1J2cyHh70fahmiKd8OyTxXWx7AMg/ly/eZbOUA1kxiYOMc=\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1879)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleServiceErrorResponse(AmazonHttpClient.java:1418)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeOneRequest(AmazonHttpClient.java:1387)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeHelper(AmazonHttpClient.java:1157)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.doExecute(AmazonHttpClient.java:814)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeWithTimer(AmazonHttpClient.java:781)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.execute(AmazonHttpClient.java:755)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutor.access$500(AmazonHttpClient.java:715)\n\tat com.amazonaws.http.AmazonHttpClient$RequestExecutionBuilderImpl.execute(AmazonHttpClient.java:697)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:561)\n\tat com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:541)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5456)\n\tat com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:5403)\n\tat com.amazonaws.services.s3.AmazonS3Client.getAcl(AmazonS3Client.java:4062)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1278)\n\tat com.amazonaws.services.s3.AmazonS3Client.getBucketAcl(AmazonS3Client.java:1268)\n\tat com.amazonaws.services.s3.AmazonS3Client.doesBucketExistV2(AmazonS3Client.java:1406)\n\tat io.confluent.connect.s3.storage.S3Storage.bucketExists(S3Storage.java:186)\n\tat io.confluent.connect.s3.S3SinkTask.start(S3SinkTask.java:114)\n\t... 9 more\n"
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
     }
   ],
   "type": "sink"
 }
-[2025-08-21 15:51:02] Deploy Connector: SUCCESS Connector is in RUNNING state
-[2025-08-21 15:51:02] Deploy Connector: Listing all connectors...
+[2025-08-21 18:17:08] Deploy Connector: SUCCESS Connector is in RUNNING state
+[2025-08-21 18:17:08] Deploy Connector: Listing all connectors...
 [
   "s3-sink-connector",
   "postgres-cdc-connector"
 ]
-[2025-08-21 15:51:02] Deploy Connector: SUCCESS Connector Deployment completed successfully
-[2025-08-21 15:51:02] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========
+[2025-08-21 18:17:09] Deploy Connector: SUCCESS Connector Deployment completed successfully
+[2025-08-21 18:17:09] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========
