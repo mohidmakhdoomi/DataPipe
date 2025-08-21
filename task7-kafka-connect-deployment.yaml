@@ -72,11 +72,7 @@ data:
     errors.retry.timeout=300000
     errors.retry.delay.max.ms=60000
     errors.tolerance=none
-    
-    # Config Providers for ${file:...} variable resolution
-    config.providers=file
-    config.providers.file.class=org.apache.kafka.common.config.provider.FileConfigProvider
-    
+
     # Logging
     connect.logs.dir=/kafka/logs
     
