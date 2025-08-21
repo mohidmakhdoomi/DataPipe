@@ -60,7 +60,7 @@ Phase 4: Production (Tasks 13-16)
 
   - Create PostgreSQL StatefulSet with persistent volume (5Gi)
   - Configure logical replication: `wal_level=logical`, `max_replication_slots=4`
-  - Optimize PostgreSQL for 1Gi memory allocation:
+  - Optimize PostgreSQL for 0.75Gi memory allocation:
     - Set `shared_buffers=256MB`
     - Set `effective_cache_size=512MB`
     - Set `work_mem=4MB`
@@ -131,23 +131,23 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.3, 7.3_
 
   **✅ COMPLETED:** Kafka Connect deployed with comprehensive multi-model consensus validation:
-  - Single worker deployment (512Mi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
+  - Single worker deployment (768Mi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
   - Distributed mode configuration for future scalability
-  - JVM tuning: 512Mi heap with G1GC optimization (-Xms128m -Xmx512m)
+  - JVM tuning: 768Mi heap with G1GC optimization (-Xms256m -Xmx768m)
   - Debezium PostgreSQL connector plugin with init container installation
   - Dead letter queue configuration (connect-dlq topic) for error handling
   - Integration with existing Kafka cluster and Schema Registry
   - NodePort service on port 30083 for external REST API access
-  - Resource allocation: 256Mi request, 512Mi limit within budget constraints
+  - Resource allocation: 512Mi request, 768Mi limit within budget constraints
 
 - [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
   - Monitor resource consumption and adjust allocations within 4Gi limit
   - Verify container memory limits enforcement:
-    - PostgreSQL: 1Gi limit with OOM protection
+    - PostgreSQL: 768Mi limit with OOM protection
     - Kafka: 2Gi limit with GC monitoring
     - Schema Registry: 512Mi limit with JVM optimization
-    - Kafka Connect: 512Mi limit
+    - Kafka Connect: 768Mi limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
   - Document baseline performance metrics and resource usage
@@ -261,10 +261,10 @@ Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 
 - **Total RAM**: 4Gi allocated across all components
 - **Actual Usage**: 1816Mi (45% utilization) with 55% headroom
-- **PostgreSQL**: 1Gi RAM (39Mi actual usage), 5Gi storage
+- **PostgreSQL**: 0.75Gi RAM (39Mi actual usage), 5Gi storage
 - **Kafka Cluster**: 2Gi RAM  (1126Mi actual usage), 10Gi storage
 - **Schema Registry**: 0.5Gi RAM (235Mi actual usage)
-- **Kafka Connect**: 0.5Gi RAM (415Mi actual usage)
+- **Kafka Connect**: 0.75Gi RAM (415Mi actual usage)
 - **Monitoring**: Included in orchestration-monitoring feature
 - **Performance**: Exceeds targets with significant resource headroom
 
