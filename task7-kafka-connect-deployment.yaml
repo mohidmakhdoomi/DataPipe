@@ -246,9 +246,6 @@ spec:
           mountPath: /kafka/connect
         - name: logs-volume
           mountPath: /kafka/logs
-        - name: aws-credentials
-          mountPath: /etc/aws-credentials
-          readOnly: true
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
@@ -273,9 +270,6 @@ spec:
         emptyDir: {}
       - name: logs-volume
         emptyDir: {}
-      - name: aws-credentials
-        secret:
-          secretName: aws-credentials
 ---
 apiVersion: v1
 kind: Service
