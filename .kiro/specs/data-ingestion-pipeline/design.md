@@ -270,7 +270,7 @@ schema-registry:
       "updated_at": "2024-01-15T10:30:00Z"
     },
     "source": {
-      "version": "2.4.0.Final",
+      "version": "2.4.2",
       "connector": "postgresql",
       "name": "postgres",
       "ts_ms": 1705315800000,
