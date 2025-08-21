@@ -6,11 +6,12 @@
     
     "topics.regex": "postgres\\.public\\..*",
     
-    "s3.bucket.name": "data-lake-ingestion-datapipe",
+    "s3.bucket.name": "datapipe-ingestion-192837",
     "s3.region": "us-east-1",
     "s3.part.size": "16777216",
-    "aws.access.key.id": "${file:/var/run/secrets/aws-credentials/access-key-id}",
-    "aws.secret.access.key": "${file:/var/run/secrets/aws-credentials/secret-access-key}",
+    "aws.access.key.id": "${file:/etc/aws-credentials/access-key-id}",
+    "aws.secret.access.key": "${file:/etc/aws-credentials/secret-access-key}",
+    "aws.default.region": "${file:/etc/aws-credentials/region}",
     
     "format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
     "parquet.codec": "snappy",

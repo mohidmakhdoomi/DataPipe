@@ -219,7 +219,7 @@ schema-registry:
     "tasks.max": "3",
     "topics.regex": "cdc\\.postgres\\..*",
     "s3.region": "us-east-1",
-    "s3.bucket.name": "data-lake-ingestion-datapipe",
+    "s3.bucket.name": "datapipe-ingestion-192837",
     "s3.part.size": "5242880",
     "flush.size": "1000",
     "rotate.interval.ms": "60000",
@@ -319,7 +319,7 @@ CREATE TABLE s3_cdc_events (
 )
 PARTITIONED BY (year, month, day, hour)
 STORED AS PARQUET
-LOCATION 's3://data-lake-ingestion-datapipe/cdc-events/'
+LOCATION 's3://datapipe-ingestion-192837/cdc-events/'
 ```
 
 ## Error Handling

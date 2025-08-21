@@ -8,7 +8,7 @@ IFS=$'\n\t'       # Safer word splitting
 # Configuration
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-connector"
-readonly S3_BUCKET="data-lake-ingestion-datapipe"
+readonly S3_BUCKET="datapipe-ingestion-192837"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task10-logs"
 
 # Ensure log directory exists
@@ -23,7 +23,7 @@ log() {
 get_pod_names() {
     log "Discovering pod names..."
     
-    local connect_s3_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect-s3,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local connect_s3_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     local postgres_pod=$(kubectl get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     local kafka_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     
@@ -254,7 +254,7 @@ check_dlq() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect-s3|postgresql|kafka)" | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka)" | tee -a "${LOG_DIR}/validate.log"; then
         log "✅ Resource usage information retrieved"
         return 0
     else

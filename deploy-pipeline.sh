@@ -6,27 +6,31 @@ IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly NAMESPACE="data-ingestion"
-readonly CONNECTOR_NAME="postgres-cdc-connector"
 readonly LOG_DIR="${SCRIPT_DIR}/deploy-logs"
 
 readonly KIND_CONFIG="kind-config.yaml"
-readonly CONN_CONFIG_FILE="task9-debezium-connector-config.json"
-readonly CONN_CONFIG_DEPLOY="task9-deploy-connector.sh"
+readonly NAMESPACE="data-ingestion"
+
 readonly CONFIG_FILES=(
-        "01-namespace.yaml"
-        "02-service-accounts.yaml"
-        "03-network-policies.yaml"
-        "04-secrets.yaml"
-        "storage-classes.yaml"
-        "data-services-pvcs.yaml"
-        "task4-postgresql-statefulset.yaml:ready:pod -l app=postgresql,component=database:45:1"
-        "task5-kafka-kraft-3brokers.yaml:ready:pod -l app=kafka,component=streaming:105:3"
-        "task5-cdc-topics-job.yaml:complete:job/create-cdc-topics:90:1"
-        "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:108:1"
-        "task7-kafka-connect-topics.yaml:complete:job/kafka-connect-topics-setup:41:1"
-        "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:120:1"
-    )
+    "01-namespace.yaml"
+    "02-service-accounts.yaml"
+    "03-network-policies.yaml"
+    "04-secrets.yaml"
+    "storage-classes.yaml"
+    "data-services-pvcs.yaml"
+    "task4-postgresql-statefulset.yaml:ready:pod -l app=postgresql,component=database:45:1"
+    "task5-kafka-kraft-3brokers.yaml:ready:pod -l app=kafka,component=streaming:105:3"
+    "task5-cdc-topics-job.yaml:complete:job/create-cdc-topics:90:1"
+    "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:108:1"
+    "task7-kafka-connect-topics.yaml:complete:job/kafka-connect-topics-setup:41:1"
+    "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:120:1"
+)
+
+readonly CONN_DEPLOY_SCRIPT="task9-deploy-connector.sh"
+readonly CONN_CONFIGS=(
+    "postgres-cdc-connector:task9-debezium-connector-config.json"
+    "s3-sink-connector:task10-s3-sink-connector-config.json"
+)
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
@@ -131,11 +135,14 @@ main() {
         exit 1
     fi
 
-    log "Deploying Debezium CDC connector using ${CONN_CONFIG_DEPLOY}"
-    if ! bash ${SCRIPT_DIR}/${CONN_CONFIG_DEPLOY} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
-        log "ERROR: Failed to execute ${CONN_CONFIG_DEPLOY}"
-        exit 1
-    fi
+    for current_record in "${CONN_CONFIGS[@]}"; do
+        IFS=':' read -r connector_name connector_config_file <<< "$current_record"
+        log "Deploying Connector config ${connector_name}"
+        if ! bash ${SCRIPT_DIR}/${CONN_DEPLOY_SCRIPT} ${connector_name} ${connector_config_file} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
+            log "ERROR: Failed to deploy ${connector_name} using config ${connector_config_file}"
+            exit 1
+        fi
+    done
 
     log "========== SUCCESS - Data Ingestion Pipeline deployment completed =========="
     exit 0
