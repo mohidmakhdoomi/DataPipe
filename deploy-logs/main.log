@@ -1,35 +1,72 @@
-[2025-08-20 19:50:50] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
-[2025-08-20 19:50:50] Deployment: Deleting existing cluster if needed
-[2025-08-20 19:50:55] Deployment: Creating cluster using kind-config.yaml
-[2025-08-20 19:51:23] Deployment: Checking if metrics-server is available...
-[2025-08-20 19:51:23] Deployment: Installing metrics-server...
-[2025-08-20 19:51:26] Deployment: ✅ Metrics-server installation initiated
-[2025-08-20 19:51:27] Deployment: deployment.apps/metrics-server replaced
-[2025-08-20 19:51:27] Deployment: Waiting for metrics-server to be ready...
-[2025-08-20 19:52:27] Deployment: ✅ Metrics-server is ready
-[2025-08-20 19:52:27] Deployment: ✅ Metrics are now available
-[2025-08-20 19:52:27] Deployment: Applying 01-namespace.yaml
-[2025-08-20 19:52:27] Deployment: Applying 02-service-accounts.yaml
-[2025-08-20 19:52:28] Deployment: Applying 03-network-policies.yaml
-[2025-08-20 19:52:28] Deployment: Applying 04-secrets.yaml
-[2025-08-20 19:52:28] Deployment: Applying storage-classes.yaml
-[2025-08-20 19:52:28] Deployment: Applying data-services-pvcs.yaml
-[2025-08-20 19:52:29] Deployment: Applying task4-postgresql-statefulset.yaml
-[2025-08-20 19:52:29] Deployment: kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=45s 2>&1
-[2025-08-20 19:52:47] Deployment: pod -l app=postgresql,component=database is ready
-[2025-08-20 19:52:47] Deployment: Applying task5-kafka-kraft-3brokers.yaml
-[2025-08-20 19:52:47] Deployment: kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=105s 2>&1
-[2025-08-20 19:53:59] Deployment: pod -l app=kafka,component=streaming is ready
-[2025-08-20 19:53:59] Deployment: Applying task5-cdc-topics-job.yaml
-[2025-08-20 19:53:59] Deployment: kubectl wait --for=condition=complete job/create-cdc-topics -n data-ingestion --timeout=90s 2>&1
-[2025-08-20 19:54:58] Deployment: job/create-cdc-topics is complete
-[2025-08-20 19:54:58] Deployment: Applying task6-schema-registry.yaml
-[2025-08-20 19:54:58] Deployment: kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=108s 2>&1
-[2025-08-20 19:56:14] Deployment: pod -l app=schema-registry,component=schema-management is ready
-[2025-08-20 19:56:14] Deployment: Applying task7-kafka-connect-topics.yaml
-[2025-08-20 19:56:15] Deployment: kubectl wait --for=condition=complete job/kafka-connect-topics-setup -n data-ingestion --timeout=41s 2>&1
-[2025-08-20 19:56:40] Deployment: job/kafka-connect-topics-setup is complete
-[2025-08-20 19:56:40] Deployment: Applying task7-kafka-connect-deployment.yaml
-[2025-08-20 19:56:40] Deployment: kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=105s 2>&1
-[2025-08-20 19:57:51] Deployment: pod -l app=kafka-connect,component=worker is ready
-[2025-08-20 19:57:51] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========
+[2025-08-21 11:52:27] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
+[2025-08-21 11:52:27] Deployment: Deleting existing cluster if needed
+[2025-08-21 11:52:32] Deployment: Creating cluster using kind-config.yaml
+[2025-08-21 11:52:59] Deployment: Checking if metrics-server is available...
+[2025-08-21 11:53:00] Deployment: Installing metrics-server...
+[2025-08-21 11:53:00] Deployment: Metrics-server installation initiated
+[2025-08-21 11:53:01] Deployment: deployment.apps/metrics-server replaced
+[2025-08-21 11:53:01] Deployment: Waiting for metrics-server to be ready...
+[2025-08-21 11:54:01] Deployment: Metrics-server is ready
+[2025-08-21 11:54:01] Deployment: Metrics are now available
+[2025-08-21 11:54:01] Deployment: Applying 01-namespace.yaml
+[2025-08-21 11:54:02] Deployment: Applying 02-service-accounts.yaml
+[2025-08-21 11:54:02] Deployment: Applying 03-network-policies.yaml
+[2025-08-21 11:54:02] Deployment: Applying 04-secrets.yaml
+[2025-08-21 11:54:02] Deployment: Applying storage-classes.yaml
+[2025-08-21 11:54:03] Deployment: Applying data-services-pvcs.yaml
+[2025-08-21 11:54:03] Deployment: Applying task4-postgresql-statefulset.yaml
+[2025-08-21 11:54:03] Deployment: kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=45s 2>&1
+[2025-08-21 11:54:22] Deployment: pod -l app=postgresql,component=database is ready
+[2025-08-21 11:54:22] Deployment: Applying task5-kafka-kraft-3brokers.yaml
+[2025-08-21 11:54:23] Deployment: kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=105s 2>&1
+[2025-08-21 11:55:38] Deployment: pod -l app=kafka,component=streaming is ready
+[2025-08-21 11:55:38] Deployment: Applying task5-cdc-topics-job.yaml
+[2025-08-21 11:55:38] Deployment: kubectl wait --for=condition=complete job/create-cdc-topics -n data-ingestion --timeout=90s 2>&1
+[2025-08-21 11:56:40] Deployment: job/create-cdc-topics is complete
+[2025-08-21 11:56:40] Deployment: Applying task6-schema-registry.yaml
+[2025-08-21 11:56:40] Deployment: kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=108s 2>&1
+[2025-08-21 11:57:56] Deployment: pod -l app=schema-registry,component=schema-management is ready
+[2025-08-21 11:57:56] Deployment: Applying task7-kafka-connect-topics.yaml
+[2025-08-21 11:57:56] Deployment: kubectl wait --for=condition=complete job/kafka-connect-topics-setup -n data-ingestion --timeout=41s 2>&1
+[2025-08-21 11:58:23] Deployment: job/kafka-connect-topics-setup is complete
+[2025-08-21 11:58:23] Deployment: Applying task7-kafka-connect-deployment.yaml
+[2025-08-21 11:58:23] Deployment: kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=120s 2>&1
+[2025-08-21 11:59:34] Deployment: pod -l app=kafka-connect,component=worker is ready
+[2025-08-21 11:59:34] Deployment: Deploying Debezium CDC connector using task9-deploy-connector.sh
+[2025-08-21 11:59:34] Task 9 Deploy: === Starting Task 9: Deploying Debezium PostgreSQL CDC Connector ===
+[2025-08-21 11:59:35] Task 9 Deploy: Validating prerequisites...
+[2025-08-21 11:59:35] Task 9 Deploy: ✅ Prerequisites validated
+[2025-08-21 11:59:35] Task 9 Deploy: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-868db97d76-d9bzn   1/1     Running   0          72s
+[2025-08-21 11:59:35] Task 9 Deploy: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-868db97d76-d9bzn condition met
+[2025-08-21 11:59:35] Task 9 Deploy: ✅ Kafka Connect is ready
+[2025-08-21 11:59:35] Task 9 Deploy: Checking if connector already exists...
+[2025-08-21 11:59:36] Task 9 Deploy: ✅ No existing connector found
+[2025-08-21 11:59:36] Task 9 Deploy: Deploying Debezium connector...
+[2025-08-21 11:59:37] Task 9 Deploy: ✅ Debezium connector deployed successfully
+[2025-08-21 11:59:37] Task 9 Deploy: Checking connector status...
+{
+  "name": "postgres-cdc-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "source"
+}
+[2025-08-21 11:59:43] Task 9 Deploy: ✅ Connector is in RUNNING state
+[2025-08-21 11:59:43] Task 9 Deploy: Listing all connectors...
+[
+  "postgres-cdc-connector"
+]
+[2025-08-21 11:59:43] Task 9 Deploy: ✅ Task 9 Deployment completed successfully
+[2025-08-21 11:59:43] Task 9 Deploy: Run task9-validate-cdc.sh to validate the CDC functionality
+[2025-08-21 11:59:43] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========

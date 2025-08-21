@@ -8,9 +8,11 @@ IFS=$'\n\t'       # Safer word splitting
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
-readonly CONFIG_FILE="task9-debezium-connector-config.json"
 readonly LOG_DIR="${SCRIPT_DIR}/deploy-logs"
+
 readonly KIND_CONFIG="kind-config.yaml"
+readonly CONN_CONFIG_FILE="task9-debezium-connector-config.json"
+readonly CONN_CONFIG_DEPLOY="task9-deploy-connector.sh"
 readonly CONFIG_FILES=(
         "01-namespace.yaml"
         "02-service-accounts.yaml"
@@ -23,7 +25,7 @@ readonly CONFIG_FILES=(
         "task5-cdc-topics-job.yaml:complete:job/create-cdc-topics:90:1"
         "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:108:1"
         "task7-kafka-connect-topics.yaml:complete:job/kafka-connect-topics-setup:41:1"
-        "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:105:1"
+        "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:120:1"
     )
 
 # Ensure log directory exists
@@ -39,13 +41,13 @@ install_metrics_server() {
     log "Checking if metrics-server is available..."
     
     if kubectl top nodes >/dev/null 2>&1; then
-        log "✅ Metrics-server is already available"
+        log "Metrics-server is already available"
         return 0
     fi
     
     log "Installing metrics-server..."
     if kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null 2>&1; then
-        log "✅ Metrics-server installation initiated"
+        log "Metrics-server installation initiated"
         
         # Add --kubelet-insecure-tls flag
         log $(kubectl get deploy metrics-server -n kube-system -o yaml > components.yaml && sed -i "s/        - --metric-resolution=15s/        - --metric-resolution=15s\r\n        - --kubelet-insecure-tls/g" components.yaml && kubectl replace -f components.yaml && rm components.yaml)
@@ -54,37 +56,31 @@ install_metrics_server() {
         log "Waiting for metrics-server to be ready..."
         local status=$(kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=60s 2>&1)
         if [[ -n "$status" ]] && echo "$status" | grep "pod/metrics-server" | grep -q "condition met"; then
-            log "✅ Metrics-server is ready"
+            log "Metrics-server is ready"
             
             # Wait for metrics to be available
             local wait_count=0
             while [[ $wait_count -lt 12 ]]; do  # Wait up to 2 minutes
                 if kubectl top nodes >/dev/null 2>&1; then
-                    log "✅ Metrics are now available"
+                    log "Metrics are now available"
                     return 0
                 fi
-                log "⏳ Waiting for metrics to be available..."
+                log "Waiting for metrics to be available..."
                 sleep 10
                 wait_count=$((wait_count + 1))
             done
             
-            log "⚠️  Metrics-server installed but metrics not yet available"
+            log "Metrics-server installed but metrics not yet available!"
             return 1
         else
-            log "❌ Metrics-server failed to become ready"
+            log "Metrics-server FAILED to become ready"
             return 1
         fi
     else
-        log "❌ Failed to install metrics-server"
+        log "FAILED to install metrics-server"
         return 1
     fi
 }
-
-
-# if kubectl wait --for=condition=available --timeout=${timeout}s deployment/$deployment -n ${NAMESPACE} 2>/dev/null; then
-
-# if kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=120s >/dev/null 2>&1; then
-
 
 # Main execution
 main() {
@@ -132,6 +128,12 @@ main() {
     # Verify prerequisites
     if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "ERROR: Namespace ${NAMESPACE} not found"
+        exit 1
+    fi
+
+    log "Deploying Debezium CDC connector using ${CONN_CONFIG_DEPLOY}"
+    if ! bash ${SCRIPT_DIR}/${CONN_CONFIG_DEPLOY} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
+        log "ERROR: Failed to execute ${CONN_CONFIG_DEPLOY}"
         exit 1
     fi
 
