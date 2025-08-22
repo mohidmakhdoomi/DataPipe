@@ -8,6 +8,8 @@ metadata:
     component: database
 data:
   postgresql.conf: |
+    include '/var/lib/postgresql/data/pgdata/postgresql.conf'
+    
     # Memory Configuration (optimized for 0.75GB allocation)
     shared_buffers = 256MB
     effective_cache_size = 512MB
@@ -186,7 +188,6 @@ spec:
         fsGroupChangePolicy: "OnRootMismatch"
         seccompProfile:
           type: RuntimeDefault
-      
       # Fix permissions before PostgreSQL starts
       initContainers:
       - name: fix-permissions
@@ -247,12 +248,9 @@ spec:
           value: "/var/lib/postgresql/data/pgdata"
         - name: POSTGRES_INITDB_ARGS
           value: "--data-checksums"
-        command:
-        - /bin/bash
-        - -c
-        - |
-          # Start PostgreSQL with custom configuration
-          exec docker-entrypoint.sh postgres -c config_file=/etc/postgresql/postgresql.conf
+        args:
+        - "-c"
+        - "config_file=/etc/postgresql/postgresql.conf"
         ports:
         - name: postgresql
           containerPort: 5432
