@@ -1,8 +1,8 @@
 # Task 8 Validation Report
 
 ## Executive Summary
-- Start Time: 2025-08-22 00:10:39
-- End Time: 2025-08-22 00:23:07
+- Start Time: 2025-08-22 16:34:04
+- End Time: 2025-08-22 16:46:52
 - Overall Status: ✅ PASS
 - Failed Phases: 0
 
@@ -10,16 +10,16 @@
 
 
 ## Resource Utilization
-[2025-08-22 00:22:48] Pod: postgresql-0 Memory: 40Mi
-[2025-08-22 00:22:48] Pod: schema-registry-7578cd4d67-vrzjc Memory: 251Mi
-[2025-08-22 00:22:48] Total Memory: 2162Mi / 4096Mi (52%)
-[2025-08-22 00:22:59] Pod: kafka-0 Memory: 418Mi
-[2025-08-22 00:22:59] Pod: kafka-1 Memory: 324Mi
-[2025-08-22 00:22:59] Pod: kafka-2 Memory: 413Mi
-[2025-08-22 00:22:59] Pod: kafka-connect-cb977f6f4-xm899 Memory: 718Mi
-[2025-08-22 00:22:59] Pod: postgresql-0 Memory: 40Mi
-[2025-08-22 00:22:59] Pod: schema-registry-7578cd4d67-vrzjc Memory: 254Mi
-[2025-08-22 00:23:00] Total Memory: 2167Mi / 4096Mi (52%)
+[2025-08-22 16:46:36] Pod: postgresql-0 Memory: 45Mi
+[2025-08-22 16:46:36] Pod: schema-registry-7996d6869-rhkdd Memory: 223Mi
+[2025-08-22 16:46:36] Total Memory: 2135Mi / 4096Mi (52%)
+[2025-08-22 16:46:46] Pod: kafka-0 Memory: 482Mi
+[2025-08-22 16:46:46] Pod: kafka-1 Memory: 310Mi
+[2025-08-22 16:46:47] Pod: kafka-2 Memory: 428Mi
+[2025-08-22 16:46:47] Pod: kafka-connect-7c45ccc44-7jv4v Memory: 647Mi
+[2025-08-22 16:46:47] Pod: postgresql-0 Memory: 45Mi
+[2025-08-22 16:46:47] Pod: schema-registry-7996d6869-rhkdd Memory: 223Mi
+[2025-08-22 16:46:47] Total Memory: 2135Mi / 4096Mi (52%)
 
 ## Next Steps
 Ready to proceed to Phase 3 integration tasks

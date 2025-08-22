@@ -98,7 +98,7 @@ data:
     log4j.logger.org.reflections=ERROR
 
   # JVM Configuration based on multi-model consensus
-  KAFKA_HEAP_OPTS: "-Xms256m -Xmx576m"
+  KAFKA_HEAP_OPTS: "-Xms256m -Xmx460m"
   JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"
@@ -219,7 +219,7 @@ spec:
           httpGet:
             path: /
             port: 8083
-          initialDelaySeconds: 60
+          initialDelaySeconds: 80
           periodSeconds: 30
           timeoutSeconds: 10
           failureThreshold: 3
@@ -227,7 +227,7 @@ spec:
           httpGet:
             path: /connectors
             port: 8083
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
@@ -235,10 +235,10 @@ spec:
           httpGet:
             path: /
             port: 8083
-          initialDelaySeconds: 30
+          initialDelaySeconds: 40
           periodSeconds: 10
           timeoutSeconds: 5
-          failureThreshold: 30  # Total: 30 + (30*10) = 330s (5.5 minutes)
+          failureThreshold: 18  # Total: 30 + (18*10) = 210s (3.5 minutes)
         volumeMounts:
         - name: config-volume
           mountPath: /kafka/config

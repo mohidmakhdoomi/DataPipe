@@ -118,9 +118,9 @@ spec:
             - "/bin/sh"
             - "-c"
             - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
+          initialDelaySeconds: 80
+          periodSeconds: 30
+          timeoutSeconds: 10
           failureThreshold: 3
         readinessProbe:
           exec:
@@ -128,9 +128,9 @@ spec:
             - "/bin/sh"
             - "-c"
             - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 3
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
           failureThreshold: 3
         startupProbe:
           exec:
@@ -138,10 +138,10 @@ spec:
             - "/bin/sh"
             - "-c"
             - "curl --fail -u \"$PROBE_USER:$PROBE_PASSWORD\" http://localhost:8081/subjects"
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 12
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 18
         volumeMounts:
         - name: jaas-config
           mountPath: /etc/schema-registry/jaas.conf
