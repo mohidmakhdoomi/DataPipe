@@ -30,7 +30,7 @@
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
     "transforms.unwrap.drop.tombstones": "false",
     "transforms.unwrap.delete.handling.mode": "rewrite",
-    "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms",
+    "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms,source.lsn",
     
     "snapshot.mode": "initial",
     "snapshot.fetch.size": "1000",
@@ -66,7 +66,7 @@
     "topic.creation.default.compression.type": "lz4",
     "topic.creation.default.retention.ms": "604800000",
     
-    "provide.transaction.metadata": "false",
+    "provide.transaction.metadata": "true",
     "skipped.operations": "none",
     "tombstones.on.delete": "true",
     

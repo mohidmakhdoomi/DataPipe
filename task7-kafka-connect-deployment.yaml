@@ -62,8 +62,8 @@ data:
     
     # Consumer Settings
     consumer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
-    consumer.max.poll.records=500
-    consumer.max.poll.interval.ms=300000
+    consumer.max.poll.records=10000
+    consumer.max.poll.interval.ms=180000
     consumer.session.timeout.ms=30000
     consumer.heartbeat.interval.ms=3000
     consumer.auto.offset.reset=earliest
@@ -72,7 +72,7 @@ data:
     errors.retry.timeout=300000
     errors.retry.delay.max.ms=60000
     errors.tolerance=none
-    
+
     # Logging
     connect.logs.dir=/kafka/logs
     
@@ -98,8 +98,8 @@ data:
     log4j.logger.org.reflections=ERROR
 
   # JVM Configuration based on multi-model consensus
-  KAFKA_HEAP_OPTS: "-Xms128m -Xmx512m"
-  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+  KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
+  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"
   CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
@@ -148,34 +148,47 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       initContainers:
-      # Install Debezium plugins
+      # Install Debezium and S3 Sink plugins
       - name: plugin-installer
-        image: confluentinc/cp-kafka-connect:7.4.0
+        image: curlimages/curl
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
         command:
-        - /bin/bash
+        - sh
         - -c
         - |
           set -e
-          echo "Installing Debezium PostgreSQL connector plugin..."
+          echo "Installing connector plugins..."
           
-          # Create plugin directory
+          # Create plugin directories
           mkdir -p /kafka/connect/debezium-postgres
+          mkdir -p /kafka/connect/s3-sink
+          cd /tmp
           
           # Download and install Debezium PostgreSQL connector
-          cd /tmp
-          curl -L -o debezium-connector-postgres.tar.gz \
-            "https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.4.0.Final/debezium-connector-postgres-2.4.0.Final-plugin.tar.gz"
+          echo "Installing Debezium PostgreSQL connector plugin..."
+          curl -L -o debezium-connector-postgresql.zip \
+            "https://api.hub.confluent.io/api/plugins/debezium/debezium-connector-postgresql/versions/2.4.2/archive"
           
-          tar -xzf debezium-connector-postgres.tar.gz
-          cp -r debezium-connector-postgres/* /kafka/connect/debezium-postgres/
+          unzip -q debezium-connector-postgresql.zip
+          cp -r debezium-debezium-connector-postgresql-2.4.2/* /kafka/connect/debezium-postgres/
           
           echo "Debezium PostgreSQL connector installed successfully!"
-          ls -la /kafka/connect/debezium-postgres/
+          
+          # Download and install S3 Sink connector
+          echo "Installing S3 Sink connector plugin..."
+          curl -L -o kafka-connect-s3.zip \
+            "https://api.hub.confluent.io/api/plugins/confluentinc/kafka-connect-s3/versions/10.5.0/archive"
+          
+          unzip -q kafka-connect-s3.zip
+          cp -r confluentinc-kafka-connect-s3-10.5.0/* /kafka/connect/s3-sink/
+          
+          echo "S3 Sink connector installed successfully!"
+          echo "Installed plugins:"
+          ls -la /kafka/connect/
         volumeMounts:
         - name: plugin-volume
           mountPath: /kafka/connect
@@ -197,10 +210,10 @@ spec:
           containerPort: 8083
         resources:
           requests:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "500m"
           limits:
-            memory: "512Mi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
@@ -233,6 +246,22 @@ spec:
           mountPath: /kafka/connect
         - name: logs-volume
           mountPath: /kafka/logs
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: secret-access-key
+        - name: AWS_DEFAULT_REGION
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: region
       volumes:
       - name: config-volume
         configMap:
@@ -280,193 +309,3 @@ spec:
     targetPort: 8083
     nodePort: 30083
     protocol: TCP
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: debezium-connector-config
-  namespace: data-ingestion
-  labels:
-    app: kafka-connect
-    component: connector-config
-data:
-  postgres-cdc-connector.json: |
-    {
-      "name": "postgres-cdc-connector",
-      "config": {
-        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-        "tasks.max": "1",
-        
-        "database.hostname": "postgresql.data-ingestion.svc.cluster.local",
-        "database.port": "5432",
-        "database.user": "debezium",
-        "database.password": "debezium_password",
-        "database.dbname": "ecommerce",
-        "database.server.name": "postgres",
-        "topic.prefix": "postgres",
-        
-        "table.include.list": "public.users,public.products,public.orders,public.order_items",
-        "plugin.name": "pgoutput",
-        "slot.name": "debezium_slot",
-        "publication.name": "dbz_publication",
-        
-        "key.converter": "io.confluent.connect.avro.AvroConverter",
-        "value.converter": "io.confluent.connect.avro.AvroConverter",
-        "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
-        "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
-        "key.converter.basic.auth.credentials.source": "USER_INFO",
-        "key.converter.basic.auth.user.info": "admin:admin-secret",
-        "value.converter.basic.auth.credentials.source": "USER_INFO",
-        "value.converter.basic.auth.user.info": "admin:admin-secret",
-        
-        "transforms": "unwrap",
-        "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
-        "transforms.unwrap.drop.tombstones": "false",
-        "transforms.unwrap.delete.handling.mode": "rewrite",
-        "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms",
-        
-        "snapshot.mode": "initial",
-        "snapshot.fetch.size": "1000",
-        "max.batch.size": "2048",
-        "max.queue.size": "8192",
-        "poll.interval.ms": "1000",
-        
-        "decimal.handling.mode": "string",
-        "time.precision.mode": "adaptive_time_microseconds",
-        "binary.handling.mode": "bytes",
-        
-        "heartbeat.interval.ms": "30000",
-        "heartbeat.topics.prefix": "__debezium-heartbeat",
-        
-        "schema.history.internal.kafka.bootstrap.servers": "kafka-headless.data-ingestion.svc.cluster.local:9092",
-        "schema.history.internal.kafka.topic": "schema-changes.postgres",
-        "schema.history.internal.kafka.recovery.attempts": "100",
-        "schema.history.internal.kafka.recovery.poll.interval.ms": "5000",
-        
-        "errors.tolerance": "all",
-        "errors.log.enable": "true",
-        "errors.log.include.messages": "true",
-        "errors.deadletterqueue.topic.name": "connect-dlq",
-        "errors.deadletterqueue.topic.replication.factor": "3",
-        "errors.deadletterqueue.context.headers.enable": "true",
-        "errors.retry.delay.max.ms": "60000",
-        "errors.retry.timeout": "300000",
-        
-        "topic.creation.enable": "true",
-        "topic.creation.default.replication.factor": "3",
-        "topic.creation.default.partitions": "6",
-        "topic.creation.default.cleanup.policy": "delete",
-        "topic.creation.default.compression.type": "lz4",
-        "topic.creation.default.retention.ms": "604800000",
-        
-        "provide.transaction.metadata": "false",
-        "skipped.operations": "none",
-        "tombstones.on.delete": "true",
-        
-        "publication.autocreate.mode": "all_tables",
-        "slot.drop.on.stop": "false",
-        "slot.max.retries": "6",
-        "slot.retry.delay.ms": "10000",
-        
-        "status.update.interval.ms": "10000",
-        "retriable.restart.connector.wait.ms": "10000"
-      }
-    }
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: debezium-connector-deployer
-  namespace: data-ingestion
-  labels:
-    app: kafka-connect
-    component: connector-deployer
-spec:
-  backoffLimit: 3
-  template:
-    metadata:
-      labels:
-        app: kafka-connect
-        component: connector-deployer
-    spec:
-      serviceAccountName: kafka-connect-sa
-      restartPolicy: OnFailure
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        runAsNonRoot: true
-        fsGroup: 1000
-        seccompProfile:
-          type: RuntimeDefault
-      containers:
-      - name: connector-deployer
-        image: curlimages/curl:8.5.0
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "500m"
-        command:
-        - /bin/bash
-        - -c
-        - |
-          set -e
-          
-          CONNECT_URL="http://kafka-connect.data-ingestion.svc.cluster.local:8083"
-          CONNECTOR_NAME="postgres-cdc-connector"
-          CONFIG_FILE="/config/postgres-cdc-connector.json"
-          
-          echo "Waiting for Kafka Connect to be ready at $CONNECT_URL..."
-          until curl -sf "$CONNECT_URL/connectors" > /dev/null; do
-            echo "Kafka Connect not ready, retrying in 5s..."
-            sleep 5
-          done
-          echo "Kafka Connect is ready!"
-          
-          # Check if connector already exists
-          STATUS_CODE=$(curl -w "%{http_code}" -s -o /dev/null "$CONNECT_URL/connectors/$CONNECTOR_NAME")
-          
-          if [ "$STATUS_CODE" -eq 404 ]; then
-            echo "Connector '$CONNECTOR_NAME' does not exist. Creating..."
-            curl -X POST \
-              -H "Content-Type: application/json" \
-              -d @"$CONFIG_FILE" \
-              "$CONNECT_URL/connectors" \
-              --fail-with-body
-            echo "Connector created successfully!"
-          elif [ "$STATUS_CODE" -eq 200 ]; then
-            echo "Connector '$CONNECTOR_NAME' already exists. Updating configuration..."
-            # Extract just the config section for PUT request
-            CONFIG_DATA=$(cat "$CONFIG_FILE" | sed -n 's/.*"config":\s*\({.*}\).*/\1/p')
-            curl -X PUT \
-              -H "Content-Type: application/json" \
-              -d "$CONFIG_DATA" \
-              "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" \
-              --fail-with-body
-            echo "Connector configuration updated successfully!"
-          else
-            echo "Unexpected response code: $STATUS_CODE"
-            exit 1
-          fi
-          
-          # Verify connector status
-          sleep 3
-          echo "Verifying connector status..."
-          curl -s "$CONNECT_URL/connectors/$CONNECTOR_NAME/status" | grep -q '"state":"RUNNING"' && \
-            echo "✅ Connector is running successfully!" || \
-            echo "⚠️  Connector may still be starting up. Check status manually."
-        volumeMounts:
-        - name: connector-config
-          mountPath: /config
-          readOnly: true
-      volumes:
-      - name: connector-config
-        configMap:
-          name: debezium-connector-config

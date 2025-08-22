@@ -70,7 +70,7 @@ graph TB
 postgresql:
   resources:
     requests: { memory: "512Mi", cpu: "500m" }
-    limits: { memory: "1Gi", cpu: "1000m" }
+    limits: { memory: "768Mi", cpu: "1000m" }
   config:
     wal_level: logical
     max_replication_slots: 4
@@ -218,8 +218,8 @@ schema-registry:
     "connector.class": "io.confluent.connect.s3.S3SinkConnector",
     "tasks.max": "3",
     "topics.regex": "cdc\\.postgres\\..*",
-    "s3.region": "us-west-2",
-    "s3.bucket.name": "data-lake-ingestion",
+    "s3.region": "us-east-1",
+    "s3.bucket.name": "datapipe-ingestion-192837",
     "s3.part.size": "5242880",
     "flush.size": "1000",
     "rotate.interval.ms": "60000",
@@ -270,7 +270,7 @@ schema-registry:
       "updated_at": "2024-01-15T10:30:00Z"
     },
     "source": {
-      "version": "2.4.0.Final",
+      "version": "2.4.2",
       "connector": "postgresql",
       "name": "postgres",
       "ts_ms": 1705315800000,
@@ -319,7 +319,7 @@ CREATE TABLE s3_cdc_events (
 )
 PARTITIONED BY (year, month, day, hour)
 STORED AS PARQUET
-LOCATION 's3://data-lake-ingestion/cdc-events/'
+LOCATION 's3://datapipe-ingestion-192837/cdc-events/'
 ```
 
 ## Error Handling
@@ -451,10 +451,10 @@ network_policies:
 ### Resource Allocation (4Gi Total)
 ```yaml
 resource_allocation:
-  postgresql: 1Gi RAM, 1 CPU
+  postgresql: 0.75Gi RAM, 1 CPU
   kafka_brokers: 2Gi RAM (shared HA cluster allocation), 3 CPU
   schema_registry: 0.5Gi RAM, 0.5 CPU
-  kafka_connect: 0.5Gi RAM, 0.5 CPU
+  kafka_connect: 0.75Gi RAM, 0.5 CPU
   total: 4Gi RAM, 5 CPU
 ```
 
@@ -507,7 +507,7 @@ replica.fetch.max.bytes=1048576
 ```yaml
 container_limits:
   postgresql:
-    memory: "1Gi"
+    memory: "768Mi"
     memory_request: "512Mi"
     memory_limit_enforcement: true
   kafka:
@@ -520,8 +520,8 @@ container_limits:
     memory_request: "384Mi"
     jvm_optimization: true
   kafka_connect:
-    memory: "512Mi"
-    memory_request: "256Mi"
+    memory: "768Mi"
+    memory_request: "512Mi"
 ```
 
 ### System Memory Considerations

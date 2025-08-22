@@ -1,6 +1,0 @@
-{
-    "kiroAgent.agentAutonomy": "Supervised",
-    "kiroAgent.enableTabAutocomplete": false,
-    "files.autoSave": "afterDelay",
-    "terminal.integrated.defaultProfile.windows": "Windows PowerShell"
-}

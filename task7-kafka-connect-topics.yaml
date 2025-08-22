@@ -38,8 +38,8 @@ spec:
           set -e
           echo "Setting up Kafka Connect internal topics..."
           
-          # Wait for Kafka to be ready with timeout
-          TIMEOUT=300  # 5 minutes
+          # Wait for Kafka to be ready
+          TIMEOUT=300
           ELAPSED=0
           until kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list > /dev/null 2>&1 || [ $ELAPSED -ge $TIMEOUT ]; do
             echo "Waiting for Kafka to be ready... ($ELAPSED seconds elapsed)"
@@ -83,7 +83,7 @@ spec:
             --config compression.type=lz4 \
             --config min.insync.replicas=2
           
-          # Create Dead Letter Queue topic
+          # Create Dead Letter Queue topics
           echo "Creating connect-dlq topic..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create --if-not-exists \
@@ -95,9 +95,18 @@ spec:
             --config cleanup.policy=delete \
             --config min.insync.replicas=2
           
-          echo "Kafka Connect topics created successfully!"
+          echo "Creating s3-sink-dlq topic..."
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic s3-sink-dlq \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
           
-          # List all topics to verify
+          echo "Kafka Connect topics created successfully!"
           echo "Current topics:"
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list
       securityContext:

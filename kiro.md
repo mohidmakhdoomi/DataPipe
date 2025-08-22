@@ -14,7 +14,7 @@
 - ✅ **Task 2:** Persistent volume provisioning (15.0Gi total allocated)
 - ✅ **Task 3:** Kubernetes namespaces and RBAC configuration
 - ✅ **Task 4:** PostgreSQL deployment with CDC configuration
-  - 5Gi storage, 1Gi memory allocation
+  - 5Gi storage, 768Mi memory allocation
   - Logical replication enabled (wal_level=logical, max_replication_slots=4)
   - E-commerce schema: users, products, orders, order_items
   - CDC user and publication configured
@@ -30,9 +30,9 @@
   - Authentication and authorization with JAAS configuration
   - NodePort service on port 30081 for external access
 - ✅ **Task 7:** Kafka Connect cluster with Debezium plugins
-  - Single worker deployment (512Mi allocation) validated by multi-model consensus
+  - Single worker deployment (768Mi allocation) validated by multi-model consensus
   - Distributed mode configuration for future scalability
-  - JVM tuning: 512Mi heap with G1GC optimization
+  - JVM tuning: 768Mi heap with G1GC optimization
   - Debezium PostgreSQL connector plugin installation
   - Dead letter queue configuration for error handling
 - ✅ **Task 8:** Core services validation **COMPLETED SUCCESSFULLY**
@@ -62,10 +62,10 @@
 - **Network:** Port mappings for direct host access
 
 ### **Resource Allocation (Validated)**
-- **PostgreSQL:** 1Gi memory, 5Gi storage ✅
+- **PostgreSQL:** 768Mi memory, 5Gi storage ✅
 - **Kafka Cluster:** 2Gi memory (682Mi limit per broker), 10Gi storage ✅
 - **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
-- **Kafka Connect:** 512Mi memory (256Mi request, 512Mi limit) ✅
+- **Kafka Connect:** 768Mi memory (512Mi request, 768Mi limit) ✅
 - **Available for Phase 2:** 0Mi (Phase 2 complete within budget)
 - **Total Usage:** 4Gi of 4Gi allocated (100% utilized)
 
@@ -131,6 +131,7 @@
 - `task5-kafka-kraft-3brokers.yaml` / `task5-cdc-topics-job.yaml` - 3-broker Kafka cluster / topic creation
 - `task6-schema-registry.yaml` - Schema Registry with authentication
 - `task7-kafka-connect-topics.yaml` / `task7-kafka-connect-deployment.yaml` - topic creation / Kafka Connect cluster with Debezium plugins and DLQ configuration
+- `task9-deploy-connector.sh` - deploys Debezium Connector configuration
 - `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (KEEP THIS UPDATED!)
 - `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
 - `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
@@ -149,7 +150,8 @@
 - `task6-schema-registry.yaml` - Schema Registry deployment
 - `task7-kafka-connect-topics.yaml` - Kafka Connect topics creation
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
-- `task7-debezium-connector-config.json` - Configuration that validates Kafka Connect + Debezium + PostgreSQL + Schema Registry work together
+- `task9-debezium-connector-config.json` - Configuration for Debezium PostgreSQL CDC connector
+- `task9-deploy-connector.sh` - Debezium Connector configuration deployment
 
 ## 🚀 **NEXT ACTIONS**
 
@@ -169,7 +171,7 @@
 
 ### **Validated Architecture Decisions**
 - **Kubernetes Cluster:** 3-node Kind cluster (1 control-plane + 2 workers) for high availability
-- **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 1Gi memory
+- **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 768Mi memory
 - **Kafka KRaft:** 3-broker cluster eliminates ZooKeeper, 10Gi storage exactly per specification
 - **Topic Configuration:** 6 partitions, LZ4 compression, 7-day retention for all CDC topics
 - **Resource Efficiency:** 4Gi of 4Gi allocated
@@ -179,7 +181,7 @@
 - **Technical coherence:** Unanimous agreement on sound architecture
 - **Production readiness:** Foundation components validated for development workloads
 - **Specification compliance:** Tasks 4-8 meet all requirements exactly
-- **Task 8 Success:** All 6 validation phases passed with performance exceeding targets
+- **Task 8 Success:** All 6 validation phases passed with performance exceeding targets - see task8-logs/task8-validation-report.md
 
 ---
 

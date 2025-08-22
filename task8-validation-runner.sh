@@ -20,6 +20,19 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "${LOG_DIR}/validation.log"
 }
 
+# Install metrics-server if available
+check_metrics_server() {
+    log "Checking if metrics-server is available..."
+    
+    if kubectl top nodes >/dev/null 2>&1; then
+        log "✅ Metrics-server is available"
+        return 0
+    else
+        log "❌ Metrics-server is not available"
+        return 1
+    fi
+}
+
 # Memory check function
 check_memory() {
     local current_mem=$(kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | awk '{sum+=$3+0} END {print sum}' || echo "0")
@@ -80,6 +93,11 @@ main() {
     # Verify prerequisites
     if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "ERROR: Namespace ${NAMESPACE} not found"
+        exit 1
+    fi
+
+    if ! check_metrics_server; then
+        log "ERROR: metrics-server not available"
         exit 1
     fi
     

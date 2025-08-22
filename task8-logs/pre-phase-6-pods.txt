@@ -1,9 +1,9 @@
-NAME                               READY   STATUS      RESTARTS   AGE
-create-cdc-topics-g5gl7            0/1     Completed   0          15m
-kafka-0                            1/1     Running     0          17m
-kafka-1                            1/1     Running     0          17m
-kafka-2                            1/1     Running     0          17m
-kafka-connect-868db97d76-bj6xq     1/1     Running     0          12m
-kafka-connect-topics-setup-k4s86   0/1     Completed   0          13m
-postgresql-0                       1/1     Running     0          17m
-schema-registry-7578cd4d67-mp62k   1/1     Running     0          14m
+NAME                               READY   STATUS      RESTARTS      AGE
+create-cdc-topics-lclmm            0/1     Completed   0             15m
+kafka-0                            1/1     Running     0             16m
+kafka-1                            1/1     Running     0             16m
+kafka-2                            1/1     Running     0             16m
+kafka-connect-cb977f6f4-4dznq      1/1     Running     1 (10m ago)   12m
+kafka-connect-topics-setup-x54lj   0/1     Completed   0             12m
+postgresql-0                       1/1     Running     0             16m
+schema-registry-7578cd4d67-bh7v7   1/1     Running     0             14m
