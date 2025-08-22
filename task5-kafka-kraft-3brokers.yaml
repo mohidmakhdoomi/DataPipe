@@ -198,9 +198,9 @@ spec:
             - ALL
         env:
         - name: KAFKA_HEAP_OPTS
-          value: "-Xmx667m -Xms512m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
+          value: "-Xms400m -Xmx400m"
         - name: KAFKA_JVM_PERFORMANCE_OPTS
-          value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Djava.awt.headless=true"
+          value: "-server -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:G1HeapRegionSize=16m -XX:G1ReservePercent=25 -XX:InitiatingHeapOccupancyPercent=30 -XX:MaxMetaspaceSize=128m -XX:MaxDirectMemorySize=64m -XX:+ExitOnOutOfMemoryError -Djava.awt.headless=true"
         ports:
         - name: kafka
           containerPort: 9092

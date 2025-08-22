@@ -27,7 +27,7 @@ spec:
         image: confluentinc/cp-kafka:7.4.0
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           runAsNonRoot: true
           runAsUser: 1000
           runAsGroup: 1000
@@ -36,9 +36,13 @@ spec:
           capabilities:
             drop:
             - ALL
-        env:
-        - name: KAFKA_HEAP_OPTS
-          value: "-Xmx256m -Xms256m"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         command:
         - /bin/bash
         - -c
@@ -111,16 +115,3 @@ spec:
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list
           
           echo "Topic creation completed successfully!"
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "200m"
-        volumeMounts:
-        - name: tmp
-          mountPath: /tmp
-      volumes:
-      - name: tmp
-        emptyDir: {}

@@ -133,7 +133,7 @@ Phase 4: Production (Tasks 13-16)
   **✅ COMPLETED:** Kafka Connect deployed with comprehensive multi-model consensus validation:
   - Single worker deployment (768Mi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
   - Distributed mode configuration for future scalability
-  - JVM tuning: 768Mi heap with G1GC optimization (-Xms256m -Xmx768m)
+  - JVM tuning: 768Mi heap with G1GC optimization (-Xms256m -Xmx576m)
   - Debezium PostgreSQL connector plugin with init container installation
   - Dead letter queue configuration (connect-dlq topic) for error handling
   - Integration with existing Kafka cluster and Schema Registry

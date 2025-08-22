@@ -98,7 +98,7 @@ data:
     log4j.logger.org.reflections=ERROR
 
   # JVM Configuration based on multi-model consensus
-  KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
+  KAFKA_HEAP_OPTS: "-Xms256m -Xmx576m"
   JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"

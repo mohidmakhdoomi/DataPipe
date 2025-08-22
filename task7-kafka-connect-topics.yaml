@@ -14,22 +14,34 @@ spec:
         component: topic-setup
     spec:
       serviceAccountName: kafka-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       restartPolicy: OnFailure
       containers:
       - name: kafka-topics-setup
         image: confluentinc/cp-kafka:7.4.0
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          seccompProfile:
+            type: RuntimeDefault
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
         resources:
           requests:
-            memory: "128Mi"
+            memory: "256Mi"
             cpu: "100m"
           limits:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "500m"
         command:
         - /bin/bash
@@ -109,10 +121,3 @@ spec:
           echo "Kafka Connect topics created successfully!"
           echo "Current topics:"
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 --list
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        runAsNonRoot: true
-        fsGroup: 1000
-        seccompProfile:
-          type: RuntimeDefault
