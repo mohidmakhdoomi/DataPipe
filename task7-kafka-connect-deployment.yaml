@@ -62,8 +62,8 @@ data:
     
     # Consumer Settings
     consumer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
-    consumer.max.poll.records=500
-    consumer.max.poll.interval.ms=300000
+    consumer.max.poll.records=10000
+    consumer.max.poll.interval.ms=180000
     consumer.session.timeout.ms=30000
     consumer.heartbeat.interval.ms=3000
     consumer.auto.offset.reset=earliest
@@ -72,7 +72,7 @@ data:
     errors.retry.timeout=300000
     errors.retry.delay.max.ms=60000
     errors.tolerance=none
-    
+
     # Logging
     connect.logs.dir=/kafka/logs
     
@@ -98,8 +98,8 @@ data:
     log4j.logger.org.reflections=ERROR
 
   # JVM Configuration based on multi-model consensus
-  KAFKA_HEAP_OPTS: "-Xms128m -Xmx512m"
-  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+  KAFKA_HEAP_OPTS: "-Xms256m -Xmx768m"
+  JAVA_TOOL_OPTIONS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"
   CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
@@ -148,34 +148,47 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       initContainers:
-      # Install Debezium plugins
+      # Install Debezium and S3 Sink plugins
       - name: plugin-installer
-        image: confluentinc/cp-kafka-connect:7.4.0
+        image: curlimages/curl
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
         command:
-        - /bin/bash
+        - sh
         - -c
         - |
           set -e
-          echo "Installing Debezium PostgreSQL connector plugin..."
+          echo "Installing connector plugins..."
           
-          # Create plugin directory
+          # Create plugin directories
           mkdir -p /kafka/connect/debezium-postgres
+          mkdir -p /kafka/connect/s3-sink
+          cd /tmp
           
           # Download and install Debezium PostgreSQL connector
-          cd /tmp
-          curl -L -o debezium-connector-postgres.tar.gz \
-            "https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.4.0.Final/debezium-connector-postgres-2.4.0.Final-plugin.tar.gz"
+          echo "Installing Debezium PostgreSQL connector plugin..."
+          curl -L -o debezium-connector-postgresql.zip \
+            "https://api.hub.confluent.io/api/plugins/debezium/debezium-connector-postgresql/versions/2.4.2/archive"
           
-          tar -xzf debezium-connector-postgres.tar.gz
-          cp -r debezium-connector-postgres/* /kafka/connect/debezium-postgres/
+          unzip -q debezium-connector-postgresql.zip
+          cp -r debezium-debezium-connector-postgresql-2.4.2/* /kafka/connect/debezium-postgres/
           
           echo "Debezium PostgreSQL connector installed successfully!"
-          ls -la /kafka/connect/debezium-postgres/
+          
+          # Download and install S3 Sink connector
+          echo "Installing S3 Sink connector plugin..."
+          curl -L -o kafka-connect-s3.zip \
+            "https://api.hub.confluent.io/api/plugins/confluentinc/kafka-connect-s3/versions/10.5.0/archive"
+          
+          unzip -q kafka-connect-s3.zip
+          cp -r confluentinc-kafka-connect-s3-10.5.0/* /kafka/connect/s3-sink/
+          
+          echo "S3 Sink connector installed successfully!"
+          echo "Installed plugins:"
+          ls -la /kafka/connect/
         volumeMounts:
         - name: plugin-volume
           mountPath: /kafka/connect
@@ -197,10 +210,10 @@ spec:
           containerPort: 8083
         resources:
           requests:
-            memory: "256Mi"
+            memory: "512Mi"
             cpu: "500m"
           limits:
-            memory: "512Mi"
+            memory: "768Mi"
             cpu: "500m"
         livenessProbe:
           httpGet:
@@ -233,6 +246,22 @@ spec:
           mountPath: /kafka/connect
         - name: logs-volume
           mountPath: /kafka/logs
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: access-key-id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: secret-access-key
+        - name: AWS_DEFAULT_REGION
+          valueFrom:
+            secretKeyRef:
+              name: aws-credentials
+              key: region
       volumes:
       - name: config-volume
         configMap:

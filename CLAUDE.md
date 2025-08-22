@@ -87,10 +87,10 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - **Data Ingestion Pipeline**: 4GB RAM allocation
   - Available for workloads: 4GB
   - Component budgets:
-    - PostgreSQL: 1Gi
+    - PostgreSQL: 768Mi
     - Kafka: 2Gi (3 brokers with HA)
     - Schema Registry: 512Mi
-    - Kafka Connect/Debezium: 512Mi
+    - Kafka Connect/Debezium: 768Mi
 
 ### Storage Architecture
 - Three differentiated storage classes: database-local-path, streaming-local-path
