@@ -3,6 +3,7 @@
 
 04-secrets.yaml
 test-script.sh
+.claude
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
