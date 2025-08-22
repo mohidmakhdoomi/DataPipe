@@ -183,8 +183,38 @@ spec:
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
+        fsGroupChangePolicy: "OnRootMismatch"
         seccompProfile:
           type: RuntimeDefault
+      
+      # Fix permissions before PostgreSQL starts
+      initContainers:
+      - name: fix-permissions
+        image: busybox:1.36
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+            add:
+            - CHOWN
+            - FOWNER
+            - DAC_OVERRIDE
+        command: ['sh', '-c']
+        args:
+        - |
+          # Create and set ownership atomically
+          mkdir -p /var/run/postgresql
+          chown -R 999:999 /var/run/postgresql
+          chmod 2775 /var/run/postgresql  # SetGID bit ensures consistent group
+          
+          # Verify permissions (fail fast if incorrect)
+          stat -c "%u:%g %a" /var/run/postgresql | grep -q "999:999 2775" || exit 1
+          echo "PostgreSQL runtime directory permissions fixed"
+        volumeMounts:
+        - name: run
+          mountPath: /var/run/postgresql
       containers:
       - name: postgresql
         image: postgres:15-alpine
