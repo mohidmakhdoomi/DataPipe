@@ -182,9 +182,9 @@ spec:
       serviceAccountName: postgresql-sa
       securityContext:
         runAsNonRoot: true
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
         fsGroupChangePolicy: "OnRootMismatch"
         seccompProfile:
           type: RuntimeDefault
@@ -208,11 +208,11 @@ spec:
         - |
           # Create and set ownership atomically
           mkdir -p /var/run/postgresql
-          chown -R 999:999 /var/run/postgresql
+          chown -R 70:70 /var/run/postgresql
           chmod 2775 /var/run/postgresql  # SetGID bit ensures consistent group
           
           # Verify permissions (fail fast if incorrect)
-          stat -c "%u:%g %a" /var/run/postgresql | grep -q "999:999 2775" || exit 1
+          stat -c "%u:%g %a" /var/run/postgresql | grep -q "70:70 2775" || exit 1
           echo "PostgreSQL runtime directory permissions fixed"
         volumeMounts:
         - name: run
@@ -224,8 +224,8 @@ spec:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false  # PostgreSQL needs write access to data directory
           runAsNonRoot: true
-          runAsUser: 999
-          runAsGroup: 999
+          runAsUser: 70
+          runAsGroup: 70
           seccompProfile:
             type: RuntimeDefault
           capabilities:
