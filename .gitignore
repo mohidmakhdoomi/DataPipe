@@ -4,6 +4,7 @@
 04-secrets.yaml
 test-script.sh
 .claude
+.env.zen
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
