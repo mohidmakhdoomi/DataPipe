@@ -47,9 +47,9 @@
         "--rm",
         "-i",
         "--env-file",
-        "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/.env",
+        "E:/Projects/DataPipe/.kiro/settings/zen/.env",
         "-v",
-        "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logs:/app/logs",
+        "E:/Projects/DataPipe/.kiro/settings/zen/logs:/app/logs",
         "zen-mcp-server"
       ],
       "timeout": 360000,

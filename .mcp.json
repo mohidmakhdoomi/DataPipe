@@ -19,9 +19,9 @@
           "--rm",
           "-i",
           "--env-file",
-          "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/.env",
+          "E:/Projects/DataPipe/.kiro/settings/zen/.env",
           "-v",
-          "E:/Projects/DataPipe/.kiro/settings/zen-mcp-server/logsClaude:/app/logs",
+          "E:/Projects/DataPipe/.kiro/settings/zen/logsClaude:/app/logs",
           "zen-mcp-server"
         ],
         "env": {}

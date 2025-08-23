@@ -1,30 +1,20 @@
 #!/bin/bash
 
-ZIP_FILE=zen-mcp-server.zip
+ZEN_NAME=zen-mcp-server
 ZIP_VERSION=5.10.0
 CUSTOM_CONFIG=custom_models.json
-CUSTOM_ENV=.env.zen
 
-cd .kiro/settings
+cd .kiro/settings/zen
 
-BASE_DIR=$(pwd)
-ZEN_DIR="${BASE_DIR}/zen-mcp-server"
-TMP_DIR="${BASE_DIR}/tmp"
+BASE_DIR="$(pwd)"
+ZEN_DIR_PREFIX="${BASE_DIR}/${ZEN_NAME}"
 
-rm -rf $ZEN_DIR
-mkdir $ZEN_DIR
+rm -rf $ZEN_DIR_PREFIX*
 
-rm -rf $TMP_DIR
-mkdir $TMP_DIR
-cd $TMP_DIR
-curl -L -o $ZIP_FILE \
+curl -L -o "${ZEN_NAME}.zip" \
     "https://github.com/BeehiveInnovations/zen-mcp-server/archive/refs/tags/v${ZIP_VERSION}.zip"
+unzip -q "${ZEN_NAME}.zip"
+cp "${BASE_DIR}/${CUSTOM_CONFIG}" "${ZEN_DIR_PREFIX}-${ZIP_VERSION}/conf/${CUSTOM_CONFIG}"
 
-unzip -q $ZIP_FILE
-cp -r zen-mcp-server-$ZIP_VERSION/* $ZEN_DIR
-cp "${BASE_DIR}/${CUSTOM_CONFIG}" $ZEN_DIR/conf/$CUSTOM_CONFIG
-cp "${BASE_DIR}/${CUSTOM_ENV}" $ZEN_DIR/.env
-
-cd $ZEN_DIR
-rm -rf $TMP_DIR
+cd "${ZEN_DIR_PREFIX}-${ZIP_VERSION}"
 docker build --no-cache -t zen-mcp-server .
