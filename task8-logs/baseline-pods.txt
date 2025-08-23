@@ -1,9 +1,9 @@
 NAME                               READY   STATUS      RESTARTS   AGE   IP            NODE                     NOMINATED NODE   READINESS GATES
-create-cdc-topics-9sk89            0/1     Completed   0          14m   10.244.1.8    data-ingestion-worker    <none>           <none>
-kafka-0                            1/1     Running     0          15m   10.244.1.6    data-ingestion-worker    <none>           <none>
-kafka-1                            1/1     Running     0          15m   10.244.2.5    data-ingestion-worker2   <none>           <none>
-kafka-2                            1/1     Running     0          15m   10.244.1.7    data-ingestion-worker    <none>           <none>
-kafka-connect-7c45ccc44-zxh2x      1/1     Running     0          11m   10.244.1.10   data-ingestion-worker    <none>           <none>
-kafka-connect-topics-setup-jb8j9   0/1     Completed   0          12m   10.244.1.9    data-ingestion-worker    <none>           <none>
-postgresql-0                       1/1     Running     0          16m   10.244.2.3    data-ingestion-worker2   <none>           <none>
-schema-registry-7996d6869-rhkdd    1/1     Running     0          14m   10.244.2.6    data-ingestion-worker2   <none>           <none>
+create-cdc-topics-gx2h8            0/1     Completed   0          14m   10.244.1.8    data-ingestion-worker2   <none>           <none>
+kafka-0                            1/1     Running     0          15m   10.244.1.6    data-ingestion-worker2   <none>           <none>
+kafka-1                            1/1     Running     0          15m   10.244.1.7    data-ingestion-worker2   <none>           <none>
+kafka-2                            1/1     Running     0          15m   10.244.2.5    data-ingestion-worker    <none>           <none>
+kafka-connect-7c45ccc44-fs5mg      1/1     Running     0          11m   10.244.1.10   data-ingestion-worker2   <none>           <none>
+kafka-connect-topics-setup-ggnwc   0/1     Completed   0          12m   10.244.1.9    data-ingestion-worker2   <none>           <none>
+postgresql-0                       1/1     Running     0          16m   10.244.2.3    data-ingestion-worker    <none>           <none>
+schema-registry-7996d6869-d4fzk    1/1     Running     0          14m   10.244.2.6    data-ingestion-worker    <none>           <none>
