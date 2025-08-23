@@ -3,8 +3,9 @@
 
 04-secrets.yaml
 test-script.sh
-.claude
-.env.zen
+.claude/
+.kiro/settings/zen/logs*
+.kiro/settings/zen/zen-mcp-server*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
