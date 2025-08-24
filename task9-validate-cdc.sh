@@ -12,6 +12,12 @@ readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task9-logs"
 
 PRE_EVOLUTION_VERSION=1
 
+# Generate unique column names per test run to ensure idempotency
+TEST_ID=$(date +%s)
+NULLABLE_COL="test_middle_name_${TEST_ID}"
+DEFAULTING_COL="test_status_${TEST_ID}"
+INS_UPD_DEL_EMAIL="task9-validation-${TEST_ID}@example.com"
+
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
@@ -160,13 +166,12 @@ check_message_counts() {
 test_cdc_insert() {
     log "Testing CDC with INSERT operation..."
     
-    local test_email="task9-validation-$(date +%s)@example.com"
-    log "Inserting test record with email: $test_email"
+    log "Inserting test record with email: $INS_UPD_DEL_EMAIL"
     
     # Insert record and check if it succeeds
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'CDC', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "INSERT INTO users (email, first_name, last_name) VALUES ('$INS_UPD_DEL_EMAIL', 'CDC', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Test record inserted successfully"
         
         log "Waiting 5 seconds for CDC to process..."
@@ -176,13 +181,12 @@ test_cdc_insert() {
         log "Checking if CDC event appeared in Kafka..."
         if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
            kafka-console-consumer --bootstrap-server localhost:9092 \
-           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "$test_email"; then
+           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "$INS_UPD_DEL_EMAIL"; then
             log "✅ CDC INSERT event captured"
         else
             log "⚠️  CDC INSERT event not found"
         fi
         
-        echo "$test_email" > "${LOG_DIR}/test_email.txt"  # Save email for other tests
         return 0
     else
         log "❌ Failed to insert test record"
@@ -191,14 +195,12 @@ test_cdc_insert() {
 }
 
 # Test UPDATE operation
-test_cdc_update() {
-    local test_email=$1
-    
+test_cdc_update() {    
     log "Testing UPDATE operation..."
     
     local update_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
-       "UPDATE users SET first_name='Updated' WHERE email='$test_email' RETURNING id;" 2>/dev/null)
+       "UPDATE users SET first_name='Updated' WHERE email='$INS_UPD_DEL_EMAIL' RETURNING id;" 2>/dev/null)
 
     if [[ -n "$update_result" ]] && echo "$update_result" | grep -wq "[0-9]\+"; then
         log "✅ UPDATE operation executed"
@@ -228,28 +230,26 @@ test_cdc_update() {
 }
 
 # Test DELETE operation (critical for Iceberg)
-test_cdc_delete() {
-    local test_email=$1
-    
+test_cdc_delete() {    
     log "Testing DELETE operation (critical for Iceberg)..."
     
     # First, verify the record exists before attempting deletion
     local record_check=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
         psql -U postgres -d ecommerce -t -c \
-        "SELECT COUNT(*) FROM users WHERE email = '$test_email';" 2>/dev/null | tr -d ' ')
+        "SELECT COUNT(*) FROM users WHERE email = '$INS_UPD_DEL_EMAIL';" 2>/dev/null | tr -d ' ')
     
     if [[ "$record_check" == "0" ]]; then
-        log "⚠️  Record with email '$test_email' not found. Re-inserting for DELETE test..."
+        log "⚠️  Record with email '$INS_UPD_DEL_EMAIL' not found. Re-inserting for DELETE test..."
         kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
             psql -U postgres -d ecommerce -c \
-            "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'CDC', 'Test') ON CONFLICT (email) DO NOTHING;" >> "${LOG_DIR}/validate.log" 2>&1
+            "INSERT INTO users (email, first_name, last_name) VALUES ('$INS_UPD_DEL_EMAIL', 'CDC', 'Test') ON CONFLICT (email) DO NOTHING;" >> "${LOG_DIR}/validate.log" 2>&1
         sleep 2  # Give time for commit visibility
     fi
     
     # Now perform the DELETE with verification
     local delete_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
-       "DELETE FROM users WHERE email = '$test_email' RETURNING id;" 2>/dev/null)    
+       "DELETE FROM users WHERE email = '$INS_UPD_DEL_EMAIL' RETURNING id;" 2>/dev/null)    
     
     if [[ -n "$delete_result" ]] && echo "$delete_result" | grep -wq "[0-9]\+"; then
         log "✅ DELETE operation executed successfully (record deleted)"
@@ -285,15 +285,12 @@ test_schema_evolution_add_nullable_column() {
     # Get initial schema version
     local initial_schema_version=$(get_schema_version "postgres.public.users-value")
     log "Initial schema version: $initial_schema_version"
-
-    # Preserve initial schema version to use later for baseline version for cleanup
-    PRE_EVOLUTION_VERSION=$initial_schema_version
     
     # Add nullable column to users table
-    log "Adding nullable column 'middle_name' to users table..."
+    log "Adding nullable column '$NULLABLE_COL' to users table..."
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "ALTER TABLE users ADD COLUMN middle_name VARCHAR(100);" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "ALTER TABLE users ADD COLUMN $NULLABLE_COL VARCHAR(100);" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Successfully added nullable column"
     else
         log "❌ Failed to add nullable column"
@@ -305,13 +302,12 @@ test_schema_evolution_add_nullable_column() {
     sleep 10
     
     # Test INSERT with new schema
-    local test_email="task9-schema-evolve-$(date +%s)@example.com"
-    log "Testing INSERT with new schema (including middle_name)..."
+    local test_email="task9-schema-evolve-${TEST_ID}@example.com"
+    log "Testing INSERT with new schema (including $NULLABLE_COL)..."
     
-
     local insert_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
-       "INSERT INTO users (email, first_name, middle_name, last_name) VALUES ('$test_email', 'Schema', 'Evolution', 'Test') RETURNING id;" 2>/dev/null)
+       "INSERT INTO users (email, first_name, $NULLABLE_COL, last_name) VALUES ('$test_email', 'Schema', 'Evolution', 'Test') RETURNING id;" 2>/dev/null)
 
     if [[ -n "$insert_result" ]] && echo "$insert_result" | grep -wq "[0-9]\+"; then
         log "✅ INSERT with new schema successful"
@@ -321,7 +317,7 @@ test_schema_evolution_add_nullable_column() {
         sleep 5
         
         # Verify CDC captured the new field
-        log "Verifying CDC captured the new middle_name field..."
+        log "Verifying CDC captured the new $NULLABLE_COL field..."
         if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
            kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
@@ -359,10 +355,10 @@ test_schema_evolution_add_default_column() {
     log "Initial schema version: $initial_schema_version"
     
     # Add column with default value
-    log "Adding column 'status' with default value to users table..."
+    log "Adding column '$DEFAULTING_COL' with default value to users table..."
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active';" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "ALTER TABLE users ADD COLUMN $DEFAULTING_COL VARCHAR(20) DEFAULT 'active';" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Successfully added column with default value"
     else
         log "❌ Failed to add column with default value"
@@ -374,7 +370,7 @@ test_schema_evolution_add_default_column() {
     sleep 10
     
     # Test INSERT without specifying the new column (should use default)
-    local test_email="schema-evolve-default-$(date +%s)@example.com"
+    local test_email="schema-evolve-default-${TEST_ID}@example.com"
     log "Testing INSERT without new column (should use default value)..."
     
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
@@ -386,7 +382,7 @@ test_schema_evolution_add_default_column() {
         sleep 5
         
         # Verify CDC captured the default value
-        log "Verifying CDC captured the default status value..."
+        log "Verifying CDC captured the default $DEFAULTING_COL value..."
         if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
            kafka-console-consumer --bootstrap-server localhost:9092 \
            --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "active"; then
@@ -454,13 +450,13 @@ verify_schema_registry_compatibility() {
 test_cdc_after_schema_changes() {
     log "=== Testing CDC Operations After Schema Changes ==="
     
-    local test_email="post-schema-change-$(date +%s)@example.com"
+    local test_email="post-schema-change-${TEST_ID}@example.com"
     
     # Test INSERT with all new fields
     log "Testing INSERT with all schema fields..."
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "INSERT INTO users (email, first_name, middle_name, last_name, status) VALUES ('$test_email', 'Post', 'Schema', 'Change', 'verified') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "INSERT INTO users (email, first_name, $NULLABLE_COL, last_name, $DEFAULTING_COL) VALUES ('$test_email', 'Post', 'Schema', 'Change', 'verified') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ INSERT with full schema successful"
         
         # Wait and verify CDC
@@ -481,7 +477,7 @@ test_cdc_after_schema_changes() {
     log "Testing UPDATE with new schema fields..."
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "UPDATE users SET middle_name='Updated', status='modified' WHERE email='$test_email' RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "UPDATE users SET $NULLABLE_COL='Updated', $DEFAULTING_COL='modified' WHERE email='$test_email' RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ UPDATE with new fields successful"
         
         # Wait and verify CDC
@@ -514,7 +510,7 @@ cleanup_schema_evolution_tests() {
     
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "ALTER TABLE users DROP COLUMN IF EXISTS middle_name, DROP COLUMN IF EXISTS status;" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "ALTER TABLE users DROP COLUMN IF EXISTS $NULLABLE_COL, DROP COLUMN IF EXISTS $DEFAULTING_COL;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Test columns removed successfully from database"
     else
         log "⚠️  Failed to remove test columns (may not exist)"
@@ -586,19 +582,6 @@ cleanup_schema_registry_versions() {
             
             if [[ "$http_code" == "200" ]]; then
                 log "✅ Successfully soft deleted schema version $version"
-                sleep 2
-                log "Hard deleting schema version $version..."
-            
-                local delete_hard=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-                    curl -s -w "%{http_code}" -u admin:admin-secret -X DELETE \
-                    "http://localhost:8081/subjects/$subject/versions/$version?permanent=true" 2>/dev/null)
-                local http_code_hard="${delete_result: -3}"
-                if [[ "$http_code_hard" == "200" ]]; then
-                    log "✅ Successfully hard deleted schema version $version"
-                    deleted_count=$((deleted_count + 1))
-                else
-                    log "⚠️  Failed to hard delete schema version $version (HTTP: $http_code_hard)"
-                fi
             else
                 log "⚠️  Failed to soft delete schema version $version (HTTP: $http_code)"
             fi
@@ -732,13 +715,10 @@ main() {
     
     # Step 7: Test CDC operations
     log "Starting CDC operations testing..."
-    local test_email
     if test_cdc_insert; then
-        # Get the email from the temporary file
-        test_email=$(cat "${LOG_DIR}/test_email.txt" 2>/dev/null || echo "test-email@example.com")
         log "INSERT test completed, proceeding with UPDATE/DELETE tests..."
-        test_cdc_update "$test_email"
-        test_cdc_delete "$test_email"
+        test_cdc_update
+        test_cdc_delete
     else
         log "❌ INSERT test failed, skipping UPDATE/DELETE tests"
         failed_tests+=("cdc-operations")
@@ -751,6 +731,10 @@ main() {
     
     # Step 9: Test Schema Evolution
     log "Starting Schema Evolution testing..."
+    
+    # Preserve initial schema version to use later for baseline version for cleanup
+    PRE_EVOLUTION_VERSION=$(get_schema_version "postgres.public.users-value")
+
     if test_schema_evolution_add_nullable_column; then
         log "✅ Nullable column schema evolution test passed"
     else
