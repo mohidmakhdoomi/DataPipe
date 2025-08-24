@@ -12,25 +12,15 @@ readonly MAX_MEMORY_MI=3584  # 3.5Gi in Mi (leaves 512Mi buffer)
 readonly TIMEOUT=600         # 10 min per phase
 readonly NAMESPACE="data-ingestion"
 
+# Load functions for metrics server
+source ${SCRIPT_DIR}/metrics-server.sh
+
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
 # Logging function with timestamps
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "${LOG_DIR}/validation.log"
-}
-
-# Install metrics-server if available
-check_metrics_server() {
-    log "Checking if metrics-server is available..."
-    
-    if kubectl top nodes >/dev/null 2>&1; then
-        log "✅ Metrics-server is available"
-        return 0
-    else
-        log "❌ Metrics-server is not available"
-        return 1
-    fi
 }
 
 # Memory check function

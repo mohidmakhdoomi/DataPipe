@@ -32,58 +32,15 @@ readonly CONN_CONFIGS=(
     "s3-sink-connector:task10-s3-sink-connector-config.json"
 )
 
+# Load functions for metrics server
+source ${SCRIPT_DIR}/metrics-server.sh
+
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
 # Logging function with timestamps
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Deployment: $*" | tee -a "${LOG_DIR}/main.log"
-}
-
-# Install metrics-server if needed
-install_metrics_server() {
-    log "Checking if metrics-server is available..."
-    
-    if kubectl top nodes >/dev/null 2>&1; then
-        log "Metrics-server is already available"
-        return 0
-    fi
-    
-    log "Installing metrics-server..."
-    if kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null 2>&1; then
-        log "Metrics-server installation initiated"
-        
-        # Add --kubelet-insecure-tls flag
-        log $(kubectl get deploy metrics-server -n kube-system -o yaml > components.yaml && sed -i "s/        - --metric-resolution=15s/        - --metric-resolution=15s\r\n        - --kubelet-insecure-tls/g" components.yaml && kubectl replace -f components.yaml && rm components.yaml)
-
-        # Wait for metrics-server to be ready
-        log "Waiting for metrics-server to be ready..."
-        local status=$(kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=60s 2>&1)
-        if [[ -n "$status" ]] && echo "$status" | grep "pod/metrics-server" | grep -q "condition met"; then
-            log "Metrics-server is ready"
-            
-            # Wait for metrics to be available
-            local wait_count=0
-            while [[ $wait_count -lt 12 ]]; do  # Wait up to 2 minutes
-                if kubectl top nodes >/dev/null 2>&1; then
-                    log "Metrics are now available"
-                    return 0
-                fi
-                log "Waiting for metrics to be available..."
-                sleep 10
-                wait_count=$((wait_count + 1))
-            done
-            
-            log "Metrics-server installed but metrics not yet available!"
-            return 1
-        else
-            log "Metrics-server FAILED to become ready"
-            return 1
-        fi
-    else
-        log "FAILED to install metrics-server"
-        return 1
-    fi
 }
 
 # Main execution

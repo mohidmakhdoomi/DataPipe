@@ -43,6 +43,8 @@ force_pod_restarts() {
     local connect_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
     local schema_pod=$(kubectl get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
        
+    local deleted_pods=()
+
     if [[ -n "$connect_pod" ]]; then
         kubectl scale deploy kafka-connect -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for Kafka Connect to terminate..."
