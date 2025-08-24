@@ -1,38 +1,38 @@
-[2025-08-22 20:06:44] Phase 1: === Starting Phase 1: Service Health Validation ===
-[2025-08-22 20:06:44] Phase 1: Current pod status:
-NAME                               READY   STATUS      RESTARTS   AGE     IP            NODE                     NOMINATED NODE   READINESS GATES
-create-cdc-topics-gx2h8            0/1     Completed   0          4m42s   10.244.1.8    data-ingestion-worker2   <none>           <none>
-kafka-0                            1/1     Running     0          5m54s   10.244.1.6    data-ingestion-worker2   <none>           <none>
-kafka-1                            1/1     Running     0          5m54s   10.244.1.7    data-ingestion-worker2   <none>           <none>
-kafka-2                            1/1     Running     0          5m54s   10.244.2.5    data-ingestion-worker    <none>           <none>
-kafka-connect-7c45ccc44-fs5mg      1/1     Running     0          119s    10.244.1.10   data-ingestion-worker2   <none>           <none>
-kafka-connect-topics-setup-ggnwc   0/1     Completed   0          2m30s   10.244.1.9    data-ingestion-worker2   <none>           <none>
-postgresql-0                       1/1     Running     0          6m42s   10.244.2.3    data-ingestion-worker    <none>           <none>
-schema-registry-7996d6869-d4fzk    1/1     Running     0          4m12s   10.244.2.6    data-ingestion-worker    <none>           <none>
-[2025-08-22 20:06:44] Phase 1: Checking health of postgresql...
-[2025-08-22 20:06:44] Phase 1: ✅ postgresql health check passed - 1 pod(s) running
-[2025-08-22 20:06:44] Phase 1: Checking health of kafka...
-[2025-08-22 20:06:45] Phase 1: ✅ kafka health check passed - 3 pod(s) running
-[2025-08-22 20:06:45] Phase 1: Checking health of schema-registry...
-[2025-08-22 20:06:45] Phase 1: ✅ schema-registry health check passed - 1 pod(s) running
-[2025-08-22 20:06:45] Phase 1: Checking health of kafka-connect...
-[2025-08-22 20:06:46] Phase 1: ✅ kafka-connect health check passed - 1 pod(s) running
-[2025-08-22 20:06:46] Phase 1: Checking service endpoints...
+[2025-08-24 01:12:09] Phase 1: === Starting Phase 1: Service Health Validation ===
+[2025-08-24 01:12:10] Phase 1: Current pod status:
+NAME                               READY   STATUS      RESTARTS   AGE     IP           NODE                     NOMINATED NODE   READINESS GATES
+create-cdc-topics-krpnr            0/1     Completed   0          4m41s   10.244.3.8   data-ingestion-worker    <none>           <none>
+kafka-0                            1/1     Running     0          5m54s   10.244.3.6   data-ingestion-worker    <none>           <none>
+kafka-1                            1/1     Running     0          5m54s   10.244.1.5   data-ingestion-worker2   <none>           <none>
+kafka-2                            1/1     Running     0          5m54s   10.244.3.7   data-ingestion-worker    <none>           <none>
+kafka-connect-7c45ccc44-x5rs4      1/1     Running     0          119s    10.244.1.7   data-ingestion-worker2   <none>           <none>
+kafka-connect-topics-setup-tdk5w   0/1     Completed   0          2m30s   10.244.1.6   data-ingestion-worker2   <none>           <none>
+postgresql-0                       1/1     Running     0          6m31s   10.244.1.3   data-ingestion-worker2   <none>           <none>
+schema-registry-7996d6869-qdnff    1/1     Running     0          4m11s   10.244.3.9   data-ingestion-worker    <none>           <none>
+[2025-08-24 01:12:10] Phase 1: Checking health of postgresql...
+[2025-08-24 01:12:10] Phase 1: ✅ postgresql health check passed - 1 pod(s) running
+[2025-08-24 01:12:10] Phase 1: Checking health of kafka...
+[2025-08-24 01:12:10] Phase 1: ✅ kafka health check passed - 3 pod(s) running
+[2025-08-24 01:12:10] Phase 1: Checking health of schema-registry...
+[2025-08-24 01:12:11] Phase 1: ✅ schema-registry health check passed - 1 pod(s) running
+[2025-08-24 01:12:11] Phase 1: Checking health of kafka-connect...
+[2025-08-24 01:12:11] Phase 1: ✅ kafka-connect health check passed - 1 pod(s) running
+[2025-08-24 01:12:11] Phase 1: Checking service endpoints...
 NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)             AGE
-kafka                      ClusterIP   10.96.148.114   <none>        9092/TCP            5m56s
-kafka-connect              ClusterIP   10.96.60.17     <none>        8083/TCP            2m1s
-kafka-connect-nodeport     NodePort    10.96.52.216    <none>        8083:30083/TCP      2m1s
-kafka-headless             ClusterIP   None            <none>        9092/TCP,9093/TCP   5m56s
-kafka-nodeport             NodePort    10.96.192.21    <none>        9092:30092/TCP      5m56s
-postgresql                 ClusterIP   10.96.78.120    <none>        5432/TCP            6m44s
-postgresql-headless        ClusterIP   None            <none>        5432/TCP            6m44s
-postgresql-nodeport        NodePort    10.96.138.18    <none>        5432:30432/TCP      6m44s
-schema-registry            ClusterIP   10.96.15.107    <none>        8081/TCP            4m14s
-schema-registry-nodeport   NodePort    10.96.226.121   <none>        8081:30081/TCP      4m14s
-[2025-08-22 20:06:46] Phase 1: Waiting for deployment kafka-connect to be ready...
-[2025-08-22 20:06:46] Phase 1: ✅ Deployment kafka-connect is ready
-[2025-08-22 20:06:46] Phase 1: Waiting for deployment schema-registry to be ready...
-[2025-08-22 20:06:46] Phase 1: ✅ Deployment schema-registry is ready
-[2025-08-22 20:06:46] Phase 1: ✅ Phase 1 completed successfully - all services healthy
-[2025-08-22 20:06:47] Phase 1: Verifying stability for 2 minutes...
-[2025-08-22 20:08:47] Phase 1: ✅ All services remain stable - Phase 1 PASSED
+kafka                      ClusterIP   10.96.132.128   <none>        9092/TCP            5m55s
+kafka-connect              ClusterIP   10.96.229.168   <none>        8083/TCP            2m
+kafka-connect-nodeport     NodePort    10.96.76.135    <none>        8083:30083/TCP      2m
+kafka-headless             ClusterIP   None            <none>        9092/TCP,9093/TCP   5m55s
+kafka-nodeport             NodePort    10.96.94.198    <none>        9092:30092/TCP      5m55s
+postgresql                 ClusterIP   10.96.23.25     <none>        5432/TCP            6m32s
+postgresql-headless        ClusterIP   None            <none>        5432/TCP            6m32s
+postgresql-nodeport        NodePort    10.96.248.24    <none>        5432:30432/TCP      6m32s
+schema-registry            ClusterIP   10.96.135.226   <none>        8081/TCP            4m12s
+schema-registry-nodeport   NodePort    10.96.29.120    <none>        8081:30081/TCP      4m12s
+[2025-08-24 01:12:11] Phase 1: Waiting for deployment kafka-connect to be ready...
+[2025-08-24 01:12:12] Phase 1: ✅ Deployment kafka-connect is ready
+[2025-08-24 01:12:12] Phase 1: Waiting for deployment schema-registry to be ready...
+[2025-08-24 01:12:12] Phase 1: ✅ Deployment schema-registry is ready
+[2025-08-24 01:12:12] Phase 1: ✅ Phase 1 completed successfully - all services healthy
+[2025-08-24 01:12:12] Phase 1: Verifying stability for 2 minutes...
+[2025-08-24 01:14:12] Phase 1: ✅ All services remain stable - Phase 1 PASSED
