@@ -47,10 +47,10 @@ force_pod_restarts() {
         kubectl scale deploy kafka-connect -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for Kafka Connect to terminate..."
         if kubectl wait --for=delete pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
-            log "✅ Kafka Connect pod scaled to replicas=0"
+            log "✅ Kafka Connect scaled to replicas=0"
             deleted_pods+=("$connect_pod")
         else
-            log "⚠️ Kafka Connect pod failed to scale to replicas=0"
+            log "⚠️ Kafka Connect failed to scale to replicas=0"
         fi
     fi
 
@@ -58,10 +58,10 @@ force_pod_restarts() {
         kubectl scale deploy schema-registry -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for Schema Registry to terminate..."
         if kubectl wait --for=delete pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
-            log "✅ Schema Registry pod scaled to replicas=0"
+            log "✅ Schema Registry scaled to replicas=0"
             deleted_pods+=("$schema_pod")
         else
-            log "⚠️ Schema Registry pod failed to scale to replicas=0"
+            log "⚠️ Schema Registry failed to scale to replicas=0"
         fi
     fi
 
@@ -69,10 +69,10 @@ force_pod_restarts() {
         kubectl scale sts kafka -n ${NAMESPACE} --replicas=2 >/dev/null 2>&1 &
         log "Waiting for Kafka to terminate..."
         if kubectl wait --for=jsonpath='{.status.readyReplicas}'=2 sts kafka -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
-            log "✅ Kafka pods scaled to replicas=2"
+            log "✅ Kafka scaled to replicas=2"
             deleted_pods+=("$kafka_pod")
         else
-            log "⚠️ Kafka pod failed to scale to replicas=2"
+            log "⚠️ Kafka failed to scale to replicas=2"
         fi
     fi
 
@@ -80,10 +80,10 @@ force_pod_restarts() {
         kubectl scale sts postgresql -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for PostgreSQL to terminate..."
         if kubectl wait --for=delete pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
-            log "✅ PostgreSQL pod scaled to replicas=0"
+            log "✅ PostgreSQL scaled to replicas=0"
             deleted_pods+=("$pg_pod")
         else
-            log "⚠️ PostgreSQL pod failed to scale to replicas=0"
+            log "⚠️ PostgreSQL failed to scale to replicas=0"
         fi
     fi
     
@@ -95,7 +95,7 @@ force_pod_restarts() {
 
 # Wait for pods to restart
 wait_for_restart() {
-    log "Waiting for pods to restart..."
+    log "Restarting pods..."
     
     # Wait for PostgreSQL
     log "Scaling PostgreSQL to replicas=1"
@@ -113,7 +113,7 @@ wait_for_restart() {
     log "Waiting for Kafka to be ready..."
     local status=$(kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n ${NAMESPACE} --timeout=300s 2>&1)
     if [[ -n "$status" ]] && [[ $(echo "$status" | grep "condition met" | wc -l) -eq 3 ]]; then
-        log "✅ Kafka pods restarted and ready"
+        log "✅ Kafka pod restarted and ready"
     else
         log "⚠️  Kafka pod restart timeout (may still be starting)"
     fi
