@@ -10,6 +10,8 @@ readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task9-logs"
 
+PRE_EVOLUTION_VERSION=1
+
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
@@ -283,6 +285,9 @@ test_schema_evolution_add_nullable_column() {
     # Get initial schema version
     local initial_schema_version=$(get_schema_version "postgres.public.users-value")
     log "Initial schema version: $initial_schema_version"
+
+    # Preserve initial schema version to use later for baseline version for cleanup
+    PRE_EVOLUTION_VERSION=$initial_schema_version
     
     # Add nullable column to users table
     log "Adding nullable column 'middle_name' to users table..."
@@ -500,13 +505,17 @@ test_cdc_after_schema_changes() {
 cleanup_schema_evolution_tests() {
     log "=== Cleaning Up Schema Evolution Test Changes ==="
     
-    # Remove test columns (optional - may want to keep for further testing)
+    # Get current schema version before cleanup
+    local current_version=$(get_schema_version "postgres.public.users-value")
+    log "Current schema version before cleanup: $current_version"
+    
+    # Remove test columns from database
     log "Removing test columns added during schema evolution testing..."
     
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "ALTER TABLE users DROP COLUMN IF EXISTS middle_name, DROP COLUMN IF EXISTS status;" >> "${LOG_DIR}/validate.log" 2>&1; then
-        log "✅ Test columns removed successfully"
+        log "✅ Test columns removed successfully from database"
     else
         log "⚠️  Failed to remove test columns (may not exist)"
     fi
@@ -517,7 +526,106 @@ cleanup_schema_evolution_tests() {
        psql -U postgres -d ecommerce -c \
        "DELETE FROM users WHERE email LIKE '%schema-evolve%' OR email LIKE '%post-schema-change%';" >> "${LOG_DIR}/validate.log" 2>&1
     
+    # Clean up Schema Registry versions (reset to version 1)
+    log "Cleaning up Schema Registry schema versions..."
+    cleanup_schema_registry_versions
+    
+    # Wait for schema changes to propagate
+    log "Waiting 10 seconds for schema cleanup to propagate..."
+    sleep 10
+    
+    # Verify cleanup by checking final schema version
+    local final_version=$(get_schema_version "postgres.public.users-value")
+    log "Final schema version after cleanup: $final_version"
+    
+    # Check if we're back to baseline
+    if [[ "$final_version" == "$PRE_EVOLUTION_VERSION" ]]; then
+        log "✅ Schema Registry successfully reset to baseline version"
+    else
+        log "⚠️  Schema Registry cleanup may not have completed fully (version: $final_version)"
+        log "ℹ️  This may be normal if soft delete takes time to propagate"
+    fi
+    
     log "✅ Schema evolution test cleanup completed"
+}
+
+# Clean up Schema Registry versions to reset schema evolution state
+cleanup_schema_registry_versions() {
+    local subject="postgres.public.users-value"
+       
+    # Get all versions for the subject
+    local versions=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        curl -s -u admin:admin-secret "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
+        sed 's/^\[\(.*\)\]$/\1/' 2>/dev/null || echo "")
+    
+    if [[ -z "$versions" ]]; then
+        log "⚠️  Could not retrieve schema versions for cleanup"
+        return 1
+    fi
+    
+    log "Found schema versions: $versions"
+    
+    # Determine the baseline version (initial schema version that existed before schema evolution tests)
+    local baseline_version=$PRE_EVOLUTION_VERSION
+    
+    log "Preserving baseline schema version: $baseline_version"
+    
+    # Soft delete versions higher than baseline version
+    local deleted_count=0
+    IFS=',' read -ra version_array <<< "$versions"
+    IFS=$'\n' version_array=($(sort -nr <<<"${version_array[*]}")); unset IFS
+    for version in "${version_array[@]}"; do
+        if [[ "$version" -gt "$baseline_version" ]]; then
+            log "Soft deleting schema version $version..."
+            
+            local delete_result=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+                curl -s -w "%{http_code}" -u admin:admin-secret \
+                -X DELETE "http://localhost:8081/subjects/$subject/versions/$version" 2>/dev/null)
+            
+            local http_code="${delete_result: -3}"
+            
+            if [[ "$http_code" == "200" ]]; then
+                log "✅ Successfully soft deleted schema version $version"
+                sleep 2
+                log "Hard deleting schema version $version..."
+            
+                local delete_hard=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+                    curl -s -w "%{http_code}" -u admin:admin-secret -X DELETE \
+                    "http://localhost:8081/subjects/$subject/versions/$version?permanent=true" 2>/dev/null)
+                local http_code_hard="${delete_result: -3}"
+                if [[ "$http_code_hard" == "200" ]]; then
+                    log "✅ Successfully hard deleted schema version $version"
+                    deleted_count=$((deleted_count + 1))
+                else
+                    log "⚠️  Failed to hard delete schema version $version (HTTP: $http_code_hard)"
+                fi
+            else
+                log "⚠️  Failed to soft delete schema version $version (HTTP: $http_code)"
+            fi
+            
+            # Small delay between deletions
+            sleep 1
+        fi
+    done
+    
+    if [[ $deleted_count -gt 0 ]]; then
+        log "✅ Successfully soft deleted $deleted_count schema versions"
+        log "Baseline schema version $baseline_version preserved"
+    else
+        log "No schema versions to delete (only baseline $baseline_version or older versions exists)"
+    fi
+    
+    # Verify the cleanup by checking remaining versions
+    log "Verifying schema cleanup..."
+    local remaining_versions=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        curl -s -u admin:admin-secret "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
+        sed 's/^\[\(.*\)\]$/\1/' 2>/dev/null || echo "")
+    
+    if [[ -n "$remaining_versions" ]]; then
+        log "Remaining schema versions after cleanup: $remaining_versions"
+    else
+        log "⚠️  No schema versions found after cleanup - this may indicate an issue"
+    fi
 }
 
 # Check connector logs for errors
