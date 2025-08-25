@@ -7,9 +7,6 @@ readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly LOG_DIR="${SCRIPT_DIR}/startstop-logs"
 
-# Load functions for metrics server
-source ${SCRIPT_DIR}/metrics-server.sh
-
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
@@ -100,8 +97,6 @@ main() {
         log "ERROR: Shutdown failed"
         exit 1
     fi
-
-    delete_old_metric_server
 
     log "========== SUCCESS - Data Ingestion Pipeline shutdown completed =========="
     exit 0

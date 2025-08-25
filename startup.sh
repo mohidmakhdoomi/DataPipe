@@ -7,9 +7,6 @@ readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly LOG_DIR="${SCRIPT_DIR}/startstop-logs"
 
-# Load functions for metrics server
-source ${SCRIPT_DIR}/metrics-server.sh
-
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
@@ -85,12 +82,7 @@ scale_up() {
 # Main execution
 main() {
     log "=== Starting up Data Ingestion Pipeline - Scaling up replicas ==="
-    
-    if ! install_metrics_server; then
-        log "ERROR: metrics-server not available"
-        exit 1
-    fi
-    
+
     if ! scale_up; then
         log "ERROR: Startup failed"
         exit 1
