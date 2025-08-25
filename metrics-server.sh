@@ -1,7 +1,11 @@
 #!/bin/bash
 # This script contains functions for the metrics server
 
-readonly METRICS_FILE="high-availability-1.21+.yaml"
+readonly METRICS_FILE="components.yaml"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+}
 
 # Check if metrics-server is available
 check_metrics_server() {
