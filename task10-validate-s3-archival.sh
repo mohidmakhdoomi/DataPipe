@@ -149,7 +149,7 @@ validate_parquet_structure() {
     local parquet_file=$(aws s3 ls "$s3_path" 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
 
     if [[ -z "$parquet_file" ]]; then
-        previous_hour=$(printf "%02d\n" $((hour - 1)))
+        previous_hour=$(printf "%02g\n" $((hour - 1)))
         s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${previous_hour}/"
         parquet_file=$(aws s3 ls "$s3_path" 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
     fi
