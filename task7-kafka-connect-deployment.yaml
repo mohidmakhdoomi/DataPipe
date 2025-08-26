@@ -276,6 +276,26 @@ spec:
             secretKeyRef:
               name: aws-credentials
               key: s3-bucket
+        - name: SCHEMA_AUTH_USER
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: admin-user
+        - name: SCHEMA_AUTH_PASS
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: admin-password
+        - name: DBZ_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: debezium-credentials
+              key: db-username
+        - name: DBZ_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: debezium-credentials
+              key: db-password
       volumes:
       - name: config-volume
         configMap:

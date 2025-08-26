@@ -6,8 +6,8 @@
     
     "database.hostname": "postgresql.data-ingestion.svc.cluster.local",
     "database.port": "5432",
-    "database.user": "debezium",
-    "database.password": "debezium_password",
+    "database.user": "${env:DBZ_DB_USERNAME}",
+    "database.password": "${env:DBZ_DB_PASSWORD}",
     "database.dbname": "ecommerce",
     "database.server.name": "postgres",
     "topic.prefix": "postgres",
@@ -22,9 +22,9 @@
     "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "key.converter.basic.auth.credentials.source": "USER_INFO",
-    "key.converter.basic.auth.user.info": "admin:admin-secret",
+    "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.credentials.source": "USER_INFO",
-    "value.converter.basic.auth.user.info": "admin:admin-secret",
+    "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",

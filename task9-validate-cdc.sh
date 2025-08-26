@@ -9,6 +9,8 @@ IFS=$'\n\t'       # Safer word splitting
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task9-logs"
+readonly SCHEMA_AUTH_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
+readonly SCHEMA_AUTH_PASS=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
 PRE_EVOLUTION_VERSION=1
 
@@ -121,7 +123,7 @@ check_schema_registry() {
     log "Checking Schema Registry subjects..."
     
     local subjects=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        curl -s -u admin:admin-secret http://localhost:8081/subjects 2>/dev/null)
+        curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} http://localhost:8081/subjects 2>/dev/null)
     
     if [[ -n "$subjects" ]]; then
         echo "$subjects" | jq '.' | tee -a "${LOG_DIR}/validate.log"
@@ -214,7 +216,7 @@ test_cdc_update() {
         if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
            kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
-           --property schema.registry.basic.auth.user.info=admin:admin-secret \
+           --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
            --property schema.registry.url=http://localhost:8081 \
            --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"u"}' | grep -q "\"id\":$update_result,"; then
             log "✅ UPDATE operation found with proper format"
@@ -263,7 +265,7 @@ test_cdc_delete() {
         if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
            kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
-           --property schema.registry.basic.auth.user.info=admin:admin-secret \
+           --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
            --property schema.registry.url=http://localhost:8081 \
            --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"d"}' | grep -q "\"id\":$delete_result,"; then
             log "✅ DELETE operation found with proper format"
@@ -321,7 +323,7 @@ test_schema_evolution_add_nullable_column() {
         if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
            kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
            --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
-           --property schema.registry.basic.auth.user.info=admin:admin-secret \
+           --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
            --property schema.registry.url=http://localhost:8081 \
            --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep "\"id\":$insert_result," | grep -q "Evolution"; then
             log "✅ CDC captured record with new schema field"
@@ -412,7 +414,7 @@ test_schema_evolution_add_default_column() {
 get_schema_version() {
     local subject=$1
     local version=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        curl -s -u admin:admin-secret "http://localhost:8081/subjects/$subject/versions/latest" 2>/dev/null | \
+        curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/subjects/$subject/versions/latest" 2>/dev/null | \
         jq -r '.version' 2>/dev/null || echo "0")
     echo "$version"
 }
@@ -423,14 +425,14 @@ verify_schema_registry_compatibility() {
     
     # Check global compatibility level
     local global_compatibility=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        curl -s -u admin:admin-secret "http://localhost:8081/config" 2>/dev/null | \
+        curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/config" 2>/dev/null | \
         jq -r '.compatibilityLevel' 2>/dev/null || echo "UNKNOWN")
     
     log "Global compatibility level: $global_compatibility"
     
     # Check subject-specific compatibility for users table
     local users_compatibility=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        curl -s -u admin:admin-secret "http://localhost:8081/config/postgres.public.users-value" 2>/dev/null | \
+        curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/config/postgres.public.users-value" 2>/dev/null | \
         jq -r '.compatibilityLevel' 2>/dev/null || echo "INHERITED")
     
     log "Users table compatibility level: $users_compatibility"
@@ -551,7 +553,7 @@ cleanup_schema_registry_versions() {
        
     # Get all versions for the subject
     local versions=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        curl -s -u admin:admin-secret "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
+        curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
         sed 's/^\[\(.*\)\]$/\1/' 2>/dev/null || echo "")
     
     if [[ -z "$versions" ]]; then
@@ -575,7 +577,7 @@ cleanup_schema_registry_versions() {
             log "Soft deleting schema version $version..."
             
             local delete_result=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-                curl -s -w "%{http_code}" -u admin:admin-secret \
+                curl -s -w "%{http_code}" -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
                 -X DELETE "http://localhost:8081/subjects/$subject/versions/$version" 2>/dev/null)
             
             local http_code="${delete_result: -3}"
@@ -601,7 +603,7 @@ cleanup_schema_registry_versions() {
     # Verify the cleanup by checking remaining versions
     log "Verifying schema cleanup..."
     local remaining_versions=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        curl -s -u admin:admin-secret "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
+        curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
         sed 's/^\[\(.*\)\]$/\1/' 2>/dev/null || echo "")
     
     if [[ -n "$remaining_versions" ]]; then

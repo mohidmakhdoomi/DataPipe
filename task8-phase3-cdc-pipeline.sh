@@ -8,6 +8,8 @@ readonly NAMESPACE="data-ingestion"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task8-logs"
 readonly CONFIG_FILE="task9-debezium-connector-config.json"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
+readonly SCHEMA_AUTH_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
+readonly SCHEMA_AUTH_PASS=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 3: $*" | tee -a "${LOG_DIR}/phase3.log"
@@ -131,7 +133,7 @@ test_schema_registry() {
     
     # Check if schemas are registered
     if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
-       curl --fail -u "admin:admin-secret" http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "postgres"; then
+       curl --fail -u "${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS}" http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "postgres"; then
         log "✅ CDC schemas registered in Schema Registry"
         return 0
     else

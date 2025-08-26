@@ -6,7 +6,7 @@
     
     "topics.regex": "postgres\\.public\\..*",
     
-    "s3.bucket.name": "datapipe-ingestion-192837",
+    "s3.bucket.name": "${env:S3_BUCKET_NAME}",
     "s3.region": "us-east-1",
     "s3.part.size": "16777216",
 
@@ -30,7 +30,7 @@
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "value.converter.basic.auth.credentials.source": "USER_INFO",
-    "value.converter.basic.auth.user.info": "admin:admin-secret",
+    "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
     "consumer.override.max.poll.records": "10000",
     "consumer.override.max.poll.interval.ms": "180000",
@@ -42,6 +42,8 @@
     "errors.deadletterqueue.topic.replication.factor": "3",
     "errors.deadletterqueue.context.headers.enable": "true",
     "errors.retry.timeout": "0",
+    
+    "behavior.on.null.values": "ignore",
     
     "s3.retry.backoff.ms": "2000",
     "s3.retry.jitter.ms": "1000",
