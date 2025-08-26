@@ -18,12 +18,12 @@ readonly CONFIG_FILES=(
     "04-secrets.yaml"
     "storage-classes.yaml"
     "data-services-pvcs.yaml"
-    "task4-postgresql-statefulset.yaml:ready:pod -l app=postgresql,component=database:60:1"
-    "task5-kafka-kraft-3brokers.yaml:ready:pod -l app=kafka,component=streaming:150:3"
-    "task5-cdc-topics-job.yaml:complete:job/create-cdc-topics:50:1"
-    "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:150:1"
-    "task7-kafka-connect-topics.yaml:complete:job/kafka-connect-topics-setup:50:1"
-    "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:150:1"
+    "task4-postgresql-statefulset.yaml:ready:pod -l app=postgresql,component=database:300:1"
+    "task5-kafka-kraft-3brokers.yaml:ready:pod -l app=kafka,component=streaming:300:3"
+    "task5-cdc-topics-job.yaml:complete:job/create-cdc-topics:60:1"
+    "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:300:1"
+    "task7-kafka-connect-topics.yaml:complete:job/kafka-connect-topics-setup:60:1"
+    "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:300:1"
 )
 
 readonly CONN_DEPLOY_SCRIPT="task9-deploy-connector.sh"
