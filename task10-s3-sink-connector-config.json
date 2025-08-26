@@ -26,10 +26,13 @@
     "flush.size": "1000",
     "rotate.interval.ms": "60000",
     
-    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
+    "key.converter.basic.auth.credentials.source": "USER_INFO",
     "value.converter.basic.auth.credentials.source": "USER_INFO",
+    "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
     "consumer.override.max.poll.records": "10000",

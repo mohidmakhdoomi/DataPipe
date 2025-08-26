@@ -22,8 +22,8 @@
     "key.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "value.converter.schema.registry.url": "http://schema-registry.data-ingestion.svc.cluster.local:8081",
     "key.converter.basic.auth.credentials.source": "USER_INFO",
-    "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.credentials.source": "USER_INFO",
+    "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
     "transforms": "unwrap",
