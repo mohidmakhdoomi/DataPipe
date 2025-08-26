@@ -42,7 +42,7 @@ while true; do
             log "CRITICAL: Memory usage ${total_memory}Mi exceeds critical threshold ${CRITICAL_THRESHOLD}Mi"
             # Could trigger circuit breaker here
         elif (( $(($total_memory > $WARNING_THRESHOLD)) )); then
-            log "WARNING: Memory usage ${total_memory}Mi exceeds warning threshold ${WARNING_THRESHOLD}Mi"
+            log "⚠️   Memory usage ${total_memory}Mi exceeds warning threshold ${WARNING_THRESHOLD}Mi"
         fi
         
         # Check for OOMKilled events
@@ -52,7 +52,7 @@ while true; do
             kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling >> "${LOG_DIR}/oom-events.log"
         fi
     else
-        log "WARNING: Unable to retrieve pod memory metrics"
+        log "⚠️   Unable to retrieve pod memory metrics"
     fi
     
     sleep 10  # Check every 10 seconds

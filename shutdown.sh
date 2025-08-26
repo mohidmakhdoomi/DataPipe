@@ -36,7 +36,7 @@ scale_down() {
             log "⚠️ Kafka Connect failed to scale to replicas=0"
         fi
     else
-        log "FAIL! Kafka Connect pod not found"
+        log "❌ : Kafka Connect pod not found"
     fi
 
     if [[ -n "$schema_pod" ]]; then
@@ -49,7 +49,7 @@ scale_down() {
             log "⚠️ Schema Registry failed to scale to replicas=0"
         fi
     else
-        log "FAIL! Schema Registry pod not found"
+        log "❌ : Schema Registry pod not found"
     fi
 
     if [[ -n "$kafka_pod" ]]; then
@@ -63,7 +63,7 @@ scale_down() {
             log "⚠️ Kafka failed to scale to replicas=0"
         fi
     else
-        log "FAIL! Kafka pod not found"
+        log "❌ : Kafka pod not found"
     fi
 
     if [[ -n "$pg_pod" ]]; then
@@ -76,7 +76,7 @@ scale_down() {
             log "⚠️ PostgreSQL failed to scale to replicas=0"
         fi
     else
-        log "FAIL! PostgreSQL pod not found"
+        log "❌ : PostgreSQL pod not found"
     fi
     
     if [[ ${#deleted_pods[@]} -lt 4 ]]; then
@@ -94,7 +94,7 @@ main() {
     log "=== Shutting down Data Ingestion Pipeline - Scaling down replicas to 0 ==="
     
     if ! scale_down; then
-        log "ERROR: Shutdown failed"
+        log "❌ : Shutdown failed"
         exit 1
     fi
 

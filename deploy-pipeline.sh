@@ -32,6 +32,10 @@ readonly CONN_CONFIGS=(
     "s3-sink-connector:task10-s3-sink-connector-config.json"
 )
 
+readonly SAMPLE_DB_FILE="sample_data_postgres.sql"
+readonly DB_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "postgresql-credentials").data.username' 04-secrets.yaml | base64 --decode)
+readonly DB_NAME=$(~/Downloads/yq.exe 'select(.metadata.name == "postgresql-credentials").data.database' 04-secrets.yaml | base64 --decode)
+
 # Load functions for metrics server
 source ${SCRIPT_DIR}/metrics-server.sh
 
@@ -49,18 +53,18 @@ main() {
 
     log "Deleting existing cluster if needed"
     if ! kind delete cluster -n ${NAMESPACE} >/dev/null 2>&1; then
-        log "ERROR: Failed to delete existing cluster"
+        log "❌ : Failed to delete existing cluster"
         exit 1
     fi
 
     log "Creating cluster using ${KIND_CONFIG}"
     if ! kind create cluster --config ${SCRIPT_DIR}/${KIND_CONFIG} >/dev/null 2>&1; then
-        log "ERROR: Failed to create cluster"
+        log "❌ : Failed to create cluster"
         exit 1
     fi
     
     if ! install_metrics_server; then
-        log "ERROR: metrics-server not available"
+        log "❌ : metrics-server not available"
         exit 1
     fi
 
@@ -68,7 +72,7 @@ main() {
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
         log "Applying ${current_file}"
         if ! kubectl apply -f ${SCRIPT_DIR}/${current_file} >/dev/null 2>&1; then
-            log "ERROR: Failed to apply ${current_file}"
+            log "❌ : Failed to apply ${current_file}"
             exit 1
         fi
 
@@ -88,7 +92,7 @@ main() {
     
     # Verify prerequisites
     if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
-        log "ERROR: Namespace ${NAMESPACE} not found"
+        log "❌ : Namespace ${NAMESPACE} not found"
         exit 1
     fi
 
@@ -96,10 +100,21 @@ main() {
         IFS=':' read -r connector_name connector_config_file <<< "$current_record"
         log "Deploying Connector config ${connector_name}"
         if ! bash ${SCRIPT_DIR}/${CONN_DEPLOY_SCRIPT} ${connector_name} ${connector_config_file} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
-            log "ERROR: Failed to deploy ${connector_name} using config ${connector_config_file}"
+            log "❌ : Failed to deploy ${connector_name} using config ${connector_config_file}"
             exit 1
         fi
     done
+
+    # Insert Sample Data into PostgreSQL
+    log "Inserting Sample Data into PostgreSQL"
+    if ! kubectl cp -n ${NAMESPACE} -c postgresql ${SAMPLE_DB_FILE} postgresql-0:/tmp/${SAMPLE_DB_FILE} >/dev/null 2>&1; then
+        log "❌ : Failed to copy sample data .sql file into PostgreSQL pod"
+        exit 1
+    fi
+    if ! kubectl exec -n ${NAMESPACE} pod/postgresql-0 -- sh -c "psql -U ${DB_USER} -d ${DB_NAME} -a -f /tmp/${SAMPLE_DB_FILE}" >/dev/null 2>&1; then
+        log "❌ : Failed to insert sample data into PostgreSQL"
+        exit 1
+    fi
 
     log "========== SUCCESS - Data Ingestion Pipeline deployment completed =========="
     exit 0

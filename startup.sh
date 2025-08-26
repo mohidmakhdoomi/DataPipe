@@ -84,7 +84,7 @@ main() {
     log "=== Starting up Data Ingestion Pipeline - Scaling up replicas ==="
 
     if ! scale_up; then
-        log "ERROR: Startup failed"
+        log "❌ : Startup failed"
         exit 1
     fi
 

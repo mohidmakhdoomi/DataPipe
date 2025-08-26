@@ -12,10 +12,10 @@ check_metrics_server() {
     log "Checking if metrics-server is available..."
     
     if kubectl top nodes >/dev/null 2>&1; then
-        log "SUCCESS! Metrics-server is available"
+        log "✅ Metrics-server is available"
         return 0
     else
-        log "WARNING! Metrics-server is not available"
+        log "⚠️   Metrics-server is not available"
         return 1
     fi
 }
@@ -27,7 +27,7 @@ delete_old_metric_server() {
         kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null 2>&1
         kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml >/dev/null 2>&1
         kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability-1.21+.yaml >/dev/null 2>&1
-        log "Done - existing metrics-server deployment removed"
+        log "✅ - existing metrics-server deployment removed"
     fi
 }
 
@@ -59,7 +59,7 @@ install_metrics_server() {
             local wait_count=0
             while [[ $wait_count -lt 12 ]]; do  # Wait up to 2 minutes
                 if kubectl top nodes >/dev/null 2>&1; then
-                    log "Metrics are now available"
+                    log "✅ Metrics are now available"
                     rm -f ${METRICS_FILE} >/dev/null 2>&1
                     return 0
                 fi
@@ -71,11 +71,11 @@ install_metrics_server() {
             log "Metrics-server installed but metrics not yet available!"
             return 1
         else
-            log "Metrics-server FAILED to become ready"
+            log "❌ : Metrics-server FAILED to become ready"
             return 1
         fi
     else
-        log "FAILED to install metrics-server"
+        log "❌ : Failed to install metrics-server"
         return 1
     fi
 }

@@ -29,7 +29,7 @@ check_memory() {
     log "Current memory usage: ${current_mem}Mi / 4096Mi $(($current_mem*100/4096))%"
     
     if [[ ${current_mem:-0} -gt ${MAX_MEMORY_MI} ]]; then
-        log "WARNING: Memory usage critical - ${current_mem}Mi exceeds ${MAX_MEMORY_MI}Mi threshold"
+        log "⚠️   Memory usage critical - ${current_mem}Mi exceeds ${MAX_MEMORY_MI}Mi threshold"
         return 1
     fi
     return 0
@@ -45,7 +45,7 @@ execute_phase() {
     
     # Pre-phase checks
     check_memory || {
-        log "ERROR: Memory check failed before Phase ${phase_num}"
+        log "❌ : Memory check failed before Phase ${phase_num}"
         return 1
     }
     
@@ -61,7 +61,7 @@ execute_phase() {
         
         # Post-phase checks
         check_memory || {
-            log "ERROR: Memory check failed after Phase ${phase_num}"
+            log "❌ : Memory check failed after Phase ${phase_num}"
             return 1
         }
 
@@ -69,7 +69,7 @@ execute_phase() {
         sleep $((phase_num * 5))  # Progressive delay: 5s, 10s, 15s...
         return 0
     else
-        log "ERROR: Phase ${phase_num} failed"
+        log "❌ : Phase ${phase_num} failed"
         kubectl describe pods -n ${NAMESPACE} >> "${LOG_DIR}/phase-${phase_num}-failure.log"
         return 1
     fi
@@ -82,12 +82,12 @@ main() {
     
     # Verify prerequisites
     if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
-        log "ERROR: Namespace ${NAMESPACE} not found"
+        log "❌ : Namespace ${NAMESPACE} not found"
         exit 1
     fi
 
     if ! check_metrics_server; then
-        log "ERROR: metrics-server not available"
+        log "❌ : metrics-server not available"
         exit 1
     fi
     

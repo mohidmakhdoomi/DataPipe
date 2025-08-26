@@ -25,17 +25,17 @@ validate_prerequisites() {
     
     # Check if config file exists
     if [[ ! -f "$CONFIG_FILE" ]]; then
-        log "FAIL Configuration file $CONFIG_FILE not found"
+        log "❌ : Configuration file $CONFIG_FILE not found"
         return 1
     fi
     
     # Check namespace exists
     if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
-        log "FAIL Namespace ${NAMESPACE} not found"
+        log "❌ : Namespace ${NAMESPACE} not found"
         return 1
     fi
     
-    log "SUCCESS Prerequisites validated"
+    log "✅  Prerequisites validated"
     return 0
 }
 
@@ -46,10 +46,10 @@ wait_for_kafka_connect() {
     
     log "Waiting for Kafka Connect to be ready..."
     if kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s; then
-        log "SUCCESS Kafka Connect is ready"
+        log "✅  Kafka Connect is ready"
         return 0
     else
-        log "FAIL Kafka Connect failed to become ready within 300s"
+        log "❌ : Kafka Connect failed to become ready within 300s"
         return 1
     fi
 }
@@ -64,18 +64,18 @@ handle_existing_connector() {
     
     # Check if connector already exists by trying to get its status
     if [[ -n "$status" ]] && echo "$status" | grep -qv "error_code\":404,\"message\":\"No status found for connector ${CONNECTOR_NAME}\""; then
-        log "WARNING  Connector exists. Deleting existing connector..."
+        log "⚠️    Connector exists. Deleting existing connector..."
         if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
            curl -X DELETE http://localhost:8083/connectors/${CONNECTOR_NAME} >/dev/null 2>&1; then
-            log "SUCCESS Existing connector deleted"
+            log "✅  Existing connector deleted"
             log "Waiting 10 seconds for cleanup..."
             sleep 10
         else
-            log "FAIL Failed to delete existing connector"
+            log "❌ : Failed to delete existing connector"
             return 1
         fi
     else
-        log "SUCCESS No existing connector found"
+        log "✅  No existing connector found"
     fi
     
     return 0
@@ -90,10 +90,10 @@ deploy_connector() {
        curl -X POST http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors \
        -H "Content-Type: application/json" \
        -d "$(cat ${CONFIG_FILE})" >/dev/null 2>&1; then
-        log "SUCCESS Connector deployed successfully"
+        log "✅  Connector deployed successfully"
         return 0
     else
-        log "FAIL Connector deployment failed"
+        log "❌ : Connector deployment failed"
         return 1
     fi
 }
@@ -112,12 +112,12 @@ validate_deployment() {
         # Check if connector is running
         local connector_state=$(echo "$status_output" | jq -r '.connector.state' 2>/dev/null || echo "UNKNOWN")
         if [[ "$connector_state" == "RUNNING" ]]; then
-            log "SUCCESS Connector is in RUNNING state"
+            log "✅  Connector is in RUNNING state"
         else
-            log "WARNING  Connector state: $connector_state"
+            log "⚠️    Connector state: $connector_state"
         fi
     else
-        log "FAIL Failed to get connector status"
+        log "❌ : Failed to get connector status"
         return 1
     fi
     
@@ -134,35 +134,35 @@ main() {
     
     # Step 1: Validate prerequisites
     if ! validate_prerequisites; then
-        log "FAIL Prerequisites validation failed"
+        log "❌ : Prerequisites validation failed"
         return 1
     fi
     
     # Step 2: Wait for Kafka Connect
     if ! wait_for_kafka_connect; then
-        log "FAIL Kafka Connect readiness check failed"
+        log "❌ : Kafka Connect readiness check failed"
         return 1
     fi
     
     # Step 3: Handle existing connector
     if ! handle_existing_connector; then
-        log "FAIL Failed to handle existing connector"
+        log "❌ : Failed to handle existing connector"
         return 1
     fi
     
     # Step 4: Deploy connector
     if ! deploy_connector; then
-        log "FAIL Connector deployment failed"
+        log "❌ : Connector deployment failed"
         return 1
     fi
     
     # Step 5: Validate deployment
     if ! validate_deployment; then
-        log "FAIL Deployment validation failed"
+        log "❌ : Deployment validation failed"
         return 1
     fi
     
-    log "SUCCESS Connector Deployment completed successfully"
+    log "✅  Connector Deployment completed successfully"
     return 0
 }
 
