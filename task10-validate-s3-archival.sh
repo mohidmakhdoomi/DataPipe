@@ -8,7 +8,7 @@ IFS=$'\n\t'       # Safer word splitting
 # Configuration
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-connector"
-readonly S3_BUCKET="datapipe-ingestion-192837"
+readonly S3_BUCKET=$(~/Downloads/yq.exe 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/task10-logs"
 
 # Ensure log directory exists
@@ -84,8 +84,7 @@ check_connector_status() {
 check_s3_bucket() {
     log "Checking S3 bucket accessibility..."
     
-    if kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-       sh -c "aws s3 ls s3://${S3_BUCKET}/ --region us-east-1" >/dev/null 2>&1; then
+    if aws s3 ls s3://${S3_BUCKET}/ --region us-east-1 >/dev/null 2>&1; then
         log "✅ S3 bucket is accessible"
         return 0
     else
@@ -114,23 +113,21 @@ test_s3_data_flow() {
         # Check if data appeared in S3
         log "Checking for data in S3..."
         local current_date=$(date -u +"%Y/%m/%d/%H")
-        local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${current_date%/*/*}/month=${current_date%/*/*/*}/day=${current_date%/*}/hour=${current_date##*/}/"
+        IFS="/" read -r year month day hour <<< "$current_date"
+        local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
         
         log "Checking S3 path: $s3_path"
-        if kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-           sh -c "aws s3 ls '$s3_path' --region us-east-1" 2>/dev/null | grep -q ".parquet"; then
+        if aws s3 ls "$s3_path" --region us-east-1 2>/dev/null | grep -q ".parquet"; then
             log "✅ Parquet files found in S3"
             
             # List the files
-            kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-                sh -c "aws s3 ls '$s3_path' --region us-east-1" | tee -a "${LOG_DIR}/validate.log"
+            aws s3 ls "$s3_path" --region us-east-1 | tee -a "${LOG_DIR}/validate.log"
             
             return 0
         else
             log "⚠️  No Parquet files found in expected S3 path"
             log "Checking broader S3 structure..."
-            kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-                sh -c "aws s3 ls s3://${S3_BUCKET}/topics/ --recursive --region us-east-1" | head -20 | tee -a "${LOG_DIR}/validate.log"
+            aws s3 ls s3://${S3_BUCKET}/topics/ --recursive --region us-east-1 | head -20 | tee -a "${LOG_DIR}/validate.log"
             return 1
         fi
     else
@@ -145,11 +142,11 @@ validate_parquet_structure() {
     
     # Get a sample Parquet file from S3
     local current_date=$(date -u +"%Y/%m/%d/%H")
-    local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${current_date%/*/*}/month=${current_date%/*/*/*}/day=${current_date%/*}/hour=${current_date##*/}/"
+    IFS="/" read -r year month day hour <<< "$current_date"
+    local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
     
     # List files and get the first Parquet file
-    local parquet_file=$(kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-        sh -c "aws s3 ls '$s3_path' --region us-east-1" 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
+    local parquet_file=$(aws s3 ls "$s3_path" 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
     
     if [[ -n "$parquet_file" ]]; then
         log "Found Parquet file: $parquet_file"
@@ -159,8 +156,7 @@ validate_parquet_structure() {
         log "Parquet file location: $full_s3_path"
         
         # Check file size
-        local file_size=$(kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-            sh -c "aws s3 ls '$full_s3_path' --region us-east-1" 2>/dev/null | awk '{print $3}')
+        local file_size=$(aws s3 ls "$full_s3_path" --region us-east-1 2>/dev/null | awk '{print $3}')
         
         if [[ -n "$file_size" && "$file_size" -gt "0" ]]; then
             log "✅ Parquet file has valid size: $file_size bytes"
@@ -180,9 +176,8 @@ validate_time_partitioning() {
     log "Validating time-based partitioning structure..."
     
     # Check if the expected partition structure exists
-    local partition_structure=$(kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
-        sh -c "aws s3 ls s3://${S3_BUCKET}/topics/postgres.public.users/ --region us-east-1" 2>/dev/null | grep "year=" | head -5)
     
+    local partition_structure=$(aws s3 ls s3://${S3_BUCKET}/topics/postgres.public.users/ --region us-east-1 2>/dev/null | grep "year=" | head -5)
     if [[ -n "$partition_structure" ]]; then
         log "✅ Time-based partitioning structure found:"
         echo "$partition_structure" | tee -a "${LOG_DIR}/validate.log"
@@ -265,26 +260,26 @@ check_resource_usage() {
 
 # Generate validation summary
 generate_summary() {
-    local failed_tests=(\"$@\")
+    local failed_tests=("$@")
     
-    log \"=== S3 Archival Validation Complete ===\"
-    log \"\"
-    log \"Summary:\"
-    log \"- S3 Sink connector status: $([ ${#failed_tests[@]} -eq 0 ] && echo \"✅ PASSED\" || echo \"⚠️  ISSUES FOUND\")\"
-    log \"- S3 bucket accessibility: Validated\"
-    log \"- Data flow to S3: Tested\"
-    log \"- Parquet file structure: Validated\"
-    log \"- Time-based partitioning: Verified\"
-    log \"- Error handling (DLQ): Checked\"
-    log \"\"
+    log "=== S3 Archival Validation Complete ==="
+    log ""
+    log "Summary:"
+    log "- S3 Sink connector status: $([ ${#failed_tests[@]} -eq 0 ] && echo "✅ PASSED" || echo "⚠️  ISSUES FOUND")"
+    log "- S3 bucket accessibility: Validated"
+    log "- Data flow to S3: Tested"
+    log "- Parquet file structure: Validated"
+    log "- Time-based partitioning: Verified"
+    log "- Error handling (DLQ): Checked"
+    log ""
     
     if [[ ${#failed_tests[@]} -eq 0 ]]; then
-        log \"✅ All validation tests passed - Task 10 is complete!\"
-        log \"✅ S3 archival is operational with Parquet format and time-based partitioning\"
+        log "✅ All validation tests passed - Task 10 is complete!"
+        log "✅ S3 archival is operational with Parquet format and time-based partitioning"
         return 0
     else
-        log \"⚠️  Some tests had issues: ${failed_tests[*]}\"
-        log \"Check logs for details: ${LOG_DIR}/validate.log\"
+        log "⚠️  Some tests had issues: ${failed_tests[*]}"
+        log "Check logs for details: ${LOG_DIR}/validate.log"
         return 1
     fi
 }
@@ -303,45 +298,45 @@ main() {
     
     # Step 2: Check connector status
     if ! check_connector_status; then
-        failed_tests+=(\"connector-status\")
+        failed_tests+=("connector-status")
     fi
     
     # Step 3: Check S3 bucket accessibility
     if ! check_s3_bucket; then
-        failed_tests+=(\"s3-bucket\")
+        failed_tests+=("s3-bucket")
     fi
     
     # Step 4: Test data flow to S3
     if ! test_s3_data_flow; then
-        failed_tests+=(\"data-flow\")
+        failed_tests+=("data-flow")
     fi
     
     # Step 5: Validate Parquet structure
     if ! validate_parquet_structure; then
-        failed_tests+=(\"parquet-structure\")
+        failed_tests+=("parquet-structure")
     fi
     
     # Step 6: Validate time-based partitioning
     if ! validate_time_partitioning; then
-        failed_tests+=(\"time-partitioning\")
+        failed_tests+=("time-partitioning")
     fi
     
     # Step 7: Check connector metrics
     if ! check_connector_metrics; then
-        failed_tests+=(\"connector-metrics\")
+        failed_tests+=("connector-metrics")
     fi
     
     # Step 8: Check dead letter queue
     if ! check_dlq; then
-        failed_tests+=(\"dead-letter-queue\")
+        failed_tests+=("dead-letter-queue")
     fi
     
     # Step 9: Check resource usage
     check_resource_usage
     
     # Step 10: Generate summary
-    generate_summary \"${failed_tests[@]}\"
+    generate_summary "${failed_tests[@]}"
 }
 
 # Execute main function
-main \"$@\"
+main "$@"
