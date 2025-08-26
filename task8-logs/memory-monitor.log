@@ -1,537 +1,538 @@
-[2025-08-24 21:37:58] Starting memory monitoring for Task 8 validation
-[2025-08-24 21:37:58] Pod: kafka-0 Memory: 369Mi
-[2025-08-24 21:37:58] Pod: kafka-1 Memory: 352Mi
-[2025-08-24 21:37:58] Pod: kafka-2 Memory: 357Mi
-[2025-08-24 21:37:59] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 396Mi
-[2025-08-24 21:37:59] Pod: postgresql-0 Memory: 50Mi
-[2025-08-24 21:37:59] Pod: schema-registry-7996d6869-wztdh Memory: 226Mi
-[2025-08-24 21:37:59] Total Memory: 1750Mi / 4096Mi (42%)
-[2025-08-24 21:38:09] Pod: kafka-0 Memory: 379Mi
-[2025-08-24 21:38:10] Pod: kafka-1 Memory: 361Mi
-[2025-08-24 21:38:10] Pod: kafka-2 Memory: 357Mi
-[2025-08-24 21:38:10] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 456Mi
-[2025-08-24 21:38:10] Pod: postgresql-0 Memory: 50Mi
-[2025-08-24 21:38:10] Pod: schema-registry-7996d6869-wztdh Memory: 222Mi
-[2025-08-24 21:38:10] Total Memory: 1825Mi / 4096Mi (44%)
-[2025-08-24 21:38:21] Pod: kafka-0 Memory: 376Mi
-[2025-08-24 21:38:21] Pod: kafka-1 Memory: 370Mi
-[2025-08-24 21:38:21] Pod: kafka-2 Memory: 373Mi
-[2025-08-24 21:38:21] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 527Mi
-[2025-08-24 21:38:21] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:38:22] Pod: schema-registry-7996d6869-wztdh Memory: 222Mi
-[2025-08-24 21:38:22] Total Memory: 1923Mi / 4096Mi (46%)
-[2025-08-24 21:38:32] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:38:32] Pod: kafka-1 Memory: 370Mi
-[2025-08-24 21:38:32] Pod: kafka-2 Memory: 373Mi
-[2025-08-24 21:38:33] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 520Mi
-[2025-08-24 21:38:33] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:38:33] Pod: schema-registry-7996d6869-wztdh Memory: 223Mi
-[2025-08-24 21:38:33] Total Memory: 1918Mi / 4096Mi (46%)
-[2025-08-24 21:38:43] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:38:44] Pod: kafka-1 Memory: 370Mi
-[2025-08-24 21:38:44] Pod: kafka-2 Memory: 373Mi
-[2025-08-24 21:38:44] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 520Mi
-[2025-08-24 21:38:44] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:38:44] Pod: schema-registry-7996d6869-wztdh Memory: 223Mi
-[2025-08-24 21:38:44] Total Memory: 1918Mi / 4096Mi (46%)
-[2025-08-24 21:38:55] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:38:55] Pod: kafka-1 Memory: 371Mi
-[2025-08-24 21:38:55] Pod: kafka-2 Memory: 374Mi
-[2025-08-24 21:38:55] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 520Mi
-[2025-08-24 21:38:55] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:38:55] Pod: schema-registry-7996d6869-wztdh Memory: 223Mi
-[2025-08-24 21:38:55] Total Memory: 1920Mi / 4096Mi (46%)
-[2025-08-24 21:39:06] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:39:06] Pod: kafka-1 Memory: 371Mi
-[2025-08-24 21:39:06] Pod: kafka-2 Memory: 374Mi
-[2025-08-24 21:39:06] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 520Mi
-[2025-08-24 21:39:06] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:39:07] Pod: schema-registry-7996d6869-wztdh Memory: 224Mi
-[2025-08-24 21:39:07] Total Memory: 1921Mi / 4096Mi (46%)
-[2025-08-24 21:39:17] Pod: kafka-0 Memory: 378Mi
-[2025-08-24 21:39:17] Pod: kafka-1 Memory: 371Mi
-[2025-08-24 21:39:17] Pod: kafka-2 Memory: 381Mi
-[2025-08-24 21:39:18] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 521Mi
-[2025-08-24 21:39:18] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:39:18] Pod: schema-registry-7996d6869-wztdh Memory: 224Mi
-[2025-08-24 21:39:18] Total Memory: 1930Mi / 4096Mi (47%)
-[2025-08-24 21:39:28] Pod: kafka-0 Memory: 378Mi
-[2025-08-24 21:39:28] Pod: kafka-1 Memory: 371Mi
-[2025-08-24 21:39:29] Pod: kafka-2 Memory: 381Mi
-[2025-08-24 21:39:29] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 521Mi
-[2025-08-24 21:39:29] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:39:29] Pod: schema-registry-7996d6869-wztdh Memory: 224Mi
-[2025-08-24 21:39:29] Total Memory: 1930Mi / 4096Mi (47%)
-[2025-08-24 21:39:40] Pod: kafka-0 Memory: 378Mi
-[2025-08-24 21:39:40] Pod: kafka-1 Memory: 375Mi
-[2025-08-24 21:39:40] Pod: kafka-2 Memory: 373Mi
-[2025-08-24 21:39:40] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 521Mi
-[2025-08-24 21:39:40] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:39:40] Pod: schema-registry-7996d6869-wztdh Memory: 224Mi
-[2025-08-24 21:39:40] Total Memory: 1926Mi / 4096Mi (47%)
-[2025-08-24 21:39:51] Pod: kafka-0 Memory: 378Mi
-[2025-08-24 21:39:51] Pod: kafka-1 Memory: 375Mi
-[2025-08-24 21:39:51] Pod: kafka-2 Memory: 373Mi
-[2025-08-24 21:39:51] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 521Mi
-[2025-08-24 21:39:52] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:39:52] Pod: schema-registry-7996d6869-wztdh Memory: 224Mi
-[2025-08-24 21:39:52] Total Memory: 1926Mi / 4096Mi (47%)
-[2025-08-24 21:40:02] Pod: kafka-0 Memory: 378Mi
-[2025-08-24 21:40:02] Pod: kafka-1 Memory: 375Mi
-[2025-08-24 21:40:03] Pod: kafka-2 Memory: 375Mi
-[2025-08-24 21:40:03] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 523Mi
-[2025-08-24 21:40:03] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:40:03] Pod: schema-registry-7996d6869-wztdh Memory: 226Mi
-[2025-08-24 21:40:03] Total Memory: 1932Mi / 4096Mi (47%)
-[2025-08-24 21:40:14] Pod: kafka-0 Memory: 378Mi
-[2025-08-24 21:40:14] Pod: kafka-1 Memory: 375Mi
-[2025-08-24 21:40:14] Pod: kafka-2 Memory: 375Mi
-[2025-08-24 21:40:14] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 523Mi
-[2025-08-24 21:40:14] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:40:14] Pod: schema-registry-7996d6869-wztdh Memory: 226Mi
-[2025-08-24 21:40:14] Total Memory: 1932Mi / 4096Mi (47%)
-[2025-08-24 21:40:25] Pod: kafka-0 Memory: 375Mi
-[2025-08-24 21:40:25] Pod: kafka-1 Memory: 377Mi
-[2025-08-24 21:40:25] Pod: kafka-2 Memory: 375Mi
-[2025-08-24 21:40:25] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 523Mi
-[2025-08-24 21:40:25] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:40:26] Pod: schema-registry-7996d6869-wztdh Memory: 226Mi
-[2025-08-24 21:40:26] Total Memory: 1931Mi / 4096Mi (47%)
-[2025-08-24 21:40:36] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:40:36] Pod: kafka-1 Memory: 377Mi
-[2025-08-24 21:40:36] Pod: kafka-2 Memory: 375Mi
-[2025-08-24 21:40:37] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 523Mi
-[2025-08-24 21:40:37] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:40:37] Pod: schema-registry-7996d6869-wztdh Memory: 226Mi
-[2025-08-24 21:40:37] Total Memory: 1933Mi / 4096Mi (47%)
-[2025-08-24 21:40:47] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:40:48] Pod: kafka-1 Memory: 377Mi
-[2025-08-24 21:40:48] Pod: kafka-2 Memory: 397Mi
-[2025-08-24 21:40:48] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 523Mi
-[2025-08-24 21:40:48] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:40:48] Pod: schema-registry-7996d6869-wztdh Memory: 228Mi
-[2025-08-24 21:40:48] Total Memory: 1957Mi / 4096Mi (47%)
-[2025-08-24 21:40:59] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:40:59] Pod: kafka-1 Memory: 377Mi
-[2025-08-24 21:40:59] Pod: kafka-2 Memory: 397Mi
-[2025-08-24 21:40:59] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 523Mi
-[2025-08-24 21:40:59] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:40:59] Pod: schema-registry-7996d6869-wztdh Memory: 228Mi
-[2025-08-24 21:40:59] Total Memory: 1957Mi / 4096Mi (47%)
-[2025-08-24 21:41:10] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:41:10] Pod: kafka-1 Memory: 377Mi
-[2025-08-24 21:41:10] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:41:10] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:41:11] Pod: postgresql-0 Memory: 55Mi
-[2025-08-24 21:41:11] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:41:11] Total Memory: 1965Mi / 4096Mi (47%)
-[2025-08-24 21:41:21] Pod: kafka-0 Memory: 377Mi
-[2025-08-24 21:41:21] Pod: kafka-1 Memory: 385Mi
-[2025-08-24 21:41:21] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:41:22] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:41:22] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:41:22] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:41:22] Total Memory: 1972Mi / 4096Mi (48%)
-[2025-08-24 21:41:32] Pod: kafka-0 Memory: 481Mi
-[2025-08-24 21:41:33] Pod: kafka-1 Memory: 389Mi
-[2025-08-24 21:41:33] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:41:33] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:41:33] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:41:33] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:41:33] Total Memory: 2080Mi / 4096Mi (50%)
-[2025-08-24 21:41:44] Pod: kafka-0 Memory: 481Mi
-[2025-08-24 21:41:44] Pod: kafka-1 Memory: 389Mi
-[2025-08-24 21:41:44] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:41:44] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:41:44] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:41:44] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:41:45] Total Memory: 2080Mi / 4096Mi (50%)
-[2025-08-24 21:41:55] Pod: kafka-0 Memory: 379Mi
-[2025-08-24 21:41:55] Pod: kafka-1 Memory: 389Mi
-[2025-08-24 21:41:55] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:41:55] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:41:56] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:41:56] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:41:56] Total Memory: 1978Mi / 4096Mi (48%)
-[2025-08-24 21:42:06] Pod: kafka-0 Memory: 379Mi
-[2025-08-24 21:42:06] Pod: kafka-1 Memory: 389Mi
-[2025-08-24 21:42:06] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:42:07] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:42:07] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:42:07] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:42:07] Total Memory: 1978Mi / 4096Mi (48%)
-[2025-08-24 21:42:17] Pod: kafka-0 Memory: 380Mi
-[2025-08-24 21:42:18] Pod: kafka-1 Memory: 389Mi
-[2025-08-24 21:42:18] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:42:18] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:42:18] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:42:18] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:42:18] Total Memory: 1979Mi / 4096Mi (48%)
-[2025-08-24 21:42:29] Pod: kafka-0 Memory: 380Mi
-[2025-08-24 21:42:29] Pod: kafka-1 Memory: 389Mi
-[2025-08-24 21:42:29] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:42:29] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 524Mi
-[2025-08-24 21:42:29] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:42:30] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:42:30] Total Memory: 1979Mi / 4096Mi (48%)
-[2025-08-24 21:42:40] Pod: kafka-0 Memory: 379Mi
-[2025-08-24 21:42:40] Pod: kafka-1 Memory: 399Mi
-[2025-08-24 21:42:40] Pod: kafka-2 Memory: 401Mi
-[2025-08-24 21:42:41] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:42:41] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:42:41] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:42:41] Total Memory: 1989Mi / 4096Mi (48%)
-[2025-08-24 21:42:51] Pod: kafka-0 Memory: 380Mi
-[2025-08-24 21:42:52] Pod: kafka-1 Memory: 392Mi
-[2025-08-24 21:42:52] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:42:52] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:42:52] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:42:52] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:42:52] Total Memory: 1984Mi / 4096Mi (48%)
-[2025-08-24 21:43:03] Pod: kafka-0 Memory: 389Mi
-[2025-08-24 21:43:03] Pod: kafka-1 Memory: 392Mi
-[2025-08-24 21:43:03] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:43:03] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:43:03] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:43:04] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:43:04] Total Memory: 1993Mi / 4096Mi (48%)
-[2025-08-24 21:43:14] Pod: kafka-0 Memory: 389Mi
-[2025-08-24 21:43:14] Pod: kafka-1 Memory: 392Mi
-[2025-08-24 21:43:14] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:43:14] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:43:15] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:43:15] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:43:15] Total Memory: 1993Mi / 4096Mi (48%)
-[2025-08-24 21:43:25] Pod: kafka-0 Memory: 382Mi
-[2025-08-24 21:43:25] Pod: kafka-1 Memory: 394Mi
-[2025-08-24 21:43:26] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:43:26] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:43:26] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:43:26] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:43:26] Total Memory: 1988Mi / 4096Mi (48%)
-[2025-08-24 21:43:37] Pod: kafka-0 Memory: 382Mi
-[2025-08-24 21:43:37] Pod: kafka-1 Memory: 395Mi
-[2025-08-24 21:43:37] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:43:37] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:43:37] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:43:37] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:43:37] Total Memory: 1989Mi / 4096Mi (48%)
-[2025-08-24 21:43:48] Pod: kafka-0 Memory: 382Mi
-[2025-08-24 21:43:48] Pod: kafka-1 Memory: 395Mi
-[2025-08-24 21:43:48] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:43:48] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:43:48] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:43:49] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:43:49] Total Memory: 1989Mi / 4096Mi (48%)
-[2025-08-24 21:43:59] Pod: kafka-0 Memory: 382Mi
-[2025-08-24 21:43:59] Pod: kafka-1 Memory: 395Mi
-[2025-08-24 21:43:59] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:43:59] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:44:00] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:44:00] Pod: schema-registry-7996d6869-wztdh Memory: 231Mi
-[2025-08-24 21:44:00] Total Memory: 1989Mi / 4096Mi (48%)
-[2025-08-24 21:44:10] Pod: kafka-0 Memory: 382Mi
-[2025-08-24 21:44:10] Pod: kafka-1 Memory: 395Mi
-[2025-08-24 21:44:11] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:44:11] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:44:11] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:44:11] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:44:11] Total Memory: 1990Mi / 4096Mi (48%)
-[2025-08-24 21:44:22] Pod: kafka-0 Memory: 385Mi
-[2025-08-24 21:44:22] Pod: kafka-1 Memory: 398Mi
-[2025-08-24 21:44:22] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:44:22] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:44:22] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:44:22] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:44:23] Total Memory: 1996Mi / 4096Mi (48%)
-[2025-08-24 21:44:33] Pod: kafka-0 Memory: 385Mi
-[2025-08-24 21:44:33] Pod: kafka-1 Memory: 398Mi
-[2025-08-24 21:44:34] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:44:34] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:44:34] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:44:34] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:44:34] Total Memory: 1996Mi / 4096Mi (48%)
-[2025-08-24 21:44:45] Pod: kafka-0 Memory: 385Mi
-[2025-08-24 21:44:45] Pod: kafka-1 Memory: 398Mi
-[2025-08-24 21:44:45] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:44:45] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:44:45] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:44:45] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:44:45] Total Memory: 1996Mi / 4096Mi (48%)
-[2025-08-24 21:44:56] Pod: kafka-0 Memory: 385Mi
-[2025-08-24 21:44:56] Pod: kafka-1 Memory: 398Mi
-[2025-08-24 21:44:56] Pod: kafka-2 Memory: 402Mi
-[2025-08-24 21:44:56] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:44:57] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:44:57] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:44:57] Total Memory: 1996Mi / 4096Mi (48%)
-[2025-08-24 21:45:07] Pod: kafka-0 Memory: 387Mi
-[2025-08-24 21:45:07] Pod: kafka-1 Memory: 402Mi
-[2025-08-24 21:45:07] Pod: kafka-2 Memory: 413Mi
-[2025-08-24 21:45:08] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:45:08] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:45:08] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:45:08] Total Memory: 2013Mi / 4096Mi (49%)
-[2025-08-24 21:45:18] Pod: kafka-0 Memory: 388Mi
-[2025-08-24 21:45:18] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:45:19] Pod: kafka-2 Memory: 414Mi
-[2025-08-24 21:45:19] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:45:19] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:45:19] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:45:19] Total Memory: 2016Mi / 4096Mi (49%)
-[2025-08-24 21:45:30] Pod: kafka-0 Memory: 388Mi
-[2025-08-24 21:45:30] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:45:30] Pod: kafka-2 Memory: 414Mi
-[2025-08-24 21:45:30] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 525Mi
-[2025-08-24 21:45:30] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:45:30] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:45:30] Total Memory: 2016Mi / 4096Mi (49%)
-[2025-08-24 21:45:41] Pod: kafka-0 Memory: 389Mi
-[2025-08-24 21:45:41] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:45:41] Pod: kafka-2 Memory: 414Mi
-[2025-08-24 21:45:41] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 526Mi
-[2025-08-24 21:45:42] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:45:42] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:45:42] Total Memory: 2018Mi / 4096Mi (49%)
-[2025-08-24 21:45:52] Pod: kafka-0 Memory: 389Mi
-[2025-08-24 21:45:52] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:45:53] Pod: kafka-2 Memory: 414Mi
-[2025-08-24 21:45:53] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 526Mi
-[2025-08-24 21:45:53] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:45:53] Pod: schema-registry-7996d6869-wztdh Memory: 232Mi
-[2025-08-24 21:45:53] Total Memory: 2018Mi / 4096Mi (49%)
-[2025-08-24 21:46:04] Pod: kafka-0 Memory: 390Mi
-[2025-08-24 21:46:04] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:46:04] Pod: kafka-2 Memory: 416Mi
-[2025-08-24 21:46:04] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 526Mi
-[2025-08-24 21:46:04] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:46:04] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:46:04] Total Memory: 2022Mi / 4096Mi (49%)
-[2025-08-24 21:46:15] Pod: kafka-0 Memory: 390Mi
-[2025-08-24 21:46:15] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:46:15] Pod: kafka-2 Memory: 416Mi
-[2025-08-24 21:46:15] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 526Mi
-[2025-08-24 21:46:15] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:46:16] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:46:16] Total Memory: 2022Mi / 4096Mi (49%)
-[2025-08-24 21:46:26] Pod: kafka-0 Memory: 390Mi
-[2025-08-24 21:46:26] Pod: kafka-1 Memory: 403Mi
-[2025-08-24 21:46:26] Pod: kafka-2 Memory: 416Mi
-[2025-08-24 21:46:27] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 526Mi
-[2025-08-24 21:46:27] Pod: postgresql-0 Memory: 54Mi
-[2025-08-24 21:46:27] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:46:27] Total Memory: 2022Mi / 4096Mi (49%)
-[2025-08-24 21:46:37] Pod: kafka-0 Memory: 392Mi
-[2025-08-24 21:46:38] Pod: kafka-1 Memory: 404Mi
-[2025-08-24 21:46:38] Pod: kafka-2 Memory: 416Mi
-[2025-08-24 21:46:38] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 530Mi
-[2025-08-24 21:46:38] Pod: postgresql-0 Memory: 59Mi
-[2025-08-24 21:46:38] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:46:38] Total Memory: 2034Mi / 4096Mi (49%)
-[2025-08-24 21:46:49] Pod: kafka-0 Memory: 393Mi
-[2025-08-24 21:46:49] Pod: kafka-1 Memory: 405Mi
-[2025-08-24 21:46:49] Pod: kafka-2 Memory: 417Mi
-[2025-08-24 21:46:49] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 531Mi
-[2025-08-24 21:46:50] Pod: postgresql-0 Memory: 63Mi
-[2025-08-24 21:46:50] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:46:50] Total Memory: 2042Mi / 4096Mi (49%)
-[2025-08-24 21:47:00] Pod: kafka-0 Memory: 393Mi
-[2025-08-24 21:47:00] Pod: kafka-1 Memory: 405Mi
-[2025-08-24 21:47:01] Pod: kafka-2 Memory: 417Mi
-[2025-08-24 21:47:01] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 531Mi
-[2025-08-24 21:47:01] Pod: postgresql-0 Memory: 63Mi
-[2025-08-24 21:47:01] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:47:01] Total Memory: 2042Mi / 4096Mi (49%)
-[2025-08-24 21:47:12] Pod: kafka-0 Memory: 394Mi
-[2025-08-24 21:47:12] Pod: kafka-1 Memory: 405Mi
-[2025-08-24 21:47:12] Pod: kafka-2 Memory: 417Mi
-[2025-08-24 21:47:12] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 532Mi
-[2025-08-24 21:47:12] Pod: postgresql-0 Memory: 63Mi
-[2025-08-24 21:47:12] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:47:12] Total Memory: 2044Mi / 4096Mi (49%)
-[2025-08-24 21:47:23] Pod: kafka-0 Memory: 394Mi
-[2025-08-24 21:47:23] Pod: kafka-1 Memory: 406Mi
-[2025-08-24 21:47:23] Pod: kafka-2 Memory: 417Mi
-[2025-08-24 21:47:23] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 532Mi
-[2025-08-24 21:47:24] Pod: postgresql-0 Memory: 66Mi
-[2025-08-24 21:47:24] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:47:24] Total Memory: 2048Mi / 4096Mi (50%)
-[2025-08-24 21:47:34] Pod: kafka-0 Memory: 395Mi
-[2025-08-24 21:47:34] Pod: kafka-1 Memory: 406Mi
-[2025-08-24 21:47:35] Pod: kafka-2 Memory: 417Mi
-[2025-08-24 21:47:35] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 532Mi
-[2025-08-24 21:47:35] Pod: postgresql-0 Memory: 69Mi
-[2025-08-24 21:47:35] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:47:35] Total Memory: 2052Mi / 4096Mi (50%)
-[2025-08-24 21:47:45] Pod: kafka-0 Memory: 395Mi
-[2025-08-24 21:47:46] Pod: kafka-1 Memory: 406Mi
-[2025-08-24 21:47:46] Pod: kafka-2 Memory: 417Mi
-[2025-08-24 21:47:46] Pod: kafka-connect-7c45ccc44-v4n5q Memory: 532Mi
-[2025-08-24 21:47:46] Pod: postgresql-0 Memory: 69Mi
-[2025-08-24 21:47:46] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:47:46] Total Memory: 2052Mi / 4096Mi (50%)
-[2025-08-24 21:47:57] Pod: kafka-0 Memory: 395Mi
-[2025-08-24 21:47:57] Pod: kafka-1 Memory: 409Mi
-[2025-08-24 21:47:57] Pod: kafka-2 Memory: 418Mi
-[2025-08-24 21:47:57] Pod: postgresql-0 Memory: 68Mi
-[2025-08-24 21:47:57] Pod: schema-registry-7996d6869-wztdh Memory: 233Mi
-[2025-08-24 21:47:57] Total Memory: 1523Mi / 4096Mi (37%)
-[2025-08-24 21:48:08] Pod: kafka-0 Memory: 395Mi
-[2025-08-24 21:48:08] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:48:08] Total Memory: 812Mi / 4096Mi (19%)
-[2025-08-24 21:48:19] Pod: kafka-0 Memory: 402Mi
-[2025-08-24 21:48:19] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:48:19] Total Memory: 819Mi / 4096Mi (19%)
-[2025-08-24 21:48:29] Pod: kafka-0 Memory: 402Mi
-[2025-08-24 21:48:29] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:48:29] Total Memory: 819Mi / 4096Mi (19%)
-[2025-08-24 21:48:40] Pod: kafka-0 Memory: 400Mi
-[2025-08-24 21:48:40] Pod: kafka-1 Memory: 421Mi
-[2025-08-24 21:48:40] Pod: postgresql-0 Memory: 31Mi
-[2025-08-24 21:48:40] Total Memory: 852Mi / 4096Mi (20%)
-[2025-08-24 21:48:51] Pod: kafka-0 Memory: 400Mi
-[2025-08-24 21:48:51] Pod: kafka-1 Memory: 421Mi
-[2025-08-24 21:48:51] Pod: postgresql-0 Memory: 31Mi
-[2025-08-24 21:48:51] Total Memory: 852Mi / 4096Mi (20%)
-[2025-08-24 21:49:01] Pod: kafka-0 Memory: 406Mi
-[2025-08-24 21:49:02] Pod: kafka-1 Memory: 421Mi
-[2025-08-24 21:49:02] Pod: kafka-2 Memory: 316Mi
-[2025-08-24 21:49:02] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:49:02] Total Memory: 1176Mi / 4096Mi (28%)
-[2025-08-24 21:49:12] Pod: kafka-0 Memory: 406Mi
-[2025-08-24 21:49:12] Pod: kafka-1 Memory: 421Mi
-[2025-08-24 21:49:13] Pod: kafka-2 Memory: 316Mi
-[2025-08-24 21:49:13] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:49:13] Total Memory: 1176Mi / 4096Mi (28%)
-[2025-08-24 21:49:23] Pod: kafka-0 Memory: 411Mi
-[2025-08-24 21:49:23] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:49:24] Pod: kafka-2 Memory: 307Mi
-[2025-08-24 21:49:24] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:49:24] Total Memory: 1168Mi / 4096Mi (28%)
-[2025-08-24 21:49:34] Pod: kafka-0 Memory: 412Mi
-[2025-08-24 21:49:34] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:49:35] Pod: kafka-2 Memory: 313Mi
-[2025-08-24 21:49:35] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:49:35] Pod: schema-registry-7996d6869-2tw5t Memory: 146Mi
-[2025-08-24 21:49:35] Total Memory: 1321Mi / 4096Mi (32%)
-[2025-08-24 21:49:45] Pod: kafka-0 Memory: 412Mi
-[2025-08-24 21:49:46] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:49:46] Pod: kafka-2 Memory: 313Mi
-[2025-08-24 21:49:46] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:49:46] Pod: schema-registry-7996d6869-2tw5t Memory: 146Mi
-[2025-08-24 21:49:46] Total Memory: 1321Mi / 4096Mi (32%)
-[2025-08-24 21:49:56] Pod: kafka-0 Memory: 412Mi
-[2025-08-24 21:49:57] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:49:57] Pod: kafka-2 Memory: 313Mi
-[2025-08-24 21:49:57] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:49:57] Pod: schema-registry-7996d6869-2tw5t Memory: 189Mi
-[2025-08-24 21:49:57] Total Memory: 1364Mi / 4096Mi (33%)
-[2025-08-24 21:50:08] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:50:08] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:50:08] Pod: kafka-2 Memory: 314Mi
-[2025-08-24 21:50:08] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:50:08] Pod: schema-registry-7996d6869-2tw5t Memory: 211Mi
-[2025-08-24 21:50:08] Total Memory: 1388Mi / 4096Mi (33%)
-[2025-08-24 21:50:19] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:50:19] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:50:19] Pod: kafka-2 Memory: 315Mi
-[2025-08-24 21:50:19] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:50:19] Pod: schema-registry-7996d6869-2tw5t Memory: 211Mi
-[2025-08-24 21:50:19] Total Memory: 1389Mi / 4096Mi (33%)
-[2025-08-24 21:50:30] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:50:30] Pod: kafka-1 Memory: 417Mi
-[2025-08-24 21:50:30] Pod: kafka-2 Memory: 315Mi
-[2025-08-24 21:50:30] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:50:31] Pod: schema-registry-7996d6869-2tw5t Memory: 211Mi
-[2025-08-24 21:50:31] Total Memory: 1389Mi / 4096Mi (33%)
-[2025-08-24 21:50:41] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:50:41] Pod: kafka-1 Memory: 418Mi
-[2025-08-24 21:50:41] Pod: kafka-2 Memory: 315Mi
-[2025-08-24 21:50:41] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 50Mi
-[2025-08-24 21:50:42] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:50:42] Pod: schema-registry-7996d6869-2tw5t Memory: 211Mi
-[2025-08-24 21:50:42] Total Memory: 1440Mi / 4096Mi (35%)
-[2025-08-24 21:50:52] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:50:52] Pod: kafka-1 Memory: 418Mi
-[2025-08-24 21:50:53] Pod: kafka-2 Memory: 316Mi
-[2025-08-24 21:50:53] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 244Mi
-[2025-08-24 21:50:53] Pod: postgresql-0 Memory: 33Mi
-[2025-08-24 21:50:53] Pod: schema-registry-7996d6869-2tw5t Memory: 212Mi
-[2025-08-24 21:50:53] Total Memory: 1636Mi / 4096Mi (39%)
-[2025-08-24 21:51:04] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:51:04] Pod: kafka-1 Memory: 418Mi
-[2025-08-24 21:51:04] Pod: kafka-2 Memory: 319Mi
-[2025-08-24 21:51:04] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 244Mi
-[2025-08-24 21:51:04] Pod: postgresql-0 Memory: 37Mi
-[2025-08-24 21:51:04] Pod: schema-registry-7996d6869-2tw5t Memory: 212Mi
-[2025-08-24 21:51:04] Total Memory: 1643Mi / 4096Mi (40%)
-[2025-08-24 21:51:15] Pod: kafka-0 Memory: 413Mi
-[2025-08-24 21:51:15] Pod: kafka-1 Memory: 418Mi
-[2025-08-24 21:51:15] Pod: kafka-2 Memory: 319Mi
-[2025-08-24 21:51:15] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 244Mi
-[2025-08-24 21:51:15] Pod: postgresql-0 Memory: 37Mi
-[2025-08-24 21:51:16] Pod: schema-registry-7996d6869-2tw5t Memory: 212Mi
-[2025-08-24 21:51:16] Total Memory: 1643Mi / 4096Mi (40%)
-[2025-08-24 21:51:26] Pod: kafka-0 Memory: 416Mi
-[2025-08-24 21:51:26] Pod: kafka-1 Memory: 419Mi
-[2025-08-24 21:51:26] Pod: kafka-2 Memory: 319Mi
-[2025-08-24 21:51:27] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 415Mi
-[2025-08-24 21:51:27] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:51:27] Pod: schema-registry-7996d6869-2tw5t Memory: 221Mi
-[2025-08-24 21:51:27] Total Memory: 1830Mi / 4096Mi (44%)
-[2025-08-24 21:51:37] Pod: kafka-0 Memory: 417Mi
-[2025-08-24 21:51:37] Pod: kafka-1 Memory: 424Mi
-[2025-08-24 21:51:38] Pod: kafka-2 Memory: 320Mi
-[2025-08-24 21:51:38] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 512Mi
-[2025-08-24 21:51:38] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:51:38] Pod: schema-registry-7996d6869-2tw5t Memory: 221Mi
-[2025-08-24 21:51:38] Total Memory: 1934Mi / 4096Mi (47%)
-[2025-08-24 21:51:49] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:51:49] Pod: kafka-1 Memory: 423Mi
-[2025-08-24 21:51:49] Pod: kafka-2 Memory: 320Mi
-[2025-08-24 21:51:49] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 513Mi
-[2025-08-24 21:51:49] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:51:49] Pod: schema-registry-7996d6869-2tw5t Memory: 221Mi
-[2025-08-24 21:51:49] Total Memory: 1935Mi / 4096Mi (47%)
-[2025-08-24 21:52:00] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:52:00] Pod: kafka-1 Memory: 423Mi
-[2025-08-24 21:52:00] Pod: kafka-2 Memory: 320Mi
-[2025-08-24 21:52:00] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 513Mi
-[2025-08-24 21:52:00] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:52:01] Pod: schema-registry-7996d6869-2tw5t Memory: 221Mi
-[2025-08-24 21:52:01] Total Memory: 1935Mi / 4096Mi (47%)
-[2025-08-24 21:52:11] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:52:11] Pod: kafka-1 Memory: 423Mi
-[2025-08-24 21:52:11] Pod: kafka-2 Memory: 336Mi
-[2025-08-24 21:52:12] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 526Mi
-[2025-08-24 21:52:12] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:52:12] Pod: schema-registry-7996d6869-2tw5t Memory: 221Mi
-[2025-08-24 21:52:12] Total Memory: 1964Mi / 4096Mi (47%)
-[2025-08-24 21:52:22] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:52:23] Pod: kafka-1 Memory: 424Mi
-[2025-08-24 21:52:23] Pod: kafka-2 Memory: 324Mi
-[2025-08-24 21:52:23] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 515Mi
-[2025-08-24 21:52:23] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:52:23] Pod: schema-registry-7996d6869-2tw5t Memory: 222Mi
-[2025-08-24 21:52:23] Total Memory: 1943Mi / 4096Mi (47%)
-[2025-08-24 21:52:34] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:52:34] Pod: kafka-1 Memory: 424Mi
-[2025-08-24 21:52:34] Pod: kafka-2 Memory: 324Mi
-[2025-08-24 21:52:34] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 514Mi
-[2025-08-24 21:52:34] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:52:34] Pod: schema-registry-7996d6869-2tw5t Memory: 227Mi
-[2025-08-24 21:52:34] Total Memory: 1947Mi / 4096Mi (47%)
-[2025-08-24 21:52:45] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:52:45] Pod: kafka-1 Memory: 424Mi
-[2025-08-24 21:52:45] Pod: kafka-2 Memory: 324Mi
-[2025-08-24 21:52:45] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 514Mi
-[2025-08-24 21:52:45] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:52:45] Pod: schema-registry-7996d6869-2tw5t Memory: 227Mi
-[2025-08-24 21:52:45] Total Memory: 1947Mi / 4096Mi (47%)
-[2025-08-24 21:52:56] Pod: kafka-0 Memory: 418Mi
-[2025-08-24 21:52:56] Pod: kafka-1 Memory: 424Mi
-[2025-08-24 21:52:56] Pod: kafka-2 Memory: 324Mi
-[2025-08-24 21:52:56] Pod: kafka-connect-7c45ccc44-6rgsf Memory: 515Mi
-[2025-08-24 21:52:56] Pod: postgresql-0 Memory: 40Mi
-[2025-08-24 21:52:56] Pod: schema-registry-7996d6869-2tw5t Memory: 228Mi
-[2025-08-24 21:52:56] Total Memory: 1949Mi / 4096Mi (47%)
+[2025-08-26 16:11:04] Starting memory monitoring for Task 8 validation
+[2025-08-26 16:11:05] Pod: kafka-0 Memory: 369Mi
+[2025-08-26 16:11:05] Pod: kafka-1 Memory: 367Mi
+[2025-08-26 16:11:05] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:11:05] Pod: kafka-connect-6bcdf9674-l5knd Memory: 568Mi
+[2025-08-26 16:11:05] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:11:05] Pod: schema-registry-7996d6869-6whh7 Memory: 251Mi
+[2025-08-26 16:11:06] Total Memory: 1979Mi / 4096Mi (48%)
+[2025-08-26 16:11:16] Pod: kafka-0 Memory: 369Mi
+[2025-08-26 16:11:16] Pod: kafka-1 Memory: 378Mi
+[2025-08-26 16:11:16] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:11:16] Pod: kafka-connect-6bcdf9674-l5knd Memory: 699Mi
+[2025-08-26 16:11:17] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:11:17] Pod: schema-registry-7996d6869-6whh7 Memory: 257Mi
+[2025-08-26 16:11:17] Total Memory: 2127Mi / 4096Mi (51%)
+[2025-08-26 16:11:27] Pod: kafka-0 Memory: 369Mi
+[2025-08-26 16:11:27] Pod: kafka-1 Memory: 378Mi
+[2025-08-26 16:11:27] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:11:28] Pod: kafka-connect-6bcdf9674-l5knd Memory: 699Mi
+[2025-08-26 16:11:28] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:11:28] Pod: schema-registry-7996d6869-6whh7 Memory: 257Mi
+[2025-08-26 16:11:28] Total Memory: 2127Mi / 4096Mi (51%)
+[2025-08-26 16:11:38] Pod: kafka-0 Memory: 369Mi
+[2025-08-26 16:11:38] Pod: kafka-1 Memory: 378Mi
+[2025-08-26 16:11:39] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:11:39] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:11:39] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:11:39] Pod: schema-registry-7996d6869-6whh7 Memory: 257Mi
+[2025-08-26 16:11:39] Total Memory: 2131Mi / 4096Mi (52%)
+[2025-08-26 16:11:50] Pod: kafka-0 Memory: 371Mi
+[2025-08-26 16:11:50] Pod: kafka-1 Memory: 379Mi
+[2025-08-26 16:11:50] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:11:50] Pod: kafka-connect-6bcdf9674-l5knd Memory: 699Mi
+[2025-08-26 16:11:50] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:11:50] Pod: schema-registry-7996d6869-6whh7 Memory: 257Mi
+[2025-08-26 16:11:50] Total Memory: 2130Mi / 4096Mi (52%)
+[2025-08-26 16:12:01] Pod: kafka-0 Memory: 371Mi
+[2025-08-26 16:12:01] Pod: kafka-1 Memory: 379Mi
+[2025-08-26 16:12:01] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:12:01] Pod: kafka-connect-6bcdf9674-l5knd Memory: 727Mi
+[2025-08-26 16:12:01] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:12:02] Pod: schema-registry-7996d6869-6whh7 Memory: 257Mi
+[2025-08-26 16:12:02] Total Memory: 2158Mi / 4096Mi (52%)
+[2025-08-26 16:12:12] Pod: kafka-0 Memory: 371Mi
+[2025-08-26 16:12:12] Pod: kafka-1 Memory: 379Mi
+[2025-08-26 16:12:12] Pod: kafka-2 Memory: 369Mi
+[2025-08-26 16:12:13] Pod: kafka-connect-6bcdf9674-l5knd Memory: 727Mi
+[2025-08-26 16:12:13] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:12:13] Pod: schema-registry-7996d6869-6whh7 Memory: 257Mi
+[2025-08-26 16:12:13] Total Memory: 2158Mi / 4096Mi (52%)
+[2025-08-26 16:12:23] Pod: kafka-0 Memory: 374Mi
+[2025-08-26 16:12:24] Pod: kafka-1 Memory: 381Mi
+[2025-08-26 16:12:24] Pod: kafka-2 Memory: 372Mi
+[2025-08-26 16:12:24] Pod: kafka-connect-6bcdf9674-l5knd Memory: 727Mi
+[2025-08-26 16:12:24] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:12:24] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:12:24] Total Memory: 2167Mi / 4096Mi (52%)
+[2025-08-26 16:12:35] Pod: kafka-0 Memory: 374Mi
+[2025-08-26 16:12:35] Pod: kafka-1 Memory: 381Mi
+[2025-08-26 16:12:35] Pod: kafka-2 Memory: 373Mi
+[2025-08-26 16:12:35] Pod: kafka-connect-6bcdf9674-l5knd Memory: 700Mi
+[2025-08-26 16:12:35] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:12:35] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:12:35] Total Memory: 2141Mi / 4096Mi (52%)
+[2025-08-26 16:12:46] Pod: kafka-0 Memory: 375Mi
+[2025-08-26 16:12:46] Pod: kafka-1 Memory: 381Mi
+[2025-08-26 16:12:46] Pod: kafka-2 Memory: 373Mi
+[2025-08-26 16:12:46] Pod: kafka-connect-6bcdf9674-l5knd Memory: 700Mi
+[2025-08-26 16:12:46] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:12:47] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:12:47] Total Memory: 2142Mi / 4096Mi (52%)
+[2025-08-26 16:12:57] Pod: kafka-0 Memory: 375Mi
+[2025-08-26 16:12:57] Pod: kafka-1 Memory: 381Mi
+[2025-08-26 16:12:57] Pod: kafka-2 Memory: 373Mi
+[2025-08-26 16:12:58] Pod: kafka-connect-6bcdf9674-l5knd Memory: 700Mi
+[2025-08-26 16:12:58] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:12:58] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:12:58] Total Memory: 2142Mi / 4096Mi (52%)
+[2025-08-26 16:13:08] Pod: kafka-0 Memory: 375Mi
+[2025-08-26 16:13:08] Pod: kafka-1 Memory: 381Mi
+[2025-08-26 16:13:09] Pod: kafka-2 Memory: 378Mi
+[2025-08-26 16:13:09] Pod: kafka-connect-6bcdf9674-l5knd Memory: 700Mi
+[2025-08-26 16:13:09] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:13:09] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:13:09] Total Memory: 2147Mi / 4096Mi (52%)
+[2025-08-26 16:13:20] Pod: kafka-0 Memory: 374Mi
+[2025-08-26 16:13:20] Pod: kafka-1 Memory: 384Mi
+[2025-08-26 16:13:20] Pod: kafka-2 Memory: 394Mi
+[2025-08-26 16:13:20] Pod: kafka-connect-6bcdf9674-l5knd Memory: 700Mi
+[2025-08-26 16:13:20] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:13:20] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:13:20] Total Memory: 2165Mi / 4096Mi (52%)
+[2025-08-26 16:13:31] Pod: kafka-0 Memory: 488Mi
+[2025-08-26 16:13:31] Pod: kafka-1 Memory: 384Mi
+[2025-08-26 16:13:31] Pod: kafka-2 Memory: 394Mi
+[2025-08-26 16:13:31] Pod: kafka-connect-6bcdf9674-l5knd Memory: 702Mi
+[2025-08-26 16:13:31] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:13:32] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:13:32] Total Memory: 2281Mi / 4096Mi (55%)
+[2025-08-26 16:13:42] Pod: kafka-0 Memory: 488Mi
+[2025-08-26 16:13:42] Pod: kafka-1 Memory: 384Mi
+[2025-08-26 16:13:42] Pod: kafka-2 Memory: 394Mi
+[2025-08-26 16:13:42] Pod: kafka-connect-6bcdf9674-l5knd Memory: 702Mi
+[2025-08-26 16:13:43] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:13:43] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:13:43] Total Memory: 2281Mi / 4096Mi (55%)
+[2025-08-26 16:13:53] Pod: kafka-0 Memory: 395Mi
+[2025-08-26 16:13:53] Pod: kafka-1 Memory: 384Mi
+[2025-08-26 16:13:54] Pod: kafka-2 Memory: 394Mi
+[2025-08-26 16:13:54] Pod: kafka-connect-6bcdf9674-l5knd Memory: 702Mi
+[2025-08-26 16:13:54] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:13:54] Pod: schema-registry-7996d6869-6whh7 Memory: 258Mi
+[2025-08-26 16:13:54] Total Memory: 2188Mi / 4096Mi (53%)
+[2025-08-26 16:14:05] Pod: kafka-0 Memory: 402Mi
+[2025-08-26 16:14:05] Pod: kafka-1 Memory: 386Mi
+[2025-08-26 16:14:05] Pod: kafka-2 Memory: 394Mi
+[2025-08-26 16:14:05] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:14:05] Pod: postgresql-0 Memory: 55Mi
+[2025-08-26 16:14:05] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:14:05] Total Memory: 2200Mi / 4096Mi (53%)
+[2025-08-26 16:14:16] Pod: kafka-0 Memory: 403Mi
+[2025-08-26 16:14:16] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:14:16] Pod: kafka-2 Memory: 395Mi
+[2025-08-26 16:14:16] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:14:16] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:14:16] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:14:17] Total Memory: 2203Mi / 4096Mi (53%)
+[2025-08-26 16:14:27] Pod: kafka-0 Memory: 403Mi
+[2025-08-26 16:14:27] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:14:27] Pod: kafka-2 Memory: 395Mi
+[2025-08-26 16:14:27] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:14:28] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:14:28] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:14:28] Total Memory: 2203Mi / 4096Mi (53%)
+[2025-08-26 16:14:38] Pod: kafka-0 Memory: 403Mi
+[2025-08-26 16:14:38] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:14:38] Pod: kafka-2 Memory: 403Mi
+[2025-08-26 16:14:39] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:14:39] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:14:39] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:14:39] Total Memory: 2211Mi / 4096Mi (53%)
+[2025-08-26 16:14:49] Pod: kafka-0 Memory: 403Mi
+[2025-08-26 16:14:50] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:14:50] Pod: kafka-2 Memory: 403Mi
+[2025-08-26 16:14:50] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:14:50] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:14:50] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:14:50] Total Memory: 2211Mi / 4096Mi (53%)
+[2025-08-26 16:15:01] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:15:01] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:15:01] Pod: kafka-2 Memory: 404Mi
+[2025-08-26 16:15:01] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:15:01] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:15:01] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:15:02] Total Memory: 2213Mi / 4096Mi (54%)
+[2025-08-26 16:15:12] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:15:12] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:15:12] Pod: kafka-2 Memory: 404Mi
+[2025-08-26 16:15:12] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:15:13] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:15:13] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:15:13] Total Memory: 2213Mi / 4096Mi (54%)
+[2025-08-26 16:15:23] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:15:23] Pod: kafka-1 Memory: 388Mi
+[2025-08-26 16:15:24] Pod: kafka-2 Memory: 404Mi
+[2025-08-26 16:15:24] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:15:24] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:15:24] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:15:24] Total Memory: 2213Mi / 4096Mi (54%)
+[2025-08-26 16:15:35] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:15:35] Pod: kafka-1 Memory: 386Mi
+[2025-08-26 16:15:35] Pod: kafka-2 Memory: 404Mi
+[2025-08-26 16:15:35] Pod: kafka-connect-6bcdf9674-l5knd Memory: 703Mi
+[2025-08-26 16:15:35] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:15:35] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:15:35] Total Memory: 2211Mi / 4096Mi (53%)
+[2025-08-26 16:15:46] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:15:46] Pod: kafka-1 Memory: 386Mi
+[2025-08-26 16:15:46] Pod: kafka-2 Memory: 406Mi
+[2025-08-26 16:15:46] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:15:46] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:15:47] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:15:47] Total Memory: 2214Mi / 4096Mi (54%)
+[2025-08-26 16:15:57] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:15:57] Pod: kafka-1 Memory: 386Mi
+[2025-08-26 16:15:57] Pod: kafka-2 Memory: 406Mi
+[2025-08-26 16:15:57] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:15:58] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:15:58] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:15:58] Total Memory: 2214Mi / 4096Mi (54%)
+[2025-08-26 16:16:08] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:16:08] Pod: kafka-1 Memory: 387Mi
+[2025-08-26 16:16:08] Pod: kafka-2 Memory: 406Mi
+[2025-08-26 16:16:09] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:16:09] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:16:09] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:16:09] Total Memory: 2215Mi / 4096Mi (54%)
+[2025-08-26 16:16:19] Pod: kafka-0 Memory: 404Mi
+[2025-08-26 16:16:20] Pod: kafka-1 Memory: 389Mi
+[2025-08-26 16:16:20] Pod: kafka-2 Memory: 406Mi
+[2025-08-26 16:16:20] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:16:20] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:16:20] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:16:20] Total Memory: 2217Mi / 4096Mi (54%)
+[2025-08-26 16:16:31] Pod: kafka-0 Memory: 406Mi
+[2025-08-26 16:16:31] Pod: kafka-1 Memory: 389Mi
+[2025-08-26 16:16:31] Pod: kafka-2 Memory: 407Mi
+[2025-08-26 16:16:31] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:16:31] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:16:31] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:16:31] Total Memory: 2220Mi / 4096Mi (54%)
+[2025-08-26 16:16:42] Pod: kafka-0 Memory: 406Mi
+[2025-08-26 16:16:42] Pod: kafka-1 Memory: 389Mi
+[2025-08-26 16:16:42] Pod: kafka-2 Memory: 407Mi
+[2025-08-26 16:16:42] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:16:43] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:16:43] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:16:43] Total Memory: 2220Mi / 4096Mi (54%)
+[2025-08-26 16:16:53] Pod: kafka-0 Memory: 406Mi
+[2025-08-26 16:16:54] Pod: kafka-1 Memory: 391Mi
+[2025-08-26 16:16:54] Pod: kafka-2 Memory: 407Mi
+[2025-08-26 16:16:54] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:16:54] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:16:54] Pod: schema-registry-7996d6869-6whh7 Memory: 260Mi
+[2025-08-26 16:16:54] Total Memory: 2222Mi / 4096Mi (54%)
+[2025-08-26 16:17:05] Pod: kafka-0 Memory: 406Mi
+[2025-08-26 16:17:05] Pod: kafka-1 Memory: 391Mi
+[2025-08-26 16:17:05] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:17:05] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:17:06] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:17:06] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:17:06] Total Memory: 2226Mi / 4096Mi (54%)
+[2025-08-26 16:17:16] Pod: kafka-0 Memory: 406Mi
+[2025-08-26 16:17:16] Pod: kafka-1 Memory: 391Mi
+[2025-08-26 16:17:17] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:17:17] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:17:17] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:17:17] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:17:17] Total Memory: 2226Mi / 4096Mi (54%)
+[2025-08-26 16:17:28] Pod: kafka-0 Memory: 406Mi
+[2025-08-26 16:17:28] Pod: kafka-1 Memory: 391Mi
+[2025-08-26 16:17:28] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:17:28] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:17:28] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:17:28] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:17:28] Total Memory: 2226Mi / 4096Mi (54%)
+[2025-08-26 16:17:39] Pod: kafka-0 Memory: 407Mi
+[2025-08-26 16:17:39] Pod: kafka-1 Memory: 392Mi
+[2025-08-26 16:17:39] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:17:39] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:17:39] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:17:40] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:17:40] Total Memory: 2228Mi / 4096Mi (54%)
+[2025-08-26 16:17:50] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:17:50] Pod: kafka-1 Memory: 392Mi
+[2025-08-26 16:17:50] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:17:50] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:17:51] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:17:51] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:17:51] Total Memory: 2229Mi / 4096Mi (54%)
+[2025-08-26 16:18:01] Pod: kafka-0 Memory: 407Mi
+[2025-08-26 16:18:01] Pod: kafka-1 Memory: 393Mi
+[2025-08-26 16:18:01] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:18:02] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:18:02] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:18:02] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:18:02] Total Memory: 2229Mi / 4096Mi (54%)
+[2025-08-26 16:18:12] Pod: kafka-0 Memory: 407Mi
+[2025-08-26 16:18:13] Pod: kafka-1 Memory: 393Mi
+[2025-08-26 16:18:13] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:18:13] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:18:13] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:18:13] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:18:13] Total Memory: 2229Mi / 4096Mi (54%)
+[2025-08-26 16:18:24] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:18:24] Pod: kafka-1 Memory: 394Mi
+[2025-08-26 16:18:24] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:18:24] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:18:24] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:18:24] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:18:24] Total Memory: 2231Mi / 4096Mi (54%)
+[2025-08-26 16:18:35] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:18:35] Pod: kafka-1 Memory: 396Mi
+[2025-08-26 16:18:35] Pod: kafka-2 Memory: 409Mi
+[2025-08-26 16:18:35] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:18:36] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:18:36] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:18:36] Total Memory: 2233Mi / 4096Mi (54%)
+[2025-08-26 16:18:46] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:18:46] Pod: kafka-1 Memory: 396Mi
+[2025-08-26 16:18:47] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:18:47] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:18:47] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:18:47] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:18:47] Total Memory: 2234Mi / 4096Mi (54%)
+[2025-08-26 16:18:58] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:18:58] Pod: kafka-1 Memory: 396Mi
+[2025-08-26 16:18:58] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:18:58] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:18:58] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:18:58] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:18:58] Total Memory: 2234Mi / 4096Mi (54%)
+[2025-08-26 16:19:09] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:19:09] Pod: kafka-1 Memory: 396Mi
+[2025-08-26 16:19:09] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:19:09] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:19:09] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:19:09] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:19:09] Total Memory: 2234Mi / 4096Mi (54%)
+[2025-08-26 16:19:20] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:19:20] Pod: kafka-1 Memory: 397Mi
+[2025-08-26 16:19:20] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:19:20] Pod: kafka-connect-6bcdf9674-l5knd Memory: 704Mi
+[2025-08-26 16:19:21] Pod: postgresql-0 Memory: 54Mi
+[2025-08-26 16:19:21] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:19:21] Total Memory: 2235Mi / 4096Mi (54%)
+[2025-08-26 16:19:31] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:19:31] Pod: kafka-1 Memory: 397Mi
+[2025-08-26 16:19:31] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:19:32] Pod: kafka-connect-6bcdf9674-l5knd Memory: 707Mi
+[2025-08-26 16:19:32] Pod: postgresql-0 Memory: 58Mi
+[2025-08-26 16:19:32] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:19:32] Total Memory: 2242Mi / 4096Mi (54%)
+[2025-08-26 16:19:42] Pod: kafka-0 Memory: 408Mi
+[2025-08-26 16:19:43] Pod: kafka-1 Memory: 397Mi
+[2025-08-26 16:19:43] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:19:43] Pod: kafka-connect-6bcdf9674-l5knd Memory: 707Mi
+[2025-08-26 16:19:43] Pod: postgresql-0 Memory: 58Mi
+[2025-08-26 16:19:43] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:19:43] Total Memory: 2242Mi / 4096Mi (54%)
+[2025-08-26 16:19:54] Pod: kafka-0 Memory: 409Mi
+[2025-08-26 16:19:54] Pod: kafka-1 Memory: 397Mi
+[2025-08-26 16:19:54] Pod: kafka-2 Memory: 410Mi
+[2025-08-26 16:19:54] Pod: kafka-connect-6bcdf9674-l5knd Memory: 707Mi
+[2025-08-26 16:19:54] Pod: postgresql-0 Memory: 62Mi
+[2025-08-26 16:19:55] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:19:55] Total Memory: 2247Mi / 4096Mi (54%)
+[2025-08-26 16:20:05] Pod: kafka-0 Memory: 409Mi
+[2025-08-26 16:20:05] Pod: kafka-1 Memory: 399Mi
+[2025-08-26 16:20:05] Pod: kafka-2 Memory: 411Mi
+[2025-08-26 16:20:06] Pod: kafka-connect-6bcdf9674-l5knd Memory: 708Mi
+[2025-08-26 16:20:06] Pod: postgresql-0 Memory: 65Mi
+[2025-08-26 16:20:06] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:20:06] Total Memory: 2254Mi / 4096Mi (55%)
+[2025-08-26 16:20:16] Pod: kafka-0 Memory: 409Mi
+[2025-08-26 16:20:17] Pod: kafka-1 Memory: 401Mi
+[2025-08-26 16:20:17] Pod: kafka-2 Memory: 412Mi
+[2025-08-26 16:20:17] Pod: kafka-connect-6bcdf9674-l5knd Memory: 709Mi
+[2025-08-26 16:20:17] Pod: postgresql-0 Memory: 68Mi
+[2025-08-26 16:20:17] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:20:17] Total Memory: 2261Mi / 4096Mi (55%)
+[2025-08-26 16:20:28] Pod: kafka-0 Memory: 409Mi
+[2025-08-26 16:20:28] Pod: kafka-1 Memory: 401Mi
+[2025-08-26 16:20:28] Pod: kafka-2 Memory: 412Mi
+[2025-08-26 16:20:28] Pod: kafka-connect-6bcdf9674-l5knd Memory: 709Mi
+[2025-08-26 16:20:28] Pod: postgresql-0 Memory: 68Mi
+[2025-08-26 16:20:28] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:20:28] Total Memory: 2261Mi / 4096Mi (55%)
+[2025-08-26 16:20:39] Pod: kafka-0 Memory: 409Mi
+[2025-08-26 16:20:39] Pod: kafka-1 Memory: 402Mi
+[2025-08-26 16:20:39] Pod: kafka-2 Memory: 412Mi
+[2025-08-26 16:20:39] Pod: kafka-connect-6bcdf9674-l5knd Memory: 709Mi
+[2025-08-26 16:20:39] Pod: postgresql-0 Memory: 68Mi
+[2025-08-26 16:20:40] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:20:40] Total Memory: 2262Mi / 4096Mi (55%)
+[2025-08-26 16:20:50] Pod: kafka-0 Memory: 409Mi
+[2025-08-26 16:20:50] Pod: kafka-1 Memory: 402Mi
+[2025-08-26 16:20:50] Pod: kafka-2 Memory: 412Mi
+[2025-08-26 16:20:51] Pod: kafka-connect-6bcdf9674-l5knd Memory: 709Mi
+[2025-08-26 16:20:51] Pod: postgresql-0 Memory: 68Mi
+[2025-08-26 16:20:51] Pod: schema-registry-7996d6869-6whh7 Memory: 262Mi
+[2025-08-26 16:20:51] Total Memory: 2262Mi / 4096Mi (55%)
+[2025-08-26 16:21:01] Pod: kafka-0 Memory: 464Mi
+[2025-08-26 16:21:02] Pod: kafka-1 Memory: 402Mi
+[2025-08-26 16:21:02] Pod: kafka-2 Memory: 412Mi
+[2025-08-26 16:21:02] Pod: postgresql-0 Memory: 68Mi
+[2025-08-26 16:21:02] Total Memory: 1346Mi / 4096Mi (32%)
+[2025-08-26 16:21:12] Pod: kafka-0 Memory: 464Mi
+[2025-08-26 16:21:12] Pod: kafka-1 Memory: 402Mi
+[2025-08-26 16:21:12] Total Memory: 866Mi / 4096Mi (21%)
+[2025-08-26 16:21:23] Pod: kafka-0 Memory: 416Mi
+[2025-08-26 16:21:23] Pod: kafka-1 Memory: 402Mi
+[2025-08-26 16:21:23] Total Memory: 818Mi / 4096Mi (19%)
+[2025-08-26 16:21:34] Pod: kafka-0 Memory: 416Mi
+[2025-08-26 16:21:34] Pod: kafka-1 Memory: 403Mi
+[2025-08-26 16:21:34] Pod: postgresql-0 Memory: 31Mi
+[2025-08-26 16:21:34] Total Memory: 850Mi / 4096Mi (20%)
+[2025-08-26 16:21:44] Pod: kafka-0 Memory: 416Mi
+[2025-08-26 16:21:44] Pod: kafka-1 Memory: 403Mi
+[2025-08-26 16:21:45] Pod: postgresql-0 Memory: 31Mi
+[2025-08-26 16:21:45] Total Memory: 850Mi / 4096Mi (20%)
+[2025-08-26 16:21:55] Pod: kafka-0 Memory: 417Mi
+[2025-08-26 16:21:55] Pod: kafka-1 Memory: 405Mi
+[2025-08-26 16:21:55] Pod: postgresql-0 Memory: 31Mi
+[2025-08-26 16:21:55] Total Memory: 853Mi / 4096Mi (20%)
+[2025-08-26 16:22:06] Pod: kafka-0 Memory: 417Mi
+[2025-08-26 16:22:06] Pod: kafka-1 Memory: 405Mi
+[2025-08-26 16:22:06] Pod: kafka-2 Memory: 308Mi
+[2025-08-26 16:22:06] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:22:06] Total Memory: 1163Mi / 4096Mi (28%)
+[2025-08-26 16:22:17] Pod: kafka-0 Memory: 417Mi
+[2025-08-26 16:22:17] Pod: kafka-1 Memory: 405Mi
+[2025-08-26 16:22:17] Pod: kafka-2 Memory: 304Mi
+[2025-08-26 16:22:17] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:22:17] Total Memory: 1159Mi / 4096Mi (28%)
+[2025-08-26 16:22:28] Pod: kafka-0 Memory: 417Mi
+[2025-08-26 16:22:28] Pod: kafka-1 Memory: 405Mi
+[2025-08-26 16:22:28] Pod: kafka-2 Memory: 304Mi
+[2025-08-26 16:22:28] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:22:28] Total Memory: 1159Mi / 4096Mi (28%)
+[2025-08-26 16:22:39] Pod: kafka-0 Memory: 418Mi
+[2025-08-26 16:22:39] Pod: kafka-1 Memory: 405Mi
+[2025-08-26 16:22:39] Pod: kafka-2 Memory: 309Mi
+[2025-08-26 16:22:39] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:22:39] Pod: schema-registry-7996d6869-qdhd9 Memory: 146Mi
+[2025-08-26 16:22:39] Total Memory: 1311Mi / 4096Mi (32%)
+[2025-08-26 16:22:50] Pod: kafka-0 Memory: 420Mi
+[2025-08-26 16:22:50] Pod: kafka-1 Memory: 407Mi
+[2025-08-26 16:22:50] Pod: kafka-2 Memory: 312Mi
+[2025-08-26 16:22:50] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:22:50] Pod: schema-registry-7996d6869-qdhd9 Memory: 226Mi
+[2025-08-26 16:22:50] Total Memory: 1398Mi / 4096Mi (34%)
+[2025-08-26 16:23:01] Pod: kafka-0 Memory: 420Mi
+[2025-08-26 16:23:01] Pod: kafka-1 Memory: 407Mi
+[2025-08-26 16:23:01] Pod: kafka-2 Memory: 313Mi
+[2025-08-26 16:23:01] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:23:01] Pod: schema-registry-7996d6869-qdhd9 Memory: 233Mi
+[2025-08-26 16:23:01] Total Memory: 1406Mi / 4096Mi (34%)
+[2025-08-26 16:23:12] Pod: kafka-0 Memory: 420Mi
+[2025-08-26 16:23:12] Pod: kafka-1 Memory: 407Mi
+[2025-08-26 16:23:12] Pod: kafka-2 Memory: 313Mi
+[2025-08-26 16:23:12] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:23:12] Pod: schema-registry-7996d6869-qdhd9 Memory: 233Mi
+[2025-08-26 16:23:12] Total Memory: 1406Mi / 4096Mi (34%)
+[2025-08-26 16:23:23] Pod: kafka-0 Memory: 420Mi
+[2025-08-26 16:23:23] Pod: kafka-1 Memory: 407Mi
+[2025-08-26 16:23:23] Pod: kafka-2 Memory: 313Mi
+[2025-08-26 16:23:23] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:23:23] Pod: schema-registry-7996d6869-qdhd9 Memory: 233Mi
+[2025-08-26 16:23:23] Total Memory: 1406Mi / 4096Mi (34%)
+[2025-08-26 16:23:34] Pod: kafka-0 Memory: 420Mi
+[2025-08-26 16:23:34] Pod: kafka-1 Memory: 408Mi
+[2025-08-26 16:23:34] Pod: kafka-2 Memory: 313Mi
+[2025-08-26 16:23:34] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 84Mi
+[2025-08-26 16:23:35] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:23:35] Pod: schema-registry-7996d6869-qdhd9 Memory: 234Mi
+[2025-08-26 16:23:35] Total Memory: 1492Mi / 4096Mi (36%)
+[2025-08-26 16:23:45] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:23:45] Pod: kafka-1 Memory: 408Mi
+[2025-08-26 16:23:45] Pod: kafka-2 Memory: 313Mi
+[2025-08-26 16:23:46] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 130Mi
+[2025-08-26 16:23:46] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:23:46] Pod: schema-registry-7996d6869-qdhd9 Memory: 234Mi
+[2025-08-26 16:23:46] Total Memory: 1541Mi / 4096Mi (37%)
+[2025-08-26 16:23:56] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:23:57] Pod: kafka-1 Memory: 408Mi
+[2025-08-26 16:23:57] Pod: kafka-2 Memory: 313Mi
+[2025-08-26 16:23:57] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 130Mi
+[2025-08-26 16:23:57] Pod: postgresql-0 Memory: 33Mi
+[2025-08-26 16:23:57] Pod: schema-registry-7996d6869-qdhd9 Memory: 234Mi
+[2025-08-26 16:23:57] Total Memory: 1541Mi / 4096Mi (37%)
+[2025-08-26 16:24:08] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:24:08] Pod: kafka-1 Memory: 410Mi
+[2025-08-26 16:24:08] Pod: kafka-2 Memory: 320Mi
+[2025-08-26 16:24:08] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 440Mi
+[2025-08-26 16:24:08] Pod: postgresql-0 Memory: 34Mi
+[2025-08-26 16:24:08] Pod: schema-registry-7996d6869-qdhd9 Memory: 234Mi
+[2025-08-26 16:24:08] Total Memory: 1861Mi / 4096Mi (45%)
+[2025-08-26 16:24:19] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:24:19] Pod: kafka-1 Memory: 413Mi
+[2025-08-26 16:24:19] Pod: kafka-2 Memory: 311Mi
+[2025-08-26 16:24:19] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 671Mi
+[2025-08-26 16:24:19] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:24:20] Pod: schema-registry-7996d6869-qdhd9 Memory: 243Mi
+[2025-08-26 16:24:20] Total Memory: 2101Mi / 4096Mi (51%)
+[2025-08-26 16:24:30] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:24:30] Pod: kafka-1 Memory: 414Mi
+[2025-08-26 16:24:30] Pod: kafka-2 Memory: 311Mi
+[2025-08-26 16:24:31] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 672Mi
+[2025-08-26 16:24:31] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:24:31] Pod: schema-registry-7996d6869-qdhd9 Memory: 237Mi
+[2025-08-26 16:24:31] Total Memory: 2097Mi / 4096Mi (51%)
+[2025-08-26 16:24:41] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:24:42] Pod: kafka-1 Memory: 414Mi
+[2025-08-26 16:24:42] Pod: kafka-2 Memory: 311Mi
+[2025-08-26 16:24:42] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 672Mi
+[2025-08-26 16:24:42] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:24:42] Pod: schema-registry-7996d6869-qdhd9 Memory: 237Mi
+[2025-08-26 16:24:42] Total Memory: 2097Mi / 4096Mi (51%)
+[2025-08-26 16:24:53] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:24:53] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:24:53] Pod: kafka-2 Memory: 312Mi
+[2025-08-26 16:24:53] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 673Mi
+[2025-08-26 16:24:53] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:24:53] Pod: schema-registry-7996d6869-qdhd9 Memory: 238Mi
+[2025-08-26 16:24:53] Total Memory: 2102Mi / 4096Mi (51%)
+[2025-08-26 16:25:04] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:25:04] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:25:04] Pod: kafka-2 Memory: 314Mi
+[2025-08-26 16:25:04] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 673Mi
+[2025-08-26 16:25:04] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:25:05] Pod: schema-registry-7996d6869-qdhd9 Memory: 238Mi
+[2025-08-26 16:25:05] Total Memory: 2104Mi / 4096Mi (51%)
+[2025-08-26 16:25:15] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:25:15] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:25:15] Pod: kafka-2 Memory: 322Mi
+[2025-08-26 16:25:16] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 674Mi
+[2025-08-26 16:25:16] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:25:16] Pod: schema-registry-7996d6869-qdhd9 Memory: 238Mi
+[2025-08-26 16:25:16] Total Memory: 2113Mi / 4096Mi (51%)
+[2025-08-26 16:25:26] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:25:27] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:25:27] Pod: kafka-2 Memory: 322Mi
+[2025-08-26 16:25:27] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 674Mi
+[2025-08-26 16:25:27] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:25:27] Pod: schema-registry-7996d6869-qdhd9 Memory: 238Mi
+[2025-08-26 16:25:27] Total Memory: 2113Mi / 4096Mi (51%)
+[2025-08-26 16:25:38] Pod: kafka-0 Memory: 423Mi
+[2025-08-26 16:25:38] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:25:38] Pod: kafka-2 Memory: 325Mi
+[2025-08-26 16:25:38] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 673Mi
+[2025-08-26 16:25:38] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:25:38] Pod: schema-registry-7996d6869-qdhd9 Memory: 238Mi
+[2025-08-26 16:25:38] Total Memory: 2115Mi / 4096Mi (51%)
+[2025-08-26 16:25:49] Pod: kafka-0 Memory: 425Mi
+[2025-08-26 16:25:49] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:25:49] Pod: kafka-2 Memory: 334Mi
+[2025-08-26 16:25:49] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 674Mi
+[2025-08-26 16:25:49] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:25:49] Pod: schema-registry-7996d6869-qdhd9 Memory: 244Mi
+[2025-08-26 16:25:49] Total Memory: 2133Mi / 4096Mi (52%)
+[2025-08-26 16:26:00] Pod: kafka-0 Memory: 425Mi
+[2025-08-26 16:26:00] Pod: kafka-1 Memory: 416Mi
+[2025-08-26 16:26:00] Pod: kafka-2 Memory: 334Mi
+[2025-08-26 16:26:00] Pod: kafka-connect-6bcdf9674-t6lh7 Memory: 674Mi
+[2025-08-26 16:26:01] Pod: postgresql-0 Memory: 40Mi
+[2025-08-26 16:26:01] Pod: schema-registry-7996d6869-qdhd9 Memory: 244Mi
+[2025-08-26 16:26:01] Total Memory: 2133Mi / 4096Mi (52%)

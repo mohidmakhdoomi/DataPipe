@@ -1,31 +1,31 @@
-[2025-08-24 21:37:57] Starting Task 8 Validation - Data Ingestion Pipeline
-[2025-08-24 21:37:57] Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage
-[2025-08-24 21:37:57] Checking if metrics-server is available...
-[2025-08-24 21:37:58] SUCCESS! Metrics-server is available
-[2025-08-24 21:37:58] === Starting Phase 1: Service Health Validation ===
-[2025-08-24 21:37:58] Current memory usage: 1750Mi / 4096Mi 42%
-[2025-08-24 21:40:01] Phase 1 completed successfully in 123 seconds
-[2025-08-24 21:40:02] Current memory usage: 1932Mi / 4096Mi 47%
-[2025-08-24 21:40:07] === Starting Phase 2: Inter-Service Connectivity ===
-[2025-08-24 21:40:07] Current memory usage: 1932Mi / 4096Mi 47%
-[2025-08-24 21:40:19] Phase 2 completed successfully in 12 seconds
-[2025-08-24 21:40:19] Current memory usage: 1931Mi / 4096Mi 47%
-[2025-08-24 21:40:29] === Starting Phase 3: CDC Pipeline Testing ===
-[2025-08-24 21:40:29] Current memory usage: 1931Mi / 4096Mi 47%
-[2025-08-24 21:41:29] Phase 3 completed successfully in 60 seconds
-[2025-08-24 21:41:29] Current memory usage: 1972Mi / 4096Mi 48%
-[2025-08-24 21:41:44] === Starting Phase 4: Resource Monitoring ===
-[2025-08-24 21:41:44] Current memory usage: 2080Mi / 4096Mi 50%
-[2025-08-24 21:45:54] Phase 4 completed successfully in 249 seconds
-[2025-08-24 21:45:55] Current memory usage: 2018Mi / 4096Mi 49%
-[2025-08-24 21:46:15] === Starting Phase 5: Performance Benchmarking ===
-[2025-08-24 21:46:15] Current memory usage: 2022Mi / 4096Mi 49%
-[2025-08-24 21:47:23] Phase 5 completed successfully in 68 seconds
-[2025-08-24 21:47:23] Current memory usage: 2048Mi / 4096Mi 50%
-[2025-08-24 21:47:48] === Starting Phase 6: Persistence Validation ===
-[2025-08-24 21:47:48] Current memory usage: 2055Mi / 4096Mi 50%
-[2025-08-24 21:52:31] Phase 6 completed successfully in 283 seconds
-[2025-08-24 21:52:31] Current memory usage: 1947Mi / 4096Mi 47%
-[2025-08-24 21:53:01] Validation report generated: /e/Projects/DataPipe/task8-logs/task8-validation-report.md
-[2025-08-24 21:53:02] ✅ Task 8 Validation COMPLETED SUCCESSFULLY
-[2025-08-24 21:53:02] Updated task status in .kiro/specs/data-ingestion-pipeline/tasks.md
+[2025-08-26 16:11:04] Starting Task 8 Validation - Data Ingestion Pipeline
+[2025-08-26 16:11:04] Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage
+[2025-08-26 16:11:04] Checking if metrics-server is available...
+[2025-08-26 16:11:04] SUCCESS! Metrics-server is available
+[2025-08-26 16:11:04] === Starting Phase 1: Service Health Validation ===
+[2025-08-26 16:11:04] Current memory usage: 1979Mi / 4096Mi 48%
+[2025-08-26 16:13:08] Phase 1 completed successfully in 123 seconds
+[2025-08-26 16:13:08] Current memory usage: 2147Mi / 4096Mi 52%
+[2025-08-26 16:13:13] === Starting Phase 2: Inter-Service Connectivity ===
+[2025-08-26 16:13:13] Current memory usage: 2147Mi / 4096Mi 52%
+[2025-08-26 16:13:25] Phase 2 completed successfully in 11 seconds
+[2025-08-26 16:13:25] Current memory usage: 2165Mi / 4096Mi 52%
+[2025-08-26 16:13:35] === Starting Phase 3: CDC Pipeline Testing ===
+[2025-08-26 16:13:35] Current memory usage: 2281Mi / 4096Mi 55%
+[2025-08-26 16:14:31] Phase 3 completed successfully in 56 seconds
+[2025-08-26 16:14:31] Current memory usage: 2211Mi / 4096Mi 53%
+[2025-08-26 16:14:46] === Starting Phase 4: Resource Monitoring ===
+[2025-08-26 16:14:46] Current memory usage: 2211Mi / 4096Mi 53%
+[2025-08-26 16:18:56] Phase 4 completed successfully in 250 seconds
+[2025-08-26 16:18:56] Current memory usage: 2234Mi / 4096Mi 54%
+[2025-08-26 16:19:16] === Starting Phase 5: Performance Benchmarking ===
+[2025-08-26 16:19:16] Current memory usage: 2235Mi / 4096Mi 54%
+[2025-08-26 16:20:24] Phase 5 completed successfully in 68 seconds
+[2025-08-26 16:20:24] Current memory usage: 2261Mi / 4096Mi 55%
+[2025-08-26 16:20:49] === Starting Phase 6: Persistence Validation ===
+[2025-08-26 16:20:49] Current memory usage: 2262Mi / 4096Mi 55%
+[2025-08-26 16:25:34] Phase 6 completed successfully in 284 seconds
+[2025-08-26 16:25:34] Current memory usage: 2115Mi / 4096Mi 51%
+[2025-08-26 16:26:04] Validation report generated: /e/Projects/DataPipe/task8-logs/task8-validation-report.md
+[2025-08-26 16:26:04] ✅ Task 8 Validation COMPLETED SUCCESSFULLY
+[2025-08-26 16:26:04] Updated task status in .kiro/specs/data-ingestion-pipeline/tasks.md
