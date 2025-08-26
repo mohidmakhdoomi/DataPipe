@@ -28,7 +28,7 @@
     
     "transforms": "unwrap",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
-    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.drop.tombstones": "true",
     "transforms.unwrap.delete.handling.mode": "rewrite",
     "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms,source.lsn",
     
@@ -68,7 +68,7 @@
     
     "provide.transaction.metadata": "true",
     "skipped.operations": "none",
-    "tombstones.on.delete": "true",
+    "tombstones.on.delete": "false",
     
     "publication.autocreate.mode": "all_tables",
     "slot.drop.on.stop": "false",
