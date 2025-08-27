@@ -8,6 +8,7 @@ IFS=$'\n\t'       # Safer word splitting
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly LOG_DIR="${SCRIPT_DIR}/task8-logs"
+readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/resource-logs"
 readonly MAX_MEMORY_MI=3584  # 3.5Gi in Mi (leaves 512Mi buffer)
 readonly TIMEOUT=600         # 10 min per phase
 readonly NAMESPACE="data-ingestion"
@@ -91,8 +92,8 @@ main() {
         exit 1
     fi
     
-    # Start background memory monitoring
-    bash "${SCRIPT_DIR}/task8-memory-monitor.sh" &
+    # Start background resource monitoring
+    bash "${SCRIPT_DIR}/resource-monitor.sh" &
     local monitor_pid=$!
     
     # Execute phases sequentially
@@ -117,7 +118,7 @@ main() {
         fi
     done
     
-    # Stop memory monitoring
+    # Stop resource monitoring
     kill $monitor_pid 2>/dev/null || true
     
     # Generate final report
@@ -151,7 +152,7 @@ generate_report() {
 $(printf '%s\n' "${failed_phases[@]}")
 
 ## Resource Utilization
-$(tail -10 "${LOG_DIR}/memory-monitor.log" 2>/dev/null || echo "Memory monitoring data not available")
+$(tail -10 "${MONITOR_LOG_DIR}/resource-monitor.log" 2>/dev/null || echo "Resource monitoring data not available")
 
 ## Next Steps
 $([ ${#failed_phases[@]} -eq 0 ] && echo "Ready to proceed to Phase 3 integration tasks" || echo "Address failed phases before proceeding")

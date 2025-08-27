@@ -123,8 +123,8 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 kafka:
   replicas: 3
   resources:
-    requests: { memory: "512Mi", cpu: "500m" }
-    limits: { memory: "2Gi", cpu: "1000m" }
+    requests: { memory: "512Mi", cpu: "250m" }
+    limits: { memory: "682Mi", cpu: "500m" }
   storage: 10Gi
   config:
     # KRaft mode configuration
@@ -452,10 +452,10 @@ network_policies:
 ```yaml
 resource_allocation:
   postgresql: 0.75Gi RAM, 1 CPU
-  kafka_brokers: 2Gi RAM (shared HA cluster allocation), 3 CPU
+  kafka_brokers: 2Gi RAM (shared HA cluster allocation), 1.5 CPU
   schema_registry: 0.5Gi RAM, 0.5 CPU
-  kafka_connect: 0.75Gi RAM, 0.5 CPU
-  total: 4Gi RAM, 5 CPU
+  kafka_connect: 0.75Gi RAM, 1 CPU
+  total: 4Gi RAM, 4 CPU
 ```
 
 ### Performance Optimization

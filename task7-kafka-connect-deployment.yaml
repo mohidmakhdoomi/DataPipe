@@ -55,18 +55,19 @@ data:
     producer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
     producer.compression.type=lz4
     producer.max.request.size=1048576
-    producer.buffer.memory=33554432
+    producer.buffer.memory=16777216
     producer.batch.size=16384
-    producer.linger.ms=10
+    producer.linger.ms=50
     producer.acks=1
     
     # Consumer Settings
     consumer.bootstrap.servers=kafka-headless.data-ingestion.svc.cluster.local:9092
-    consumer.max.poll.records=10000
+    consumer.max.poll.records=500
     consumer.max.poll.interval.ms=180000
     consumer.session.timeout.ms=30000
     consumer.heartbeat.interval.ms=3000
     consumer.auto.offset.reset=earliest
+    consumer.fetch.max.bytes=5242880
     
     # Error Handling
     errors.retry.timeout=300000
@@ -102,7 +103,7 @@ data:
     log4j.logger.org.reflections=ERROR
 
   # JVM Configuration based on multi-model consensus
-  KAFKA_HEAP_OPTS: "-XX:MaxRAMPercentage=60.0"
+  KAFKA_HEAP_OPTS: "-XX:MaxRAMPercentage=75.0"
   KAFKA_JVM_PERFORMANCE_OPTS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError -XX:MaxDirectMemorySize=128m"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"
@@ -219,11 +220,11 @@ spec:
           containerPort: 8083
         resources:
           requests:
-            memory: "512Mi"
+            memory: "768Mi"
             cpu: "500m"
           limits:
             memory: "768Mi"
-            cpu: "500m"
+            cpu: "1"
         livenessProbe:
           httpGet:
             path: /

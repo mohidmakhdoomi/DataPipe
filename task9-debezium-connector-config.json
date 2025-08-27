@@ -33,9 +33,9 @@
     "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms,source.lsn",
     
     "snapshot.mode": "initial",
-    "snapshot.fetch.size": "1000",
-    "max.batch.size": "2048",
-    "max.queue.size": "8192",
+    "snapshot.fetch.size": "500",
+    "max.batch.size": "512",
+    "max.queue.size": "1024",
     "poll.interval.ms": "1000",
     
     "decimal.handling.mode": "string",

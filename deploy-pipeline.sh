@@ -67,6 +67,10 @@ main() {
         exit 1
     fi
 
+    # Start background resource monitoring
+    bash "${SCRIPT_DIR}/resource-monitor.sh" &
+    local monitor_pid=$!
+
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
         log "Applying ${current_file}"
@@ -104,8 +108,8 @@ main() {
         fi
     done
 
-    log "Sleeping 2 mins before inserting Sample Data"
-    sleep 120
+    log "Sleeping 1 min before inserting Sample Data"
+    sleep 60
 
     # Insert Sample Data into PostgreSQL
     log "Inserting Sample Data into PostgreSQL"
@@ -117,6 +121,12 @@ main() {
         log "❌ : Failed to insert sample data into PostgreSQL"
         exit 1
     fi
+
+    log "Sleeping 2 mins after inserting Sample Data"
+    sleep 120
+
+    # Stop resource monitoring
+    kill $monitor_pid 2>/dev/null || true
 
     log "========== SUCCESS - Data Ingestion Pipeline deployment completed =========="
     exit 0
