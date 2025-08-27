@@ -34,8 +34,8 @@
     
     "snapshot.mode": "initial",
     "snapshot.fetch.size": "500",
-    "max.batch.size": "1024",
-    "max.queue.size": "4096",
+    "max.batch.size": "512",
+    "max.queue.size": "1024",
     "poll.interval.ms": "1000",
     
     "decimal.handling.mode": "string",
