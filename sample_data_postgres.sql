@@ -14,6 +14,13 @@ INSERT INTO users (email, first_name, last_name) VALUES
 ('leonardo.dicaprio@example.com', 'leonardo', 'dicaprio'),
 ('leonardo.divinci@example.com', 'leonardo', 'divinci');
 
+INSERT INTO users (email, first_name, last_name) 
+SELECT
+    'user' || subquery.uuid || '@example.com',
+    'User' || subquery.uuid,
+    'Test' || subquery.uuid
+    FROM (SELECT generate_series(15, 10000) as uuid) AS subquery;
+
 INSERT INTO products (name, description, price, stock_quantity, category) VALUES
 ('Laptop', 'High-performance laptop', 999.99, 50, 'Electronics'),
 ('Smartphone', 'Latest smartphone model', 699.99, 100, 'Electronics'),
