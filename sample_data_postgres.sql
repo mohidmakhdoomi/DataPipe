@@ -1,7 +1,18 @@
 INSERT INTO users (email, first_name, last_name) VALUES
 ('john.doe@example.com', 'John', 'Doe'),
 ('jane.smith@example.com', 'Jane', 'Smith'),
-('bob.johnson@example.com', 'Bob', 'Johnson');
+('bob.johnson@example.com', 'Bob', 'Johnson'),
+('rocky.balboa@example.com', 'rocky', 'balboa'),
+('johnny.dang@example.com', 'johnny', 'dang'),
+('johnny.bravo@example.com', 'johnny', 'bravo'),
+('john.cena@example.com', 'john', 'cena'),
+('john.lennon@example.com', 'john', 'lennon'),
+('johnny.ives@example.com', 'johnny', 'ives'),
+('john.gotti@example.com', 'john', 'gotti'),
+('bruce.wayne@example.com', 'bruce', 'wayne'),
+('not.bruce.wayne@example.com', 'bat', 'man'),
+('leonardo.dicaprio@example.com', 'leonardo', 'dicaprio'),
+('leonardo.divinci@example.com', 'leonardo', 'divinci');
 
 INSERT INTO products (name, description, price, stock_quantity, category) VALUES
 ('Laptop', 'High-performance laptop', 999.99, 50, 'Electronics'),
