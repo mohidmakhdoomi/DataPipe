@@ -32,7 +32,7 @@
 - ✅ **Task 7:** Kafka Connect cluster with Debezium plugins
   - Single worker deployment (768Mi allocation) validated by multi-model consensus
   - Distributed mode configuration for future scalability
-  - JVM tuning: 768Mi heap with G1GC optimization
+  - JVM tuning: 346Mi heap with G1GC optimization
   - Debezium PostgreSQL connector plugin installation
   - Dead letter queue configuration for error handling
 - ✅ **Task 8:** Core services validation **COMPLETED SUCCESSFULLY**
@@ -65,7 +65,7 @@
 - **PostgreSQL:** 768Mi memory, 5Gi storage ✅
 - **Kafka Cluster:** 2Gi memory (682Mi limit per broker), 10Gi storage ✅
 - **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
-- **Kafka Connect:** 768Mi memory (512Mi request, 768Mi limit) ✅
+- **Kafka Connect:** 768Mi memory (768Mi request, 768Mi limit) ✅
 - **Available for Phase 2:** 0Mi (Phase 2 complete within budget)
 - **Total Usage:** 4Gi of 4Gi allocated (100% utilized)
 

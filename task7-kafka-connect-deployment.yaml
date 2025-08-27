@@ -103,7 +103,7 @@ data:
     log4j.logger.org.reflections=ERROR
 
   # JVM Configuration based on multi-model consensus
-  KAFKA_HEAP_OPTS: "-XX:MaxRAMPercentage=45.0"
+  KAFKA_HEAP_OPTS: "-XX:MaxRAMPercentage=75.0"
   KAFKA_JVM_PERFORMANCE_OPTS: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+ExitOnOutOfMemoryError -XX:MaxDirectMemorySize=128m"
   CONNECT_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
   CONNECT_GROUP_ID: "connect-cluster"
@@ -220,11 +220,11 @@ spec:
           containerPort: 8083
         resources:
           requests:
-            memory: "512Mi"
+            memory: "768Mi"
             cpu: "500m"
           limits:
             memory: "768Mi"
-            cpu: "500m"
+            cpu: "1"
         livenessProbe:
           httpGet:
             path: /

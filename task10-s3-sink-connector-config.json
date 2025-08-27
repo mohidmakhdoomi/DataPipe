@@ -8,7 +8,7 @@
     
     "s3.bucket.name": "${env:S3_BUCKET_NAME}",
     "s3.region": "us-east-1",
-    "s3.part.size": "16777216",
+    "s3.part.size": "5242880",
 
     
     "format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
@@ -23,7 +23,7 @@
     "timezone": "UTC",
     "timestamp.extractor": "Record",
     
-    "flush.size": "500",
+    "flush.size": "250",
     "rotate.interval.ms": "60000",
     
     "key.converter": "io.confluent.connect.avro.AvroConverter",
@@ -35,7 +35,7 @@
     "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
-    "consumer.override.max.poll.records": "500",
+    "consumer.override.max.poll.records": "250",
     "consumer.override.max.poll.interval.ms": "180000",
     "consumer.override.fetch.max.bytes": "5242880",
     
