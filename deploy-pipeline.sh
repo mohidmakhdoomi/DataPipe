@@ -104,7 +104,6 @@ main() {
         fi
     done
 
-    # Insert Sample Data into PostgreSQL
     log "Sleeping 2 mins before inserting Sample Data"
     sleep 120
 
