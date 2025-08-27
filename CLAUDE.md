@@ -51,7 +51,7 @@ kubectl apply -f task4-postgresql-statefulset.yaml
 
 # Deploy Kafka (Task 5)
 kubectl apply -f task5-kafka-kraft-3brokers.yaml
-kubectl apply -f task5-cdc-topics-job.yaml
+kubectl apply -f task5-kafka-topics-job.yaml
 
 # Deploy Schema Registry (Task 6)
 kubectl apply -f task6-schema-registry.yaml
@@ -122,9 +122,8 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `data-services-pvcs.yaml` - Persistent volume claims for all services
 - `task4-postgresql-statefulset.yaml` - PostgreSQL deployment
 - `task5-kafka-kraft-3brokers.yaml` - Kafka cluster deployment
-- `task5-cdc-topics-job.yaml` - CDC topics creation
+- `task5-kafka-topics-job.yaml` - Kafka topics creation
 - `task6-schema-registry.yaml` - Schema Registry deployment
-- `task7-kafka-connect-topics.yaml` - Kafka Connect topics creation
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
 - `task9-debezium-connector-config.json` - Configuration for Debezium PostgreSQL CDC connector
 - `task9-deploy-connector.sh` - Debezium Connector configuration deployment

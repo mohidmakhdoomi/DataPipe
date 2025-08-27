@@ -27,13 +27,38 @@ INSERT INTO products (name, description, price, stock_quantity, category) VALUES
 ('Book', 'Programming guide', 49.99, 200, 'Books'),
 ('Headphones', 'Wireless headphones', 199.99, 75, 'Electronics');
 
+INSERT INTO products (name, description, price, stock_quantity, category)
+SELECT
+    'name' || subquery.uuid,
+    'description' || subquery.uuid,
+    subquery.uuid,
+    subquery.uuid*100,
+    'category' || subquery.uuid
+    FROM (SELECT generate_series(5, 10000) as uuid) AS subquery;
+
 INSERT INTO orders (user_id, status, total_amount, shipping_address) VALUES
 (1, 'pending', 999.99, '123 Main St, City, State'),
 (2, 'processing', 749.98, '456 Oak Ave, City, State'),
 (3, 'shipped', 49.99, '789 Pine Rd, City, State');
+
+INSERT INTO orders (user_id, status, total_amount, shipping_address)
+SELECT
+    subquery.uuid,
+    (array['pending', 'processing', 'shipped', 'delivered', 'cancelled'])[floor(random() * 5 + 1)],
+    subquery.uuid*100,
+    'shipping_address' || subquery.uuid
+    FROM (SELECT generate_series(4, 10000) as uuid) AS subquery;
 
 INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES
 (1, 1, 1, 999.99),
 (2, 2, 1, 699.99),
 (2, 4, 1, 49.99),
 (3, 3, 1, 49.99);
+
+INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+SELECT
+    subquery.uuid,
+    subquery.uuid,
+    (array[1, 5, 42, 21, 7])[floor(random() * 5 + 1)],
+    subquery.uuid*100
+    FROM (SELECT generate_series(5, 10000) as uuid) AS subquery;

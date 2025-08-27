@@ -20,9 +20,8 @@ readonly CONFIG_FILES=(
     "data-services-pvcs.yaml"
     "task4-postgresql-statefulset.yaml:ready:pod -l app=postgresql,component=database:300:1"
     "task5-kafka-kraft-3brokers.yaml:ready:pod -l app=kafka,component=streaming:300:3"
-    "task5-cdc-topics-job.yaml:complete:job/create-cdc-topics:60:1"
+    "task5-kafka-topics-job.yaml:complete:job/create-kafka-topics:120:1"
     "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:300:1"
-    "task7-kafka-connect-topics.yaml:complete:job/kafka-connect-topics-setup:60:1"
     "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:300:1"
 )
 
@@ -81,9 +80,9 @@ main() {
             log "$command_to_wait"
             local status=$(eval "$command_to_wait")
             if [[ -n "$status" ]] && [[ $(echo "$status" | grep "condition met" | wc -l) -eq $number_of_items ]]; then
-                log "${waiting_identifier} is ${status_to_check}"
+                log "✅ ${waiting_identifier} is ${status_to_check}"
             else
-                log "${waiting_identifier} FAILED to become ${status_to_check} in ${timeout_in_seconds}s"
+                log "❌ : ${waiting_identifier} failed to become ${status_to_check} in ${timeout_in_seconds}s"
                 kubectl get all -n ${NAMESPACE} -o wide >> "${LOG_DIR}/main.log"
                 exit 1
             fi
