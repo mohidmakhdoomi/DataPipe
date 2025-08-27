@@ -32,7 +32,7 @@
 - ✅ **Task 7:** Kafka Connect cluster with Debezium plugins
   - Single worker deployment (768Mi allocation) validated by multi-model consensus
   - Distributed mode configuration for future scalability
-  - JVM tuning: 346Mi heap with G1GC optimization
+  - JVM tuning: 576Mi heap with G1GC optimization
   - Debezium PostgreSQL connector plugin installation
   - Dead letter queue configuration for error handling
 - ✅ **Task 8:** Core services validation **COMPLETED SUCCESSFULLY**
