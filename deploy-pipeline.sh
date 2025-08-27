@@ -105,6 +105,10 @@ main() {
     done
 
     # Insert Sample Data into PostgreSQL
+    log "Sleeping 2 mins before inserting Sample Data"
+    sleep 120
+
+    # Insert Sample Data into PostgreSQL
     log "Inserting Sample Data into PostgreSQL"
     if ! kubectl cp -n ${NAMESPACE} -c postgresql ${SAMPLE_DB_FILE} postgresql-0:/tmp/${SAMPLE_DB_FILE} >/dev/null 2>&1; then
         log "❌ : Failed to copy sample data .sql file into PostgreSQL pod"
