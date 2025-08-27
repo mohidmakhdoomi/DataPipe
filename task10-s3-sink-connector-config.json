@@ -13,7 +13,7 @@
     
     "format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
     "parquet.codec": "snappy",
-    "parquet.block.size": "134217728",
+    "parquet.block.size": "67108864",
     "parquet.page.size": "1048576",
     
     "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
@@ -35,8 +35,9 @@
     "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
-    "consumer.override.max.poll.records": "10000",
+    "consumer.override.max.poll.records": "1000",
     "consumer.override.max.poll.interval.ms": "180000",
+    "consumer.override.fetch.max.bytes": "10485760",
     
     "errors.tolerance": "all",
     "errors.log.enable": "true",
