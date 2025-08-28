@@ -63,54 +63,6 @@ spec:
           
           echo "Kafka cluster is ready. Creating topics..."
           
-          echo "Creating cdc.postgres.users topic..."
-          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
-            --create \
-            --topic cdc.postgres.users \
-            --partitions 6 \
-            --replication-factor 3 \
-            --config retention.ms=604800000 \
-            --config compression.type=lz4 \
-            --config cleanup.policy=delete \
-            --config min.insync.replicas=2 \
-            --if-not-exists
-          
-          echo "Creating cdc.postgres.products topic..."
-          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
-            --create \
-            --topic cdc.postgres.products \
-            --partitions 6 \
-            --replication-factor 3 \
-            --config retention.ms=604800000 \
-            --config compression.type=lz4 \
-            --config cleanup.policy=delete \
-            --config min.insync.replicas=2 \
-            --if-not-exists
-          
-          echo "Creating cdc.postgres.orders topic..."
-          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
-            --create \
-            --topic cdc.postgres.orders \
-            --partitions 6 \
-            --replication-factor 3 \
-            --config retention.ms=604800000 \
-            --config compression.type=lz4 \
-            --config cleanup.policy=delete \
-            --config min.insync.replicas=2 \
-            --if-not-exists
-          
-          echo "Creating cdc.postgres.order_items topic..."
-          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
-            --create \
-            --topic cdc.postgres.order_items \
-            --partitions 6 \
-            --replication-factor 3 \
-            --config retention.ms=604800000 \
-            --config compression.type=lz4 \
-            --config cleanup.policy=delete \
-            --config min.insync.replicas=2 \
-            --if-not-exists
-
           # Create Kafka Connect internal topics
           echo "Creating connect-configs topic..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
