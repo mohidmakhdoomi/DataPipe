@@ -130,7 +130,7 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 
 ### Additional Documentation
 - `kiro.md` - Kiro Project memory and status tracking
-- `task8-logs/task8-validation-report.md` - Core services validation report
+- `logs/task8-logs/task8-validation-report.md` - Core services validation report
 
 ### Key Principles
 1. Resource efficiency within 4GB constraint for data ingestion
