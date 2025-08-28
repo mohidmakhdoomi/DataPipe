@@ -2,7 +2,7 @@
   "name": "s3-sink-connector",
   "config": {
     "connector.class": "io.confluent.connect.s3.S3SinkConnector",
-    "tasks.max": "1",
+    "tasks.max": "24",
     
     "topics.regex": "postgres\\.public\\..*",
     
@@ -23,7 +23,7 @@
     "timezone": "UTC",
     "timestamp.extractor": "Record",
     
-    "flush.size": "250",
+    "flush.size": "1000",
     "rotate.interval.ms": "60000",
     
     "key.converter": "io.confluent.connect.avro.AvroConverter",
@@ -35,7 +35,7 @@
     "key.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     "value.converter.basic.auth.user.info": "${env:SCHEMA_AUTH_USER}:${env:SCHEMA_AUTH_PASS}",
     
-    "consumer.override.max.poll.records": "250",
+    "consumer.override.max.poll.records": "1000",
     "consumer.override.max.poll.interval.ms": "180000",
     "consumer.override.fetch.max.bytes": "5242880",
     
