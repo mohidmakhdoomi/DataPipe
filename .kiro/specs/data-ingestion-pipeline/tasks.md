@@ -131,23 +131,23 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.3, 7.3_
 
   **✅ COMPLETED:** Kafka Connect deployed with comprehensive multi-model consensus validation:
-  - Single worker deployment (768Mi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
+  - Single worker deployment (1Gi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
   - Distributed mode configuration for future scalability
-  - JVM tuning: 768Mi heap with G1GC optimization (-Xms256m -Xmx576m)
+  - JVM tuning: 768Mi heap with G1GC optimization (-XX:MaxRAMPercentage=75.0)
   - Debezium PostgreSQL connector plugin with init container installation
   - Dead letter queue configuration (connect-dlq topic) for error handling
   - Integration with existing Kafka cluster and Schema Registry
   - NodePort service on port 30083 for external REST API access
-  - Resource allocation: 512Mi request, 768Mi limit within budget constraints
+  - Resource allocation: 1Gi request, 1Gi limit within budget constraints
 
 - [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
   - Monitor resource consumption and adjust allocations within 4Gi limit
   - Verify container memory limits enforcement:
-    - PostgreSQL: 768Mi limit with OOM protection
+    - PostgreSQL: 512Mi limit with OOM protection
     - Kafka: 2Gi limit with GC monitoring
     - Schema Registry: 512Mi limit with JVM optimization
-    - Kafka Connect: 768Mi limit
+    - Kafka Connect: 1Gi limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
   - Document baseline performance metrics and resource usage

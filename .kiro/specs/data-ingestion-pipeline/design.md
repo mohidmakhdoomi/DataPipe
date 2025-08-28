@@ -70,7 +70,7 @@ graph TB
 postgresql:
   resources:
     requests: { memory: "512Mi", cpu: "500m" }
-    limits: { memory: "768Mi", cpu: "1000m" }
+    limits: { memory: "512Mi", cpu: "1000m" }
   config:
     wal_level: logical
     max_replication_slots: 4
@@ -507,7 +507,7 @@ replica.fetch.max.bytes=1048576
 ```yaml
 container_limits:
   postgresql:
-    memory: "768Mi"
+    memory: "512Mi"
     memory_request: "512Mi"
     memory_limit_enforcement: true
   kafka:
@@ -520,8 +520,8 @@ container_limits:
     memory_request: "384Mi"
     jvm_optimization: true
   kafka_connect:
-    memory: "768Mi"
-    memory_request: "512Mi"
+    memory: "1Gi"
+    memory_request: "1Gi"
 ```
 
 ### System Memory Considerations

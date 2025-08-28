@@ -6,7 +6,8 @@ IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_DIR="${SCRIPT_DIR}/deploy-logs"
+LOG_DIR="${SCRIPT_DIR}/deploy-logs"
+MONITOR_PID=0
 
 readonly KIND_CONFIG="kind-config.yaml"
 readonly NAMESPACE="data-ingestion"
@@ -46,6 +47,19 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Deployment: $*" | tee -a "${LOG_DIR}/main.log"
 }
 
+stop_monitoring() {
+    # Stop resource monitoring
+    if [[ "$MONITOR_PID" -ne 0 ]]; then
+        log "Stopping background resource monitoring"
+        kill $MONITOR_PID 2>/dev/null || true
+    fi
+}
+
+exit_one() {
+    stop_monitoring
+    exit 1
+}
+
 # Main execution
 main() {
     log "========== Starting Data Ingestion Pipeline deployment =========="
@@ -53,30 +67,30 @@ main() {
     log "Deleting existing cluster if needed"
     if ! kind delete cluster -n ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Failed to delete existing cluster"
-        exit 1
+        exit_one
     fi
 
     log "Creating cluster using ${KIND_CONFIG}"
     if ! kind create cluster --config ${SCRIPT_DIR}/${KIND_CONFIG} >/dev/null 2>&1; then
         log "❌ : Failed to create cluster"
-        exit 1
+        exit_one
     fi
     
     if ! install_metrics_server; then
         log "❌ : metrics-server not available"
-        exit 1
+        exit_one
     fi
 
-    # Start background resource monitoring
+    log "Starting background resource monitoring"
     bash "${SCRIPT_DIR}/resource-monitor.sh" &
-    local monitor_pid=$!
+    MONITOR_PID=$!
 
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
         log "Applying ${current_file}"
         if ! kubectl apply -f ${SCRIPT_DIR}/${current_file} >/dev/null 2>&1; then
             log "❌ : Failed to apply ${current_file}"
-            exit 1
+            exit_one
         fi
 
         if [[ -n "$status_to_check" ]]; then
@@ -88,7 +102,7 @@ main() {
             else
                 log "❌ : ${waiting_identifier} failed to become ${status_to_check} in ${timeout_in_seconds}s"
                 kubectl get all -n ${NAMESPACE} -o wide >> "${LOG_DIR}/main.log"
-                exit 1
+                exit_one
             fi
         fi
     done
@@ -96,7 +110,7 @@ main() {
     # Verify prerequisites
     if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Namespace ${NAMESPACE} not found"
-        exit 1
+        exit_one
     fi
 
     for current_record in "${CONN_CONFIGS[@]}"; do
@@ -104,7 +118,7 @@ main() {
         log "Deploying Connector config ${connector_name}"
         if ! bash ${SCRIPT_DIR}/${CONN_DEPLOY_SCRIPT} ${connector_name} ${connector_config_file} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
             log "❌ : Failed to deploy ${connector_name} using config ${connector_config_file}"
-            exit 1
+            exit_one
         fi
     done
 
@@ -115,18 +129,30 @@ main() {
     log "Inserting Sample Data into PostgreSQL"
     if ! kubectl cp -n ${NAMESPACE} -c postgresql ${SAMPLE_DB_FILE} postgresql-0:/tmp/${SAMPLE_DB_FILE} >/dev/null 2>&1; then
         log "❌ : Failed to copy sample data .sql file into PostgreSQL pod"
-        exit 1
+        exit_one
     fi
     if ! kubectl exec -n ${NAMESPACE} pod/postgresql-0 -- sh -c "psql -U ${DB_USER} -d ${DB_NAME} -a -f /tmp/${SAMPLE_DB_FILE}" >/dev/null 2>&1; then
         log "❌ : Failed to insert sample data into PostgreSQL"
-        exit 1
+        exit_one
     fi
 
     log "Sleeping 2 mins after inserting Sample Data"
     sleep 120
 
-    # Stop resource monitoring
-    kill $monitor_pid 2>/dev/null || true
+    export LOG_DIR="${LOG_DIR}"
+
+    log "Executing Data Generator - performance benchmark..."
+    if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 60; then
+        log "✅ Data Generator completed successfully"
+    else
+        log "❌ : Data Generator failed"
+        exit_one
+    fi
+
+    log "Sleeping 2 mins after running Data Generator"
+    sleep 120
+
+    stop_monitoring
 
     log "========== SUCCESS - Data Ingestion Pipeline deployment completed =========="
     exit 0
