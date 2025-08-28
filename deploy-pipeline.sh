@@ -6,7 +6,7 @@ IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/deploy-logs"
+LOG_DIR="${SCRIPT_DIR}/logs/deploy-logs"
 MONITOR_PID=0
 
 readonly KIND_CONFIG="kind-config.yaml"

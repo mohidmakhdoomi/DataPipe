@@ -1,0 +1,216 @@
+[2025-08-27 19:48:51] Pod: kafka-0 | Memory: 472Mi | CPU: 19m
+[2025-08-27 19:48:52] Pod: kafka-1 | Memory: 514Mi | CPU: 17m
+[2025-08-27 19:48:52] Pod: kafka-2 | Memory: 467Mi | CPU: 15m
+[2025-08-27 19:48:52] Pod: kafka-connect-67cb494957-z7xbm | Memory: 545Mi | CPU: 10m
+[2025-08-27 19:48:52] Pod: postgresql-0 | Memory: 57Mi | CPU: 8m
+[2025-08-27 19:48:52] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 10m
+[2025-08-27 19:48:52] Total Memory: 2332Mi / 4096Mi (56%)
+[2025-08-27 19:48:52] =======================================
+[2025-08-27 19:49:03] Pod: kafka-0 | Memory: 472Mi | CPU: 19m
+[2025-08-27 19:49:03] Pod: kafka-1 | Memory: 514Mi | CPU: 17m
+[2025-08-27 19:49:03] Pod: kafka-2 | Memory: 467Mi | CPU: 15m
+[2025-08-27 19:49:04] Pod: kafka-connect-67cb494957-z7xbm | Memory: 545Mi | CPU: 10m
+[2025-08-27 19:49:04] Pod: postgresql-0 | Memory: 57Mi | CPU: 8m
+[2025-08-27 19:49:04] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 10m
+[2025-08-27 19:49:04] Total Memory: 2332Mi / 4096Mi (56%)
+[2025-08-27 19:49:04] =======================================
+[2025-08-27 19:49:15] Pod: kafka-0 | Memory: 473Mi | CPU: 29m
+[2025-08-27 19:49:15] Pod: kafka-1 | Memory: 514Mi | CPU: 33m
+[2025-08-27 19:49:15] Pod: kafka-2 | Memory: 467Mi | CPU: 26m
+[2025-08-27 19:49:15] Pod: kafka-connect-67cb494957-z7xbm | Memory: 545Mi | CPU: 64m
+[2025-08-27 19:49:16] Pod: postgresql-0 | Memory: 60Mi | CPU: 21m
+[2025-08-27 19:49:16] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 6m
+[2025-08-27 19:49:16] Total Memory: 2335Mi / 4096Mi (57%)
+[2025-08-27 19:49:16] =======================================
+[2025-08-27 19:49:26] Pod: kafka-0 | Memory: 473Mi | CPU: 62m
+[2025-08-27 19:49:27] Pod: kafka-1 | Memory: 514Mi | CPU: 33m
+[2025-08-27 19:49:27] Pod: kafka-2 | Memory: 472Mi | CPU: 51m
+[2025-08-27 19:49:27] Pod: kafka-connect-67cb494957-z7xbm | Memory: 547Mi | CPU: 270m
+[2025-08-27 19:49:27] Pod: postgresql-0 | Memory: 67Mi | CPU: 233m
+[2025-08-27 19:49:28] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 10m
+[2025-08-27 19:49:28] Total Memory: 2349Mi / 4096Mi (57%)
+[2025-08-27 19:49:28] =======================================
+[2025-08-27 19:49:38] Pod: kafka-0 | Memory: 473Mi | CPU: 49m
+[2025-08-27 19:49:38] Pod: kafka-1 | Memory: 515Mi | CPU: 50m
+[2025-08-27 19:49:39] Pod: kafka-2 | Memory: 472Mi | CPU: 51m
+[2025-08-27 19:49:39] Pod: kafka-connect-67cb494957-z7xbm | Memory: 544Mi | CPU: 293m
+[2025-08-27 19:49:39] Pod: postgresql-0 | Memory: 73Mi | CPU: 236m
+[2025-08-27 19:49:39] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 8m
+[2025-08-27 19:49:39] Total Memory: 2353Mi / 4096Mi (57%)
+[2025-08-27 19:49:39] =======================================
+[2025-08-27 19:49:50] Pod: kafka-0 | Memory: 473Mi | CPU: 49m
+[2025-08-27 19:49:50] Pod: kafka-1 | Memory: 515Mi | CPU: 45m
+[2025-08-27 19:49:50] Pod: kafka-2 | Memory: 473Mi | CPU: 62m
+[2025-08-27 19:49:51] Pod: kafka-connect-67cb494957-z7xbm | Memory: 544Mi | CPU: 281m
+[2025-08-27 19:49:51] Pod: postgresql-0 | Memory: 79Mi | CPU: 241m
+[2025-08-27 19:49:51] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 9m
+[2025-08-27 19:49:51] Total Memory: 2360Mi / 4096Mi (57%)
+[2025-08-27 19:49:51] =======================================
+[2025-08-27 19:50:02] Pod: kafka-0 | Memory: 473Mi | CPU: 49m
+[2025-08-27 19:50:02] Pod: kafka-1 | Memory: 515Mi | CPU: 45m
+[2025-08-27 19:50:02] Pod: kafka-2 | Memory: 473Mi | CPU: 62m
+[2025-08-27 19:50:02] Pod: kafka-connect-67cb494957-z7xbm | Memory: 544Mi | CPU: 281m
+[2025-08-27 19:50:03] Pod: postgresql-0 | Memory: 79Mi | CPU: 241m
+[2025-08-27 19:50:03] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 9m
+[2025-08-27 19:50:03] Total Memory: 2360Mi / 4096Mi (57%)
+[2025-08-27 19:50:03] =======================================
+[2025-08-27 19:50:14] Pod: kafka-0 | Memory: 474Mi | CPU: 46m
+[2025-08-27 19:50:14] Pod: kafka-1 | Memory: 515Mi | CPU: 45m
+[2025-08-27 19:50:14] Pod: kafka-2 | Memory: 475Mi | CPU: 60m
+[2025-08-27 19:50:14] Pod: kafka-connect-67cb494957-z7xbm | Memory: 546Mi | CPU: 242m
+[2025-08-27 19:50:14] Pod: postgresql-0 | Memory: 87Mi | CPU: 236m
+[2025-08-27 19:50:15] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 9m
+[2025-08-27 19:50:15] Total Memory: 2373Mi / 4096Mi (57%)
+[2025-08-27 19:50:15] =======================================
+[2025-08-27 19:50:25] Pod: kafka-0 | Memory: 474Mi | CPU: 46m
+[2025-08-27 19:50:26] Pod: kafka-1 | Memory: 516Mi | CPU: 43m
+[2025-08-27 19:50:26] Pod: kafka-2 | Memory: 477Mi | CPU: 54m
+[2025-08-27 19:50:26] Pod: kafka-connect-67cb494957-z7xbm | Memory: 548Mi | CPU: 222m
+[2025-08-27 19:50:26] Pod: postgresql-0 | Memory: 92Mi | CPU: 231m
+[2025-08-27 19:50:26] Pod: schema-registry-7996d6869-jrqlm | Memory: 276Mi | CPU: 7m
+[2025-08-27 19:50:26] Total Memory: 2383Mi / 4096Mi (58%)
+[2025-08-27 19:50:26] =======================================
+[2025-08-27 19:50:37] Pod: kafka-0 | Memory: 474Mi | CPU: 46m
+[2025-08-27 19:50:37] Pod: kafka-1 | Memory: 516Mi | CPU: 50m
+[2025-08-27 19:50:37] Pod: kafka-2 | Memory: 478Mi | CPU: 60m
+[2025-08-27 19:50:38] Pod: kafka-connect-67cb494957-z7xbm | Memory: 548Mi | CPU: 245m
+[2025-08-27 19:50:38] Pod: postgresql-0 | Memory: 100Mi | CPU: 232m
+[2025-08-27 19:50:38] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 13m
+[2025-08-27 19:50:38] Total Memory: 2393Mi / 4096Mi (58%)
+[2025-08-27 19:50:38] =======================================
+[2025-08-27 19:50:49] Pod: kafka-0 | Memory: 474Mi | CPU: 46m
+[2025-08-27 19:50:49] Pod: kafka-1 | Memory: 516Mi | CPU: 50m
+[2025-08-27 19:50:49] Pod: kafka-2 | Memory: 478Mi | CPU: 60m
+[2025-08-27 19:50:49] Pod: kafka-connect-67cb494957-z7xbm | Memory: 548Mi | CPU: 245m
+[2025-08-27 19:50:50] Pod: postgresql-0 | Memory: 100Mi | CPU: 232m
+[2025-08-27 19:50:50] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 13m
+[2025-08-27 19:50:50] Total Memory: 2393Mi / 4096Mi (58%)
+[2025-08-27 19:50:50] =======================================
+[2025-08-27 19:51:00] Pod: kafka-0 | Memory: 475Mi | CPU: 53m
+[2025-08-27 19:51:01] Pod: kafka-1 | Memory: 516Mi | CPU: 38m
+[2025-08-27 19:51:01] Pod: kafka-2 | Memory: 480Mi | CPU: 51m
+[2025-08-27 19:51:01] Pod: kafka-connect-67cb494957-z7xbm | Memory: 549Mi | CPU: 251m
+[2025-08-27 19:51:01] Pod: postgresql-0 | Memory: 108Mi | CPU: 236m
+[2025-08-27 19:51:02] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 9m
+[2025-08-27 19:51:02] Total Memory: 2405Mi / 4096Mi (58%)
+[2025-08-27 19:51:02] =======================================
+[2025-08-27 19:51:12] Pod: kafka-0 | Memory: 475Mi | CPU: 43m
+[2025-08-27 19:51:13] Pod: kafka-1 | Memory: 516Mi | CPU: 45m
+[2025-08-27 19:51:13] Pod: kafka-2 | Memory: 481Mi | CPU: 62m
+[2025-08-27 19:51:13] Pod: kafka-connect-67cb494957-z7xbm | Memory: 549Mi | CPU: 196m
+[2025-08-27 19:51:13] Pod: postgresql-0 | Memory: 118Mi | CPU: 237m
+[2025-08-27 19:51:14] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 9m
+[2025-08-27 19:51:14] Total Memory: 2416Mi / 4096Mi (58%)
+[2025-08-27 19:51:14] =======================================
+[2025-08-27 19:51:24] Pod: kafka-0 | Memory: 476Mi | CPU: 49m
+[2025-08-27 19:51:24] Pod: kafka-1 | Memory: 517Mi | CPU: 44m
+[2025-08-27 19:51:25] Pod: kafka-2 | Memory: 481Mi | CPU: 62m
+[2025-08-27 19:51:25] Pod: kafka-connect-67cb494957-z7xbm | Memory: 549Mi | CPU: 232m
+[2025-08-27 19:51:25] Pod: postgresql-0 | Memory: 126Mi | CPU: 239m
+[2025-08-27 19:51:25] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 10m
+[2025-08-27 19:51:25] Total Memory: 2426Mi / 4096Mi (59%)
+[2025-08-27 19:51:25] =======================================
+[2025-08-27 19:51:36] Pod: kafka-0 | Memory: 476Mi | CPU: 43m
+[2025-08-27 19:51:36] Pod: kafka-1 | Memory: 517Mi | CPU: 42m
+[2025-08-27 19:51:36] Pod: kafka-2 | Memory: 484Mi | CPU: 54m
+[2025-08-27 19:51:37] Pod: kafka-connect-67cb494957-z7xbm | Memory: 550Mi | CPU: 212m
+[2025-08-27 19:51:37] Pod: postgresql-0 | Memory: 133Mi | CPU: 239m
+[2025-08-27 19:51:37] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 8m
+[2025-08-27 19:51:37] Total Memory: 2437Mi / 4096Mi (59%)
+[2025-08-27 19:51:37] =======================================
+[2025-08-27 19:51:48] Pod: kafka-0 | Memory: 476Mi | CPU: 43m
+[2025-08-27 19:51:48] Pod: kafka-1 | Memory: 517Mi | CPU: 42m
+[2025-08-27 19:51:48] Pod: kafka-2 | Memory: 484Mi | CPU: 54m
+[2025-08-27 19:51:48] Pod: kafka-connect-67cb494957-z7xbm | Memory: 550Mi | CPU: 212m
+[2025-08-27 19:51:49] Pod: postgresql-0 | Memory: 133Mi | CPU: 239m
+[2025-08-27 19:51:49] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 8m
+[2025-08-27 19:51:49] Total Memory: 2437Mi / 4096Mi (59%)
+[2025-08-27 19:51:49] =======================================
+[2025-08-27 19:52:00] Pod: kafka-0 | Memory: 476Mi | CPU: 43m
+[2025-08-27 19:52:00] Pod: kafka-1 | Memory: 517Mi | CPU: 41m
+[2025-08-27 19:52:00] Pod: kafka-2 | Memory: 485Mi | CPU: 63m
+[2025-08-27 19:52:00] Pod: kafka-connect-67cb494957-z7xbm | Memory: 550Mi | CPU: 196m
+[2025-08-27 19:52:01] Pod: postgresql-0 | Memory: 140Mi | CPU: 238m
+[2025-08-27 19:52:01] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 8m
+[2025-08-27 19:52:01] Total Memory: 2445Mi / 4096Mi (59%)
+[2025-08-27 19:52:01] =======================================
+[2025-08-27 19:52:12] Pod: kafka-0 | Memory: 477Mi | CPU: 59m
+[2025-08-27 19:52:12] Pod: kafka-1 | Memory: 517Mi | CPU: 52m
+[2025-08-27 19:52:12] Pod: kafka-2 | Memory: 486Mi | CPU: 43m
+[2025-08-27 19:52:13] Pod: kafka-connect-67cb494957-z7xbm | Memory: 561Mi | CPU: 198m
+[2025-08-27 19:52:13] Pod: postgresql-0 | Memory: 141Mi | CPU: 136m
+[2025-08-27 19:52:13] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 10m
+[2025-08-27 19:52:13] Total Memory: 2459Mi / 4096Mi (60%)
+[2025-08-27 19:52:13] =======================================
+[2025-08-27 19:52:24] Pod: kafka-0 | Memory: 477Mi | CPU: 23m
+[2025-08-27 19:52:24] Pod: kafka-1 | Memory: 517Mi | CPU: 21m
+[2025-08-27 19:52:24] Pod: kafka-2 | Memory: 486Mi | CPU: 21m
+[2025-08-27 19:52:24] Pod: kafka-connect-67cb494957-z7xbm | Memory: 596Mi | CPU: 249m
+[2025-08-27 19:52:25] Pod: postgresql-0 | Memory: 141Mi | CPU: 12m
+[2025-08-27 19:52:25] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 12m
+[2025-08-27 19:52:25] Total Memory: 2494Mi / 4096Mi (60%)
+[2025-08-27 19:52:25] =======================================
+[2025-08-27 19:52:35] Pod: kafka-0 | Memory: 477Mi | CPU: 25m
+[2025-08-27 19:52:35] Pod: kafka-1 | Memory: 517Mi | CPU: 21m
+[2025-08-27 19:52:36] Pod: kafka-2 | Memory: 486Mi | CPU: 18m
+[2025-08-27 19:52:36] Pod: kafka-connect-67cb494957-z7xbm | Memory: 607Mi | CPU: 204m
+[2025-08-27 19:52:36] Pod: postgresql-0 | Memory: 141Mi | CPU: 11m
+[2025-08-27 19:52:36] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 12m
+[2025-08-27 19:52:36] Total Memory: 2505Mi / 4096Mi (61%)
+[2025-08-27 19:52:36] =======================================
+[2025-08-27 19:52:47] Pod: kafka-0 | Memory: 477Mi | CPU: 25m
+[2025-08-27 19:52:47] Pod: kafka-1 | Memory: 517Mi | CPU: 21m
+[2025-08-27 19:52:47] Pod: kafka-2 | Memory: 486Mi | CPU: 18m
+[2025-08-27 19:52:48] Pod: kafka-connect-67cb494957-z7xbm | Memory: 607Mi | CPU: 204m
+[2025-08-27 19:52:48] Pod: postgresql-0 | Memory: 141Mi | CPU: 11m
+[2025-08-27 19:52:48] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 12m
+[2025-08-27 19:52:48] Total Memory: 2505Mi / 4096Mi (61%)
+[2025-08-27 19:52:48] =======================================
+[2025-08-27 19:52:59] Pod: kafka-0 | Memory: 477Mi | CPU: 20m
+[2025-08-27 19:52:59] Pod: kafka-1 | Memory: 517Mi | CPU: 18m
+[2025-08-27 19:52:59] Pod: kafka-2 | Memory: 486Mi | CPU: 21m
+[2025-08-27 19:52:59] Pod: kafka-connect-67cb494957-z7xbm | Memory: 607Mi | CPU: 204m
+[2025-08-27 19:52:59] Pod: postgresql-0 | Memory: 141Mi | CPU: 10m
+[2025-08-27 19:53:00] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 9m
+[2025-08-27 19:53:00] Total Memory: 2505Mi / 4096Mi (61%)
+[2025-08-27 19:53:00] =======================================
+[2025-08-27 19:53:10] Pod: kafka-0 | Memory: 477Mi | CPU: 22m
+[2025-08-27 19:53:10] Pod: kafka-1 | Memory: 517Mi | CPU: 19m
+[2025-08-27 19:53:11] Pod: kafka-2 | Memory: 486Mi | CPU: 19m
+[2025-08-27 19:53:11] Pod: kafka-connect-67cb494957-z7xbm | Memory: 626Mi | CPU: 105m
+[2025-08-27 19:53:11] Pod: postgresql-0 | Memory: 141Mi | CPU: 10m
+[2025-08-27 19:53:11] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 6m
+[2025-08-27 19:53:11] Total Memory: 2524Mi / 4096Mi (61%)
+[2025-08-27 19:53:11] =======================================
+[2025-08-27 19:53:22] Pod: kafka-0 | Memory: 477Mi | CPU: 20m
+[2025-08-27 19:53:22] Pod: kafka-1 | Memory: 517Mi | CPU: 17m
+[2025-08-27 19:53:22] Pod: kafka-2 | Memory: 486Mi | CPU: 19m
+[2025-08-27 19:53:23] Pod: kafka-connect-67cb494957-z7xbm | Memory: 673Mi | CPU: 120m
+[2025-08-27 19:53:23] Pod: postgresql-0 | Memory: 141Mi | CPU: 8m
+[2025-08-27 19:53:23] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 10m
+[2025-08-27 19:53:23] Total Memory: 2571Mi / 4096Mi (62%)
+[2025-08-27 19:53:23] =======================================
+[2025-08-27 19:53:34] Pod: kafka-0 | Memory: 477Mi | CPU: 20m
+[2025-08-27 19:53:34] Pod: kafka-1 | Memory: 517Mi | CPU: 17m
+[2025-08-27 19:53:34] Pod: kafka-2 | Memory: 486Mi | CPU: 19m
+[2025-08-27 19:53:34] Pod: kafka-connect-67cb494957-z7xbm | Memory: 673Mi | CPU: 120m
+[2025-08-27 19:53:34] Pod: postgresql-0 | Memory: 141Mi | CPU: 8m
+[2025-08-27 19:53:35] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 10m
+[2025-08-27 19:53:35] Total Memory: 2571Mi / 4096Mi (62%)
+[2025-08-27 19:53:35] =======================================
+[2025-08-27 19:53:45] Pod: kafka-0 | Memory: 477Mi | CPU: 20m
+[2025-08-27 19:53:45] Pod: kafka-1 | Memory: 518Mi | CPU: 18m
+[2025-08-27 19:53:45] Pod: kafka-2 | Memory: 486Mi | CPU: 22m
+[2025-08-27 19:53:46] Pod: kafka-connect-67cb494957-z7xbm | Memory: 674Mi | CPU: 24m
+[2025-08-27 19:53:46] Pod: postgresql-0 | Memory: 141Mi | CPU: 14m
+[2025-08-27 19:53:46] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 6m
+[2025-08-27 19:53:46] Total Memory: 2573Mi / 4096Mi (62%)
+[2025-08-27 19:53:46] =======================================
+[2025-08-27 19:53:57] Pod: kafka-0 | Memory: 477Mi | CPU: 22m
+[2025-08-27 19:53:57] Pod: kafka-1 | Memory: 517Mi | CPU: 19m
+[2025-08-27 19:53:57] Pod: kafka-2 | Memory: 487Mi | CPU: 20m
+[2025-08-27 19:53:57] Pod: kafka-connect-67cb494957-z7xbm | Memory: 674Mi | CPU: 10m
+[2025-08-27 19:53:57] Pod: postgresql-0 | Memory: 141Mi | CPU: 11m
+[2025-08-27 19:53:58] Pod: schema-registry-7996d6869-jrqlm | Memory: 277Mi | CPU: 6m
+[2025-08-27 19:53:58] Total Memory: 2573Mi / 4096Mi (62%)
+[2025-08-27 19:53:58] =======================================

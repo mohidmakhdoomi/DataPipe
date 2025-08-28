@@ -1,0 +1,20 @@
+[2025-08-27 19:48:51] Data Generator : === Starting Data Generator: Performance Benchmarking ===
+[2025-08-27 19:48:51] Data Generator : Starting performance benchmark: 1000 events/sec for 180 seconds
+[2025-08-27 19:48:51] Data Generator : Setting up connection to database...
+[2025-08-27 19:48:53] Data Generator : ✅ DB connection ready
+[2025-08-27 19:48:53] Data Generator : Starting load generation...
+[2025-08-27 19:51:53] Data Generator : Waiting for all batches to complete...
+[2025-08-27 19:51:58] Data Generator : 
+=== Performance Benchmark Results ===
+[2025-08-27 19:51:58] Data Generator : Events sent: 197300
+[2025-08-27 19:51:58] Data Generator : Duration: 185.08 seconds
+[2025-08-27 19:51:58] Data Generator : Actual rate: 1066.05 events/sec
+[2025-08-27 19:51:58] Data Generator : Target achieved: ✅ YES
+[2025-08-27 19:51:58] Data Generator : Errors: 0
+[2025-08-27 19:51:58] Data Generator : Average batch latency: 74.51ms
+[2025-08-27 19:51:58] Data Generator : P50 batch latency: 70.71ms
+[2025-08-27 19:51:58] Data Generator : P95 batch latency: 84.65ms
+[2025-08-27 19:51:58] Data Generator : P99 batch latency: 144.70ms
+[2025-08-27 19:51:58] Data Generator : Latency target (<500ms avg): ✅ YES
+[2025-08-27 19:51:58] Data Generator : Detailed results written to: E:/Projects/DataPipe/deploy-logs/performance-results.txt
+[2025-08-27 19:51:58] Data Generator : ✅ Completed successfully - performance targets achieved

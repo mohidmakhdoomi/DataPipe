@@ -5,7 +5,7 @@ set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_DIR="${SCRIPT_DIR}/startstop-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/logs/startstop-logs"
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"

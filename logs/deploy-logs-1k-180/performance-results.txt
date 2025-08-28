@@ -1,0 +1,13 @@
+Performance Benchmark Results
+============================
+Events sent: 197300
+Duration: 185.08 seconds
+Actual rate: 1066.05 events/sec
+Target rate: 1000 events/sec
+Rate achieved: YES
+Errors: 0
+Average batch latency: 74.51ms
+P50 batch latency: 70.71ms
+P95 batch latency: 84.65ms
+P99 batch latency: 144.70ms
+Latency target achieved (<500ms avg): YES

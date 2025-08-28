@@ -9,7 +9,7 @@ IFS=$'\n\t'       # Safer word splitting
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="$1"
 readonly CONFIG_FILE="$2"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/deploy-logs"
+readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/deploy-logs"
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"

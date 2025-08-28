@@ -6,7 +6,7 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly NAMESPACE="data-ingestion"
-LOG_DIR="${SCRIPT_DIR}/task8-logs"
+LOG_DIR="${SCRIPT_DIR}/logs/task8-logs"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 5: $*" | tee -a "${LOG_DIR}/phase5.log"

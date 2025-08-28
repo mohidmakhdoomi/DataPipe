@@ -7,8 +7,8 @@ IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_DIR="${SCRIPT_DIR}/task8-logs"
-readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/resource-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/logs/task8-logs"
+readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/logs/resource-logs"
 readonly MAX_MEMORY_MI=3584  # 3.5Gi in Mi (leaves 512Mi buffer)
 readonly TIMEOUT=600         # 10 min per phase
 readonly NAMESPACE="data-ingestion"
