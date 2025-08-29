@@ -70,7 +70,7 @@ def setup_database():
         return None, None
 
 
-def benchmark_performance(target_rate, duration):
+def benchmark_performance(target_rate, duration, table_name='users'):
     """Run the performance benchmark"""
     log(
         f"Starting performance benchmark: {target_rate} events/sec for {duration} seconds"
@@ -101,7 +101,7 @@ def benchmark_performance(target_rate, duration):
 
             cur.execute(
                 f"""
-                INSERT INTO perf_test (email, first_name, last_name) 
+                INSERT INTO {table_name} (email, first_name, last_name) 
                 SELECT
                     'user_' || subquery.uuid || '_{int(batch_start * 1000)}@example.com',
                     'First_' || subquery.uuid,
@@ -227,11 +227,12 @@ def main():
     parser = argparse.ArgumentParser(description='Query S3 Parquet files from data ingestion pipeline')
     parser.add_argument('--rate', required=True, type=functools.partial(range_type, min=1, max=15000),  default=1000, metavar="[1-15000]", help='Target rate as events per second')
     parser.add_argument('--duration', required=True, type=functools.partial(range_type, min=10, max=10800), default=60, metavar="[10-10800]", help='Duration of generation as seconds')
+    parser.add_argument('--table', required=False, type=str, default='users', help='Table to insert data into')
     
     args = parser.parse_args()
 
     try:
-        success = benchmark_performance(args.rate, args.duration)
+        success = benchmark_performance(args.rate, args.duration, args.table)
         sys.exit(0 if success else 1)
 
     except Exception as e:
