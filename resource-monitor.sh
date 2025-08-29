@@ -55,5 +55,5 @@ while true; do
         log "⚠️   Unable to retrieve pod metrics"
     fi
     
-    sleep 10  # Check every 10 seconds
+    sleep 5  # Check every 5 seconds
 done
