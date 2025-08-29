@@ -12,6 +12,7 @@ readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/logs/resource-logs"
 readonly MAX_MEMORY_MI=3584  # 3.5Gi in Mi (leaves 512Mi buffer)
 readonly TIMEOUT=600         # 10 min per phase
 readonly NAMESPACE="data-ingestion"
+MONITOR_PID=0
 
 # Load functions for metrics server
 source ${SCRIPT_DIR}/metrics-server.sh
@@ -22,6 +23,19 @@ mkdir -p "${LOG_DIR}"
 # Logging function with timestamps
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "${LOG_DIR}/validation.log"
+}
+
+stop_monitoring() {
+    # Stop resource monitoring
+    if [[ "$MONITOR_PID" -ne 0 ]]; then
+        log "Stopping background resource monitoring"
+        kill $MONITOR_PID 2>/dev/null || true
+    fi
+}
+
+exit_one() {
+    stop_monitoring
+    exit 1
 }
 
 # Memory check function
@@ -92,9 +106,9 @@ main() {
         exit 1
     fi
     
-    # Start background resource monitoring
+    log "Starting background resource monitoring"
     bash "${SCRIPT_DIR}/resource-monitor.sh" &
-    local monitor_pid=$!
+    MONITOR_PID=$!
     
     # Execute phases sequentially
     local phases=(
@@ -119,14 +133,13 @@ main() {
     done
     
     # Stop resource monitoring
-    kill $monitor_pid 2>/dev/null || true
+    stop_monitoring
     
     # Generate final report
     generate_report "${failed_phases[@]}"
     
     if [[ ${#failed_phases[@]} -eq 0 ]]; then
         log "✅ Task 8 Validation COMPLETED SUCCESSFULLY"
-        update_task_status "completed"
         exit 0
     else
         log "❌ Task 8 Validation FAILED - ${#failed_phases[@]} phase(s) failed"
@@ -162,18 +175,6 @@ All detailed logs available in: ${LOG_DIR}/
 EOF
     
     log "Validation report generated: $report_file"
-}
-
-# Update task status in tasks.md
-update_task_status() {
-    local status=$1
-    local tasks_file=".kiro/specs/data-ingestion-pipeline/tasks.md"
-    
-    if [[ -f "$tasks_file" ]]; then
-        # Update Task 8 status
-        sed -i 's/- \[ \] 8\. Validate core services connectivity and performance/- [x] 8. Validate core services connectivity and performance/' "$tasks_file"
-        log "Updated task status in $tasks_file"
-    fi
 }
 
 # Execute main function

@@ -12,6 +12,7 @@ readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/task9-logs"
 readonly SCHEMA_AUTH_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
+MONITOR_PID=0
 PRE_EVOLUTION_VERSION=1
 
 # Generate unique column names per test run to ensure idempotency
@@ -26,6 +27,19 @@ mkdir -p "${LOG_DIR}"
 # Logging function with timestamps
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Task 9 Validate: $*" | tee -a "${LOG_DIR}/validate.log"
+}
+
+stop_monitoring() {
+    # Stop resource monitoring
+    if [[ "$MONITOR_PID" -ne 0 ]]; then
+        log "Stopping background resource monitoring"
+        kill $MONITOR_PID 2>/dev/null || true
+    fi
+}
+
+exit_one() {
+    stop_monitoring
+    exit 1
 }
 
 # Get pod names with validation
@@ -699,6 +713,10 @@ main() {
         log "❌ Failed to get pod names"
         return 1
     fi
+
+    log "Starting background resource monitoring"
+    bash "${SCRIPT_DIR}/resource-monitor.sh" &
+    MONITOR_PID=$!
     
     # Step 2: Check connector status
     if ! check_connector_status; then
@@ -775,7 +793,11 @@ main() {
     check_resource_usage
     
     # Step 14: Generate summary
-    generate_summary "${failed_tests[@]}"
+    if ! generate_summary "${failed_tests[@]}"; then
+        exit_one
+    fi
+    
+    stop_monitoring
 }
 
 # Execute main function

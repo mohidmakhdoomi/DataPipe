@@ -10,6 +10,7 @@ readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-connector"
 readonly S3_BUCKET=$(~/Downloads/yq.exe 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/task10-logs"
+MONITOR_PID=0
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
@@ -17,6 +18,19 @@ mkdir -p "${LOG_DIR}"
 # Logging function with timestamps
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Task 10 Validate: $*" | tee -a "${LOG_DIR}/validate.log"
+}
+
+stop_monitoring() {
+    # Stop resource monitoring
+    if [[ "$MONITOR_PID" -ne 0 ]]; then
+        log "Stopping background resource monitoring"
+        kill $MONITOR_PID 2>/dev/null || true
+    fi
+}
+
+exit_one() {
+    stop_monitoring
+    exit 1
 }
 
 # Get pod names with validation
@@ -301,6 +315,10 @@ main() {
         log "❌ Failed to get pod names"
         return 1
     fi
+
+    log "Starting background resource monitoring"
+    bash "${SCRIPT_DIR}/resource-monitor.sh" &
+    MONITOR_PID=$!
     
     # Step 2: Check connector status
     if ! check_connector_status; then
@@ -339,9 +357,13 @@ main() {
     
     # Step 9: Check resource usage
     check_resource_usage
-    
+   
     # Step 10: Generate summary
-    generate_summary "${failed_tests[@]}"
+    if ! generate_summary "${failed_tests[@]}"; then
+        exit_one
+    fi
+    
+    stop_monitoring
 }
 
 # Execute main function
