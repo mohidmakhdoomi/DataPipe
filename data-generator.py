@@ -70,7 +70,7 @@ def setup_database():
         return None, None
 
 
-def benchmark_performance(target_rate, duration, table_name='users'):
+def benchmark_performance(target_rate, duration, table_name):
     """Run the performance benchmark"""
     log(
         f"Starting performance benchmark: {target_rate} events/sec for {duration} seconds"
