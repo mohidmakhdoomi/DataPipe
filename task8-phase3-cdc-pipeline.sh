@@ -15,6 +15,18 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 3: $*" | tee -a "${LOG_DIR}/phase3.log"
 }
 
+start_avro_consumer() {
+    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+        --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
+        --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+        --property schema.registry.url=http://localhost:8081 \
+        --timeout-ms 20000 2>/dev/null)
+    
+    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
+    sleep 10
+}
+
 # Deploy Debezium connector
 deploy_cdc_connector() {
     log "Checking for existing Debezium PostgreSQL CDC connector..."
@@ -83,6 +95,8 @@ test_cdc_flow() {
     # Insert test data
     local test_email="task8-validation-$(date +%s)@example.com"
     log "Inserting test record with email: $test_email"
+
+    start_avro_consumer
     
     if kubectl exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'Task8', 'Validation');" >/dev/null 2>&1; then
@@ -92,19 +106,15 @@ test_cdc_flow() {
         return 1
     fi
     
-    # Wait for CDC to process
-    log "Waiting for CDC processing..."
-    sleep 30
+    log "Waiting for CDC to process INSERT..."
+    local avro_out=$(cat <&3)
     
     # Verify message in Kafka topic
     log "Checking for CDC message in Kafka topic..."
     local message_found=false
     
     # Try to consume message with timeout
-    if kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-console-consumer \
-       --bootstrap-server localhost:9092 \
-       --topic postgres.public.users \
-       --from-beginning --timeout-ms 4000 2>/dev/null | grep -q "$test_email"; then
+    if echo "$avro_out" | grep '__op":{"string":"c"}' | grep -q "$test_email"; then
         log "✅ CDC message found in Kafka topic"
         message_found=true
     else
@@ -144,6 +154,9 @@ test_schema_registry() {
 
 main() {
     log "=== Starting Phase 3: End-to-End CDC Pipeline Testing ==="
+
+    local schema_registry_pod=$(kubectl get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    export SCHEMA_REGISTRY_POD="$schema_registry_pod"
     
     # Step 1: Deploy CDC connector
     if ! deploy_cdc_connector; then

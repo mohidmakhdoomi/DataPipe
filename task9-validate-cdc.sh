@@ -42,6 +42,18 @@ exit_one() {
     exit 1
 }
 
+start_avro_consumer() {
+    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+        --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
+        --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+        --property schema.registry.url=http://localhost:8081 \
+        --timeout-ms 20000 2>/dev/null)
+    
+    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
+    sleep 10
+}
+
 # Get pod names with validation
 get_pod_names() {
     log "Discovering pod names..."
@@ -239,18 +251,6 @@ test_cdc_update() {
         log "❌ UPDATE operation failed"
         return 1
     fi
-}
-
-start_avro_consumer() {
-    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-        kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
-        --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
-        --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
-        --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 20000 2>/dev/null)
-    
-    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
-    sleep 10
 }
 
 # Test DELETE operation (critical for Iceberg)
