@@ -145,14 +145,14 @@ kafka:
 **Topic Configuration**:
 ```yaml
 topics:
-  - name: "cdc.postgres.users"
+  - name: "postgres.public.users"
     partitions: 6
     replication: 3
     config:
       retention.ms: 604800000  # 7 days
       compression.type: lz4
       cleanup.policy: delete
-  - name: "cdc.postgres.products"
+  - name: "postgres.public.products"
     partitions: 6
     replication: 3
     config:
@@ -349,7 +349,7 @@ retry_policy:
 **Handling Strategy**:
 ```yaml
 dead_letter_queue:
-  topic: "cdc.errors.dlq"
+  topic: "connect-dlq"
   partitions: 3
   retention: 7d
   alert_threshold: 100  # messages per hour

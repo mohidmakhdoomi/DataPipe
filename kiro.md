@@ -22,7 +22,7 @@
 ### **✅ PHASE 2: CORE SERVICES (COMPLETED)**
 - ✅ **Task 5:** 3-broker Kafka cluster with KRaft mode
   - 10Gi total storage (3413Mi per broker), 2Gi memory allocation
-  - CDC topics created: cdc.postgres.users, cdc.postgres.products, cdc.postgres.orders, cdc.postgres.order_items
+  - CDC topics created: postgres.public.users, postgres.public.products, postgres.public.orders, postgres.public.order_items
   - 6 partitions, LZ4 compression, 7-day retention
 - ✅ **Task 6:** Confluent Schema Registry deployment
   - 512Mi memory allocation with backward compatibility

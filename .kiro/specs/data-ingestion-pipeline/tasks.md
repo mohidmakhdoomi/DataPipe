@@ -93,7 +93,7 @@ Phase 4: Production (Tasks 13-16)
     - Set JVM heap size: `-Xmx2g -Xms2g`
     - Enable G1GC: `-XX:+UseG1GC -XX:MaxGCPauseMillis=20`
     - Configure GC monitoring and alerting
-  - Create initial topics: `cdc.postgres.users`, `cdc.postgres.products`
+  - Create Kafka topics: `postgres.public.users`, `postgres.public.products`, `postgres.public.orders`, `postgres.public.order_items`
   - Configure topic settings: 6 partitions, 7-day retention, LZ4 compression
   - Test cluster health and topic creation/deletion
   - _Requirements: 2.1, 2.2, 5.1_
