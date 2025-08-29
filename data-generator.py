@@ -61,7 +61,7 @@ def setup_database():
             connect_timeout=10,
         )
         cur = conn.cursor()
-
+        
         log("✅ DB connection ready")
         return conn, cur
 
@@ -81,8 +81,10 @@ def benchmark_performance(target_rate, duration):
     if not conn:
         return False
 
+    batch_size = (target_rate // 50) if (target_rate >= 50) else 1
+
     # Performance tracking
-    events_sent = 0
+    batch_count = 0
     latencies = []
     errors = 0
     start_time = time.time()
@@ -91,29 +93,27 @@ def benchmark_performance(target_rate, duration):
     lock = threading.Lock()
 
     def insert_batch():
-        nonlocal events_sent, errors
-        batch_start = time.time()
-        batch_size = 100
+        nonlocal batch_count, errors
 
         try:
             # Create batch with source timestamps for latency measurement
-            source_timestamp = int(time.time() * 1000)  # milliseconds
-            values = [
-                (f"user_{i}_{source_timestamp}@example.com", f"First_{i}", f"Last_{i}")
-                for i in range(batch_size)
-            ]
+            batch_start = time.time()
 
-            cur.executemany(
-                "INSERT INTO users (email, first_name, last_name) VALUES (%s, %s, %s)", values
+            cur.execute(
+                f"""
+                INSERT INTO perf_test (email, first_name, last_name) 
+                SELECT
+                    'user_' || subquery.uuid || '_{int(batch_start * 1000)}@example.com',
+                    'First_' || subquery.uuid,
+                    'Last_' || subquery.uuid
+                    FROM (SELECT generate_series(1, {batch_size}) as uuid) AS subquery;
+                """
             )
             conn.commit()
 
-            batch_end = time.time()
-            batch_latency = (batch_end - batch_start) * 1000  # Convert to ms
-
             with lock:
-                latencies.append(batch_latency)
-                events_sent += batch_size
+                latencies.append((time.time() - batch_start) * 1000)
+                batch_count += 1
 
         except Exception as e:
             with lock:
@@ -124,30 +124,29 @@ def benchmark_performance(target_rate, duration):
 
     # Run benchmark with rate limiting
     with ThreadPoolExecutor(max_workers=10) as executor:
-        batch_count = 0
 
         while time.time() - start_time < duration:
             batch_start_time = time.time()
 
             # Submit batch
             executor.submit(insert_batch)
-            batch_count += 1
 
             # Rate limiting - aim for target_rate events per second
-            # Each batch has 100 events, so we need target_rate/100 batches per second
-            # Then increase batches_per_second by 10% to account for expected overhead/difference
-            batches_per_second = 1.1 * (target_rate / 100)
-            target_batch_interval = 1.0 / batches_per_second
+            # Each batch has batch_size events, so we need target_rate/batch_size batches per second
+            # Then adjust target_batch_interval by 2% to account for expected overhead/difference
+            target_batch_interval = 0.98 / (target_rate / batch_size)
 
             elapsed = time.time() - batch_start_time
             if elapsed < target_batch_interval:
                 time.sleep(target_batch_interval - elapsed)
 
+    total_time = time.time() - start_time
+
     # Wait for all batches to complete
     log("Waiting for all batches to complete...")
     time.sleep(5)
 
-    total_time = time.time() - start_time
+    events_sent = batch_count * batch_size
     actual_rate = events_sent / total_time if total_time > 0 else 0
 
     # Calculate latency statistics
@@ -226,8 +225,8 @@ def main():
             raise argparse.ArgumentTypeError('value not in range %s-%s'%(min,max))
     
     parser = argparse.ArgumentParser(description='Query S3 Parquet files from data ingestion pipeline')
-    parser.add_argument('--rate', required=True, type=functools.partial(range_type, min=1, max=5000),  default=1000, metavar="[1-5000]", help='Target rate as events per second (min 1, max 5000)')
-    parser.add_argument('--duration', required=True, type=functools.partial(range_type, min=10, max=10800), default=60, metavar="[10-10800]", help='Duration of generation as seconds (min 10, max 10800 - 3 hours)')
+    parser.add_argument('--rate', required=True, type=functools.partial(range_type, min=1, max=15000),  default=1000, metavar="[1-15000]", help='Target rate as events per second')
+    parser.add_argument('--duration', required=True, type=functools.partial(range_type, min=10, max=10800), default=60, metavar="[10-10800]", help='Duration of generation as seconds')
     
     args = parser.parse_args()
 
