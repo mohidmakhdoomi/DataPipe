@@ -169,6 +169,8 @@ test_cdc_insert() {
     log "Testing CDC with INSERT operation..."
     
     log "Inserting test record with email: $INS_UPD_DEL_EMAIL"
+
+    start_avro_consumer
     
     # Insert record and check if it succeeds
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
@@ -176,14 +178,11 @@ test_cdc_insert() {
        "INSERT INTO users (email, first_name, last_name) VALUES ('$INS_UPD_DEL_EMAIL', 'CDC', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Test record inserted successfully"
         
-        log "Waiting 5 seconds for CDC to process..."
-        sleep 5
-       
-        # Check if message appeared in Kafka (just verify, don't capture output)
+        log "Waiting for CDC to process INSERT..."
+        local avro_out=$(cat <&3)
+        
         log "Checking if CDC event appeared in Kafka..."
-        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
-           kafka-console-consumer --bootstrap-server localhost:9092 \
-           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "$INS_UPD_DEL_EMAIL"; then
+        if echo "$avro_out" | grep '__op":{"string":"c"}' | grep -q "$INS_UPD_DEL_EMAIL"; then
             log "✅ CDC INSERT event captured"
         else
             log "⚠️  CDC INSERT event not found"
@@ -200,6 +199,8 @@ test_cdc_insert() {
 test_cdc_update() {    
     log "Testing UPDATE operation..."
     
+    start_avro_consumer
+
     local update_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
        "UPDATE users SET first_name='Updated' WHERE email='$INS_UPD_DEL_EMAIL' RETURNING id;" 2>/dev/null)
@@ -208,17 +209,12 @@ test_cdc_update() {
         log "✅ UPDATE operation executed"
         echo "$update_result" >> "${LOG_DIR}/validate.log"
         
-        log "Waiting 3 seconds for CDC to process..."
-        sleep 3
+        log "Waiting for CDC to process UPDATE..."
+        local avro_out=$(cat <&3)
         
-        # Check for DELETE event with proper rewrite format
+        # Check for UPDATE event with proper rewrite format
         log "Checking if UPDATE event appeared in Kafka..."
-        if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-           kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
-           --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
-           --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
-           --property schema.registry.url=http://localhost:8081 \
-           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"u"}' | grep -q "\"id\":$update_result,"; then
+        if echo "$avro_out" | grep '__op":{"string":"u"}' | grep -q "\"id\":$update_result,"; then
             log "✅ UPDATE operation found with proper format"
             return 0
         else
@@ -229,6 +225,18 @@ test_cdc_update() {
         log "❌ UPDATE operation failed"
         return 1
     fi
+}
+
+start_avro_consumer() {
+    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+        kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+        --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
+        --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+        --property schema.registry.url=http://localhost:8081 \
+        --timeout-ms 20000 2>/dev/null)
+    
+    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
+    sleep 10
 }
 
 # Test DELETE operation (critical for Iceberg)
@@ -247,8 +255,9 @@ test_cdc_delete() {
             "INSERT INTO users (email, first_name, last_name) VALUES ('$INS_UPD_DEL_EMAIL', 'CDC', 'Test') ON CONFLICT (email) DO NOTHING;" >> "${LOG_DIR}/validate.log" 2>&1
         sleep 2  # Give time for commit visibility
     fi
-    
-    # Now perform the DELETE with verification
+
+    start_avro_consumer
+
     local delete_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
        "DELETE FROM users WHERE email = '$INS_UPD_DEL_EMAIL' RETURNING id;" 2>/dev/null)    
@@ -257,17 +266,12 @@ test_cdc_delete() {
         log "✅ DELETE operation executed successfully (record deleted)"
         echo "$delete_result" >> "${LOG_DIR}/validate.log"
         
-        log "Waiting 3 seconds for CDC to process DELETE..."
-        sleep 3
+        log "Waiting for CDC to process DELETE..."
+        local avro_out=$(cat <&3)
         
         # Check for DELETE event with proper rewrite format
         log "Checking if DELETE event appeared in Kafka with proper rewrite format..."
-        if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-           kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
-           --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
-           --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
-           --property schema.registry.url=http://localhost:8081 \
-           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"d"}' | grep -q "\"id\":$delete_result,"; then
+        if echo "$avro_out" | grep '__op":{"string":"d"}' | grep -q "\"id\":$delete_result,"; then
             log "✅ DELETE operation found with proper format"
             return 0
         else
@@ -306,6 +310,8 @@ test_schema_evolution_add_nullable_column() {
     # Test INSERT with new schema
     local test_email="task9-schema-evolve-${TEST_ID}@example.com"
     log "Testing INSERT with new schema (including $NULLABLE_COL)..."
+
+    start_avro_consumer
     
     local insert_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
@@ -315,17 +321,12 @@ test_schema_evolution_add_nullable_column() {
         log "✅ INSERT with new schema successful"
         echo "$insert_result" >> "${LOG_DIR}/validate.log"
         
-        # Wait for CDC to process
-        sleep 5
+        log "Waiting for CDC to process INSERT..."
+        local avro_out=$(cat <&3)
         
         # Verify CDC captured the new field
         log "Verifying CDC captured the new $NULLABLE_COL field..."
-        if kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
-           kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
-           --topic postgres.public.users --from-beginning --property basic.auth.credentials.source="USER_INFO" \
-           --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
-           --property schema.registry.url=http://localhost:8081 \
-           --timeout-ms 5000 2>/dev/null | grep '__op":{"string":"c"}' | grep "\"id\":$insert_result," | grep -q "Evolution"; then
+        if echo "$avro_out" | grep '__op":{"string":"c"}' | grep "\"id\":$insert_result," | grep -q "Evolution"; then
             log "✅ CDC captured record with new schema field"
         else
             log "⚠️  CDC record with new field not found"
@@ -368,26 +369,25 @@ test_schema_evolution_add_default_column() {
     fi
     
     # Wait for schema change to propagate
-    log "Waiting 10 seconds for schema change to propagate..."
-    sleep 10
+    log "Waiting 5 seconds for schema change to propagate..."
+    sleep 5
     
     # Test INSERT without specifying the new column (should use default)
     local test_email="schema-evolve-default-${TEST_ID}@example.com"
     log "Testing INSERT without new column (should use default value)..."
+
+    start_avro_consumer
     
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'Default', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ INSERT without new column successful"
         
-        # Wait for CDC to process
-        sleep 5
+        log "Waiting for CDC to process INSERT..."
+        local avro_out=$(cat <&3)
         
-        # Verify CDC captured the default value
         log "Verifying CDC captured the default $DEFAULTING_COL value..."
-        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
-           kafka-console-consumer --bootstrap-server localhost:9092 \
-           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "active"; then
+        if echo "$avro_out" | grep '__op":{"string":"c"}' | grep -q "active"; then
             log "✅ CDC captured record with default value"
         else
             log "⚠️  CDC record with default value not found"
@@ -456,16 +456,18 @@ test_cdc_after_schema_changes() {
     
     # Test INSERT with all new fields
     log "Testing INSERT with all schema fields..."
+
+    start_avro_consumer
+
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, $NULLABLE_COL, last_name, $DEFAULTING_COL) VALUES ('$test_email', 'Post', 'Schema', 'Change', 'verified') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ INSERT with full schema successful"
         
-        # Wait and verify CDC
-        sleep 5
-        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
-           kafka-console-consumer --bootstrap-server localhost:9092 \
-           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "$test_email"; then
+        log "Waiting for CDC to process INSERT..."
+        local avro_out=$(cat <&3)
+        
+        if echo "$avro_out" | grep '__op":{"string":"c"}' | grep -q "$test_email"; then
             log "✅ CDC captured INSERT after schema evolution"
         else
             log "⚠️  CDC INSERT not captured after schema evolution"
@@ -477,16 +479,18 @@ test_cdc_after_schema_changes() {
     
     # Test UPDATE with new fields
     log "Testing UPDATE with new schema fields..."
+
+    start_avro_consumer
+
     if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "UPDATE users SET $NULLABLE_COL='Updated', $DEFAULTING_COL='modified' WHERE email='$test_email' RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ UPDATE with new fields successful"
         
-        # Wait and verify CDC
-        sleep 5
-        if kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
-           kafka-console-consumer --bootstrap-server localhost:9092 \
-           --topic postgres.public.users --from-beginning --timeout-ms 5000 2>/dev/null | grep -q "modified"; then
+        log "Waiting for CDC to process UPDATE..."
+        local avro_out=$(cat <&3)
+        
+        if echo "$avro_out" | grep '__op":{"string":"u"}' | grep -q "modified"; then
             log "✅ CDC captured UPDATE after schema evolution"
         else
             log "⚠️  CDC UPDATE not captured after schema evolution"

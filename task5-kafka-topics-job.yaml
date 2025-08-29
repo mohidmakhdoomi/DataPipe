@@ -117,6 +117,18 @@ spec:
             --config cleanup.policy=delete \
             --config min.insync.replicas=2
 
+          echo "Creating __debezium-heartbeat.postgres topic..."
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic __debezium-heartbeat.postgres \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
           # Create postgres.transaction topic (for s3-sink-connector)
           echo "Creating postgres.transaction topic..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \

@@ -255,7 +255,7 @@ check_dlq() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka)" | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
         log "✅ Resource usage information retrieved"
         return 0
     else
