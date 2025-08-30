@@ -173,7 +173,7 @@ Phase 4: Production (Tasks 13-16)
   - Verify schema evolution handling and compatibility
   - _Requirements: 1.1, 1.2, 1.4, 5.4_
 
-- [ ] 10. Implement Kafka Connect S3 Sink connector for archival
+- [x] 10. Implement Kafka Connect S3 Sink connector for archival
   - Configure AWS S3 credentials and bucket access
   - Deploy S3 Sink connector with Parquet format conversion
   - Set up time-based partitioning: `year=YYYY/month=MM/day=dd/hour=HH`
@@ -201,8 +201,8 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 2.1, 2.2, 2.3, 3.4_
 
 **Acceptance Criteria:**
-- [ ] CDC capturing all PostgreSQL changes with proper schema evolution
-- [ ] S3 archival working with Parquet format and time-based partitioning
+- [x] CDC capturing all PostgreSQL changes with proper schema evolution
+- [x] S3 archival working with Parquet format and time-based partitioning
 - [ ] Data quality validation catching and routing invalid events to DLQ
 - [ ] End-to-end pipeline processing 1000+ events/sec with <5 second latency
 

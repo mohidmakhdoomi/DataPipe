@@ -131,7 +131,7 @@ test_s3_data_flow() {
         IFS="/" read -r year month day hour <<< "$current_date"
         local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
         
-        log "Checking S3 path: $s3_path"
+        log "Checking S3 path: $(echo "$s3_path" | awk -F "${S3_BUCKET}" '{print $2}')"
         if aws s3 ls "$s3_path" --region us-east-1 2>/dev/null | grep -q ".parquet"; then
             log "✅ Parquet files found in S3"
             
@@ -174,7 +174,7 @@ validate_parquet_structure() {
         
         # Download and inspect the file (basic validation)
         local full_s3_path="${s3_path}${parquet_file}"
-        log "Parquet file location: $full_s3_path"
+        log "Parquet file location: $(echo "$full_s3_path" | awk -F "${S3_BUCKET}" '{print $2}')"
         
         # Check file size
         local file_size=$(aws s3 ls "$full_s3_path" --region us-east-1 2>/dev/null | awk '{print $3}')
