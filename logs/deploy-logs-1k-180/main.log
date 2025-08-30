@@ -1,7 +1,0 @@
-[2025-08-27 19:48:51] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
-[2025-08-27 19:48:51] Deployment: Starting background resource monitoring
-[2025-08-27 19:48:51] Deployment: Executing Data Generator - performance benchmark...
-[2025-08-27 19:51:58] Deployment: ✅ Data Generator completed successfully
-[2025-08-27 19:51:58] Deployment: Sleeping 2 mins after running Data Generator
-[2025-08-27 19:53:58] Deployment: Stopping background resource monitoring
-[2025-08-27 19:53:59] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========
