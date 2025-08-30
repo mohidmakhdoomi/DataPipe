@@ -6,9 +6,10 @@ set -euo pipefail
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/task9-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/logs/task9-logs"
 readonly SCHEMA_AUTH_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 

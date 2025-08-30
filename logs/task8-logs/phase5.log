@@ -1,23 +1,23 @@
-[2025-08-29 20:05:45] Phase 5: === Starting Phase 5: Performance Benchmarking ===
-[2025-08-29 20:05:45] Phase 5: Executing performance benchmark...
-[2025-08-29 20:05:45] Phase 5: === Starting Phase 5: Performance Benchmarking ===
-[2025-08-29 20:05:45] Phase 5: Starting performance benchmark: 1000 events/sec for 60 seconds
-[2025-08-29 20:05:45] Phase 5: Setting up performance test database...
-[2025-08-29 20:05:48] Phase 5: ✅ Performance test table ready
-[2025-08-29 20:05:48] Phase 5: Starting load generation...
-[2025-08-29 20:06:48] Phase 5: Waiting for all batches to complete...
-[2025-08-29 20:06:53] Phase 5: 
+[2025-08-29 21:03:03] Phase 5: === Starting Phase 5: Performance Benchmarking ===
+[2025-08-29 21:03:03] Phase 5: Executing performance benchmark...
+[2025-08-29 21:03:03] Phase 5: === Starting Phase 5: Performance Benchmarking ===
+[2025-08-29 21:03:03] Phase 5: Starting performance benchmark: 1000 events/sec for 60 seconds
+[2025-08-29 21:03:03] Phase 5: Setting up performance test database...
+[2025-08-29 21:03:05] Phase 5: ✅ Performance test table ready
+[2025-08-29 21:03:05] Phase 5: Starting load generation...
+[2025-08-29 21:04:05] Phase 5: Waiting for all batches to complete...
+[2025-08-29 21:04:10] Phase 5: 
 === Performance Benchmark Results ===
-[2025-08-29 20:06:53] Phase 5: Events sent: 65800
-[2025-08-29 20:06:53] Phase 5: Duration: 65.05 seconds
-[2025-08-29 20:06:53] Phase 5: Actual rate: 1011.60 events/sec
-[2025-08-29 20:06:53] Phase 5: Target achieved: ✅ YES
-[2025-08-29 20:06:53] Phase 5: Errors: 0
-[2025-08-29 20:06:53] Phase 5: Average batch latency: 67.57ms
-[2025-08-29 20:06:53] Phase 5: P50 batch latency: 66.98ms
-[2025-08-29 20:06:53] Phase 5: P95 batch latency: 73.13ms
-[2025-08-29 20:06:53] Phase 5: P99 batch latency: 79.83ms
-[2025-08-29 20:06:53] Phase 5: Latency target (<500ms avg): ✅ YES
-[2025-08-29 20:06:53] Phase 5: Detailed results written to: E:/Projects/DataPipe/logs/task8-logs/performance-results.txt
-[2025-08-29 20:06:53] Phase 5: ✅ Phase 5 completed successfully - performance targets achieved
-[2025-08-29 20:06:53] Phase 5: ✅ Performance benchmark completed successfully
+[2025-08-29 21:04:10] Phase 5: Events sent: 65800
+[2025-08-29 21:04:10] Phase 5: Duration: 65.05 seconds
+[2025-08-29 21:04:10] Phase 5: Actual rate: 1011.56 events/sec
+[2025-08-29 21:04:10] Phase 5: Target achieved: ✅ YES
+[2025-08-29 21:04:10] Phase 5: Errors: 0
+[2025-08-29 21:04:10] Phase 5: Average batch latency: 67.70ms
+[2025-08-29 21:04:10] Phase 5: P50 batch latency: 67.03ms
+[2025-08-29 21:04:10] Phase 5: P95 batch latency: 73.76ms
+[2025-08-29 21:04:10] Phase 5: P99 batch latency: 79.25ms
+[2025-08-29 21:04:10] Phase 5: Latency target (<500ms avg): ✅ YES
+[2025-08-29 21:04:10] Phase 5: Detailed results written to: E:/Projects/DataPipe/logs/task8-logs/performance-results.txt
+[2025-08-29 21:04:10] Phase 5: ✅ Phase 5 completed successfully - performance targets achieved
+[2025-08-29 21:04:10] Phase 5: ✅ Performance benchmark completed successfully

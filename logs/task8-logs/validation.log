@@ -1,32 +1,32 @@
-[2025-08-29 19:57:37] Starting Task 8 Validation - Data Ingestion Pipeline
-[2025-08-29 19:57:37] Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage
-[2025-08-29 19:57:37] Checking if metrics-server is available...
-[2025-08-29 19:57:37] ✅ Metrics-server is available
-[2025-08-29 19:57:37] Starting background resource monitoring
-[2025-08-29 19:57:37] === Starting Phase 1: Service Health Validation ===
-[2025-08-29 19:57:37] Current memory usage: 2666Mi / 4096Mi 65%
-[2025-08-29 19:59:40] Phase 1 completed successfully in 123 seconds
-[2025-08-29 19:59:41] Current memory usage: 2670Mi / 4096Mi 65%
-[2025-08-29 19:59:46] === Starting Phase 2: Inter-Service Connectivity ===
-[2025-08-29 19:59:46] Current memory usage: 2670Mi / 4096Mi 65%
-[2025-08-29 19:59:57] Phase 2 completed successfully in 11 seconds
-[2025-08-29 19:59:58] Current memory usage: 2670Mi / 4096Mi 65%
-[2025-08-29 20:00:08] === Starting Phase 3: CDC Pipeline Testing ===
-[2025-08-29 20:00:08] Current memory usage: 2757Mi / 4096Mi 67%
-[2025-08-29 20:00:58] Phase 3 completed successfully in 50 seconds
-[2025-08-29 20:00:58] Current memory usage: 2861Mi / 4096Mi 69%
-[2025-08-29 20:01:13] === Starting Phase 4: Resource Monitoring ===
-[2025-08-29 20:01:13] Current memory usage: 2868Mi / 4096Mi 70%
-[2025-08-29 20:05:25] Phase 4 completed successfully in 252 seconds
-[2025-08-29 20:05:25] Current memory usage: 2701Mi / 4096Mi 65%
-[2025-08-29 20:05:45] === Starting Phase 5: Performance Benchmarking ===
-[2025-08-29 20:05:45] Current memory usage: 2701Mi / 4096Mi 65%
-[2025-08-29 20:06:53] Phase 5 completed successfully in 68 seconds
-[2025-08-29 20:06:53] Current memory usage: 2734Mi / 4096Mi 66%
-[2025-08-29 20:07:18] === Starting Phase 6: Persistence Validation ===
-[2025-08-29 20:07:18] Current memory usage: 2737Mi / 4096Mi 66%
-[2025-08-29 20:12:53] Phase 6 completed successfully in 335 seconds
-[2025-08-29 20:12:53] Current memory usage: 2292Mi / 4096Mi 55%
-[2025-08-29 20:13:23] Stopping background resource monitoring
-[2025-08-29 20:13:23] Validation report generated: /e/Projects/DataPipe/logs/task8-logs/task8-validation-report.md
-[2025-08-29 20:13:23] ✅ Task 8 Validation COMPLETED SUCCESSFULLY
+[2025-08-29 20:54:54] Starting Task 8 Validation - Data Ingestion Pipeline
+[2025-08-29 20:54:54] Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage
+[2025-08-29 20:54:54] Checking if metrics-server is available...
+[2025-08-29 20:54:55] ✅ Metrics-server is available
+[2025-08-29 20:54:55] Starting background resource monitoring
+[2025-08-29 20:54:55] === Starting Phase 1: Service Health Validation ===
+[2025-08-29 20:54:55] Current memory usage: 2739Mi / 4096Mi 66%
+[2025-08-29 20:56:58] Phase 1 completed successfully in 123 seconds
+[2025-08-29 20:56:59] Current memory usage: 2747Mi / 4096Mi 67%
+[2025-08-29 20:57:04] === Starting Phase 2: Inter-Service Connectivity ===
+[2025-08-29 20:57:04] Current memory usage: 2747Mi / 4096Mi 67%
+[2025-08-29 20:57:15] Phase 2 completed successfully in 11 seconds
+[2025-08-29 20:57:15] Current memory usage: 2778Mi / 4096Mi 67%
+[2025-08-29 20:57:25] === Starting Phase 3: CDC Pipeline Testing ===
+[2025-08-29 20:57:25] Current memory usage: 2778Mi / 4096Mi 67%
+[2025-08-29 20:58:15] Phase 3 completed successfully in 49 seconds
+[2025-08-29 20:58:15] Current memory usage: 2946Mi / 4096Mi 71%
+[2025-08-29 20:58:30] === Starting Phase 4: Resource Monitoring ===
+[2025-08-29 20:58:31] Current memory usage: 2758Mi / 4096Mi 67%
+[2025-08-29 21:02:42] Phase 4 completed successfully in 251 seconds
+[2025-08-29 21:02:42] Current memory usage: 2786Mi / 4096Mi 68%
+[2025-08-29 21:03:02] === Starting Phase 5: Performance Benchmarking ===
+[2025-08-29 21:03:02] Current memory usage: 2789Mi / 4096Mi 68%
+[2025-08-29 21:04:10] Phase 5 completed successfully in 68 seconds
+[2025-08-29 21:04:10] Current memory usage: 2808Mi / 4096Mi 68%
+[2025-08-29 21:04:36] === Starting Phase 6: Persistence Validation ===
+[2025-08-29 21:04:36] Current memory usage: 2815Mi / 4096Mi 68%
+[2025-08-29 21:10:01] Phase 6 completed successfully in 325 seconds
+[2025-08-29 21:10:01] Current memory usage: 2334Mi / 4096Mi 56%
+[2025-08-29 21:10:31] Stopping background resource monitoring
+[2025-08-29 21:10:32] Validation report generated: /e/Projects/DataPipe/logs/task8-logs/task8-validation-report.md
+[2025-08-29 21:10:32] ✅ Task 8 Validation COMPLETED SUCCESSFULLY
