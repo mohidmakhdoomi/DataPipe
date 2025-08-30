@@ -256,13 +256,15 @@ Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 ## Resource Allocation Summary
 
 - **Total RAM**: 4Gi allocated across all components
-- **Actual Usage**: 1816Mi (45% utilization) with 55% headroom
-- **PostgreSQL**: 0.75Gi RAM (39Mi actual usage), 5Gi storage
-- **Kafka Cluster**: 2Gi RAM  (1126Mi actual usage), 10Gi storage
-- **Schema Registry**: 0.5Gi RAM (235Mi actual usage)
-- **Kafka Connect**: 0.75Gi RAM (415Mi actual usage)
-- **Monitoring**: Included in orchestration-monitoring feature
-- **Performance**: Exceeds targets with significant resource headroom
+- **Actual Usage**: 2666Mi (65% utilization) with 35% headroom
+- **PostgreSQL**: 512Mi RAM (318Mi actual usage), 5Gi storage
+- **Kafka Cluster**: 2Gi RAM (1279Mi actual usage), 10Gi storage
+  - kafka-0: 415Mi memory, 114m CPU
+  - kafka-1: 444Mi memory, 95m CPU
+  - kafka-2: 420Mi memory, 85m CPU
+- **Schema Registry**: 512Mi RAM (254Mi actual usage)
+- **Kafka Connect**: 1Gi RAM (815Mi actual usage)
+- **Performance**: Exceeds targets with healthy resource utilization
 
 ## Implementation Notes
 
