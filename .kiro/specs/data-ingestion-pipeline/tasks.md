@@ -52,7 +52,7 @@ Phase 4: Production (Tasks 13-16)
   - Define namespace: `data-ingestion` for all pipeline components
   - Set up service accounts: `postgresql-sa`, `kafka-sa`, `debezium-sa`
   - Configure role-based access control with minimal required permissions
-  - Create network policies for service isolation and security
+  - Create data-flow-specific network policies for component communication
   - _Requirements: 7.1, 7.2_
 
 - [x] 4. Deploy PostgreSQL with e-commerce schema and CDC configuration
@@ -92,7 +92,7 @@ Phase 4: Production (Tasks 13-16)
   - Configure Kafka for 2Gi shared HA cluster allocation:
     - Set JVM heap size: `-Xmx2g -Xms2g`
     - Enable G1GC: `-XX:+UseG1GC -XX:MaxGCPauseMillis=20`
-    - Configure GC monitoring and alerting
+    - Configure GC metrics exposure for monitoring systems
   - Create Kafka topics: `postgres.public.users`, `postgres.public.products`, `postgres.public.orders`, `postgres.public.order_items`
   - Configure topic settings: 6 partitions, 7-day retention, LZ4 compression
   - Test cluster health and topic creation/deletion
@@ -142,15 +142,15 @@ Phase 4: Production (Tasks 13-16)
 
 - [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
-  - Monitor resource consumption and adjust allocations within 4Gi limit
+  - Validate resource consumption and metric exposure within 4Gi limit
   - Verify container memory limits enforcement:
     - PostgreSQL: 512Mi limit with OOM protection
-    - Kafka: 2Gi limit with GC monitoring
+    - Kafka: 2Gi limit with GC metrics exposure
     - Schema Registry: 512Mi limit with JVM optimization
     - Kafka Connect: 1Gi limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
-  - Document baseline performance metrics and resource usage
+  - Document baseline performance characteristics and metric definitions
   - _Requirements: 2.1, 6.1_
 
 **Acceptance Criteria:**
@@ -186,7 +186,7 @@ Phase 4: Production (Tasks 13-16)
   - Implement schema validation for incoming CDC events
   - Configure dead letter queues for schema violations and invalid data
   - Test validation with malformed data and schema evolution scenarios
-  - Set up basic data quality metrics collection and monitoring
+  - Configure components to expose data quality metrics for monitoring systems
   - _Requirements: 5.4, 6.4_
 
 - [x] 12. Validate end-to-end data ingestion pipeline
@@ -202,45 +202,34 @@ Phase 4: Production (Tasks 13-16)
 - [x] Data quality validation catching and routing invalid events to DLQ
 - [x] End-to-end pipeline processing 1000+ events/sec with <5 second latency
 
-### Phase 4: Production - Monitoring and Reliability
+### Phase 4: Production - Data-Specific Operations
 
-- [ ] 13. Set up comprehensive monitoring and alerting
-  - Deploy Prometheus for metrics collection from all pipeline components
-  - Configure Grafana dashboards for ingestion rate, lag, and error monitoring
-  - Set up Alertmanager with email and Slack notifications
-  - Create alert rules: high lag (>300s), low quality score (<0.95), component down
-  - Test alerting with simulated failures and performance degradation
-  - _Requirements: 6.1, 6.2, 6.3_
-
-- [ ] 14. Implement security hardening and credential management
-  - Deploy sealed-secrets for PostgreSQL, Kafka, and AWS credentials
-  - Configure TLS encryption for inter-service communication
-  - Set up network policies for service isolation and traffic control
-  - Implement audit logging for all data access and configuration changes
-  - Test security controls and validate credential rotation procedures
+- [ ] 13. Implement data-ingestion-specific security procedures
+  - Configure credential rotation procedures for PostgreSQL, Kafka, and AWS
+  - Validate data access controls and CDC user permissions
+  - Test security controls specific to data ingestion components
+  - Document data-specific security procedures and compliance requirements
   - _Requirements: 7.1, 7.2, 7.4_
 
-- [ ] 15. Create backup and disaster recovery procedures
-  - Implement automated backup for PostgreSQL data and Kafka topics
-  - Set up disaster recovery procedures with documented RTO/RPO targets
-  - Configure cross-region replication for critical configuration data
-  - Test recovery procedures: full cluster rebuild, data corruption scenarios
-  - Create runbooks for common failure scenarios and escalation procedures
-  - _Requirements: 7.5, operational excellence_
+- [ ] 14. Create data-specific backup and recovery procedures
+  - Implement PostgreSQL data backup procedures with point-in-time recovery
+  - Configure Kafka topic backup and replay procedures
+  - Test data recovery scenarios: corruption, CDC slot issues, schema conflicts
+  - Document data-specific recovery procedures and RTO/RPO targets
+  - _Requirements: data protection, reliability_
 
-- [ ] 16. Performance testing and capacity planning
-  - Conduct load testing to validate 10,000 events/sec target throughput
-  - Test resource scaling: CPU, memory, and storage under sustained load
-  - Validate backpressure handling and graceful degradation
-  - Create capacity planning models and resource utilization projections
-  - Document performance optimization recommendations and scaling procedures
+- [ ] 15. Conduct data pipeline performance testing
+  - Perform load testing to validate 10,000 events/sec target throughput
+  - Test CDC performance under sustained high-volume data changes
+  - Validate S3 archival performance and batch processing efficiency
+  - Test backpressure handling and graceful degradation scenarios
+  - Document pipeline-specific performance characteristics and scaling procedures
   - _Requirements: 2.1, 2.2, 2.4_
 
 **Acceptance Criteria:**
-- [ ] Monitoring stack operational with comprehensive dashboards and alerting
-- [ ] Security controls implemented with encrypted communication and credential management
-- [ ] Backup and recovery procedures tested and documented
-- [ ] Performance validated at 10,000 events/sec with acceptable latency (<5s)
+- [ ] Data-specific security procedures implemented and tested
+- [ ] Data backup and recovery procedures validated with test scenarios
+- [ ] Pipeline performance validated at 10,000 events/sec with acceptable latency (<5s)
 
 ## Success Criteria
 
@@ -248,10 +237,12 @@ Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 
 - **High Throughput**: Sustained ingestion of 10,000 events per second
 - **Data Integrity**: Exactly-once delivery with schema evolution support
-- **Reliability**: Automatic recovery from failures with <1 minute downtime
-- **Observability**: Comprehensive monitoring with proactive alerting
-- **Security**: Encrypted communication and secure credential management
-- **Maintainability**: Clear documentation and automated operational procedures
+- **Reliability**: Automatic recovery from data-specific failures with <1 minute downtime
+- **Data Security**: Secure credential management and data access controls
+- **Data Protection**: Comprehensive backup and recovery procedures for data assets
+- **Performance Validation**: Documented performance characteristics and scaling procedures
+
+*Note: Comprehensive monitoring, alerting, and infrastructure-level security are provided by the orchestration-monitoring feature.*
 
 ## Resource Allocation Summary
 

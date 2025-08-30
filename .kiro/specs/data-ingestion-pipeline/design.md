@@ -368,42 +368,36 @@ circuit_breaker:
   half_open_max_calls: 3
 ```
 
-### Monitoring and Alerting
+### Observability Metrics
 
-**Key Metrics**:
+**Pipeline-Specific Metrics Exposed**:
 ```yaml
 metrics:
   - name: "cdc_events_per_second"
     type: "gauge"
     labels: ["table", "operation"]
+    description: "Rate of CDC events processed per second by table and operation type"
   - name: "kafka_consumer_lag"
     type: "gauge"
     labels: ["topic", "partition"]
+    description: "Consumer lag for CDC topics"
   - name: "s3_upload_success_rate"
     type: "counter"
     labels: ["connector", "bucket"]
+    description: "Success rate of S3 uploads"
   - name: "schema_registry_requests"
     type: "counter"
     labels: ["subject", "version"]
+    description: "Schema Registry requests for CDC schemas"
+  - name: "data_quality_score"
+    type: "gauge"
+    labels: ["checkpoint", "table"]
+    description: "Data quality score for CDC events"
 ```
 
-**Alert Rules**:
-```yaml
-alerts:
-  - name: "HighCDCLag"
-    condition: "kafka_consumer_lag > 10000"
-    severity: "warning"
-    duration: "5m"
-  - name: "S3UploadFailures"
-    condition: "s3_upload_success_rate < 0.95"
-    severity: "critical"
-    duration: "2m"
-  - name: "SchemaValidationErrors"
-    condition: "rate(schema_validation_errors[5m]) > 10"
-    severity: "warning"
-```
+*Note: Monitoring infrastructure (Prometheus, Grafana, Alertmanager) and alert rules are provided by the orchestration-monitoring feature.*
 
-## Security Architecture
+## Data Security Configuration
 
 ### Authentication and Authorization
 ```yaml
@@ -414,37 +408,63 @@ security:
     users:
       - name: "debezium"
         permissions: ["REPLICATION", "SELECT"]
-        tables: ["users", "products"]
+        tables: ["users", "products", "orders", "order_items"]
   
   kafka:
-    security_protocol: "SASL_SSL"
-    sasl_mechanism: "PLAIN"
-    ssl_truststore_location: "/opt/kafka/ssl/truststore.jks"
+    security_protocol: "PLAINTEXT"  # Local development
+    network_policies: "default_deny_all"
+    inter_broker_communication: "secured"
+  
+  schema_registry:
+    auth_method: "BASIC"
+    jaas_config: "PropertyFileLoginModule"
+    roles: ["admin", "developer", "readonly"]
   
   aws_s3:
-    auth_method: "iam_role"
+    auth_method: "access_keys"  # Local development
     encryption: "SSE-S3"
     bucket_policy: "least_privilege"
+  
+  kubernetes:
+    network_policies: "default_deny_all_with_specific_ingress_egress"
+    service_accounts: "dedicated_per_component"
+    pod_security: "baseline_enforcement"
+    capabilities: "drop_all_add_minimal"
 ```
 
-### Network Security
+### Data Access Controls
 ```yaml
-network_policies:
-  - name: "postgresql-access"
-    spec:
-      podSelector:
-        matchLabels:
-          app: postgresql
-      policyTypes: ["Ingress"]
-      ingress:
-        - from:
-          - podSelector:
-              matchLabels:
-                app: debezium-connect
-          ports:
-          - protocol: TCP
-            port: 5432
+data_access:
+  cdc_user_permissions:
+    - database: "ecommerce"
+      schema: "public"
+      tables: ["users", "products", "orders", "order_items"]
+      permissions: ["SELECT", "REPLICATION"]
+  
+  s3_bucket_policy:
+    - effect: "Allow"
+      actions: ["s3:PutObject", "s3:PutObjectAcl"]
+      resources: ["arn:aws:s3:::datapipe-ingestion-*/topics/*"]
+    - effect: "Allow"
+      actions: ["s3:ListBucket"]
+      resources: ["arn:aws:s3:::datapipe-ingestion-*"]
+  
+  kubernetes_rbac:
+    - service_account: "kafka-connect-sa"
+      permissions: ["get", "list", "watch"]
+      resources: ["configmaps", "secrets", "pods"]
+    - service_account: "postgresql-sa"
+      permissions: ["minimal"]
+      auto_mount_token: false
+  
+  network_segmentation:
+    - default_policy: "deny_all"
+    - postgresql_ingress: "kafka_connect_only"
+    - kafka_ingress: "connect_and_schema_registry_only"
+    - external_egress: "s3_https_only"
 ```
+
+*Note: Infrastructure-level security (network policies, TLS encryption, sealed secrets) is provided by the orchestration-monitoring feature.*
 
 ## Performance and Scalability
 
@@ -571,4 +591,4 @@ data-ingestion-pipeline/
     └── kafka-connect/
 ```
 
-This design provides a robust, scalable data ingestion pipeline that can handle 10,000 events per second while maintaining data integrity and providing comprehensive monitoring and error handling capabilities.
+This design provides a robust, scalable data ingestion pipeline that can handle 10,000 events per second while maintaining data integrity and comprehensive error handling capabilities. The pipeline exposes comprehensive metrics for monitoring and integrates with infrastructure-level security controls provided by the orchestration-monitoring feature.
