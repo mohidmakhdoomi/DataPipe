@@ -26,9 +26,6 @@ Phase 4: Production (Tasks 13-16)
 **Status: COMPLETED ✅ | All Tasks 1-4 Complete**
 
 - [x] 1. Set up Kind Kubernetes cluster for data ingestion
-
-
-
   - Create kind-config.yaml with single control-plane and 2 worker nodes
   - Initialize cluster with containerd image store
   - Configure port mappings for service access (5432 for PostgreSQL, 9092 for Kafka)
@@ -36,28 +33,20 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 4.1, 4.2_
 
 - [x] 2. Configure persistent volume provisioning for data services
-
-
-
   - Set up local-path-provisioner for development storage
   - Create storage classes for PostgreSQL (5Gi) and Kafka (10Gi)
   - Test volume creation, mounting, and persistence across pod restarts
   - Document storage allocation: 15Gi total for data services
-  - _Requirements: 4.3, 7.1_
+  - _Requirements: 4.3_
 
 - [x] 3. Create Kubernetes namespaces and RBAC configuration
-
-
-
   - Define namespace: `data-ingestion` for all pipeline components
   - Set up service accounts: `postgresql-sa`, `kafka-sa`, `debezium-sa`
   - Configure role-based access control with minimal required permissions
   - Create data-flow-specific network policies for component communication
-  - _Requirements: 7.1, 7.2_
+  - _Requirements: 4.5_
 
 - [x] 4. Deploy PostgreSQL with e-commerce schema and CDC configuration
-
-
   - Create PostgreSQL StatefulSet with persistent volume (5Gi)
   - Configure logical replication: `wal_level=logical`, `max_replication_slots=4`
   - Optimize PostgreSQL for 0.75Gi memory allocation:
@@ -69,7 +58,7 @@ Phase 4: Production (Tasks 13-16)
   - Set up CDC user with replication permissions: `GRANT REPLICATION ON DATABASE`
   - Create publication for CDC: `CREATE PUBLICATION debezium_publication FOR ALL TABLES`
   - Test logical replication slot creation and WAL streaming
-  - _Requirements: 1.1, 1.2, 4.4_
+  - _Requirements: 1.1, 1.2, 1.3_
 
 **Acceptance Criteria:**
 - [x] Kind cluster running with 3 nodes and 4Gi RAM allocation
@@ -101,14 +90,13 @@ Phase 4: Production (Tasks 13-16)
   **✅ COMPLETED:** 3-broker Kafka cluster deployed with KRaft mode, 10Gi total storage (3413Mi per broker), 2Gi memory allocation, CDC topics created with 6 partitions, LZ4 compression, and 7-day retention. All specification requirements met exactly.
 
 - [x] 6. Deploy Confluent Schema Registry for schema management
-
-
   - Create Schema Registry deployment with Kafka backend
   - Configure schema compatibility rules (backward compatibility)
   - Set up schema registry topics with proper replication
   - Test schema registration and compatibility validation
   - Configure client access and authentication
-  - _Requirements: 5.1, 5.2, 5.3_
+  - Test schema evolution with downstream consumer compatibility
+  - _Requirements: 5.1, 5.2, 5.3, 5.5_
 
   **✅ COMPLETED:** Schema Registry deployed with comprehensive configuration including:
   - Kafka backend connection to 3-broker cluster
@@ -120,15 +108,12 @@ Phase 4: Production (Tasks 13-16)
   - Schema registry topics with replication factor 3
 
 - [x] 7. Configure Kafka Connect cluster with Debezium plugins
-
-
-
   - Deploy Kafka Connect cluster (3 workers) with Debezium PostgreSQL connector
   - Configure distributed mode with proper worker coordination
   - Set up connector plugins and dependencies
   - Configure dead letter queue topics for error handling
   - Test connector deployment and plugin availability
-  - _Requirements: 1.1, 1.3, 7.3_
+  - _Requirements: 1.1, 1.3, 7.2_
 
   **✅ COMPLETED:** Kafka Connect deployed with comprehensive multi-model consensus validation:
   - Single worker deployment (1Gi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
@@ -143,15 +128,11 @@ Phase 4: Production (Tasks 13-16)
 - [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
   - Validate resource consumption and metric exposure within 4Gi limit
-  - Verify container memory limits enforcement:
-    - PostgreSQL: 512Mi limit with OOM protection
-    - Kafka: 2Gi limit with GC metrics exposure
-    - Schema Registry: 512Mi limit with JVM optimization
-    - Kafka Connect: 1Gi limit
+  - Verify container memory limits enforcement and resource consumption within 4Gi limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
   - Document baseline performance characteristics and metric definitions
-  - _Requirements: 2.1, 6.1_
+  - _Requirements: 2.1, 4.5, 6.1_
 
 **Acceptance Criteria:**
 - [x] Kafka cluster healthy with 3 brokers and proper replication
@@ -162,16 +143,14 @@ Phase 4: Production (Tasks 13-16)
 ### Phase 3: Integration - CDC and S3 Archival
 
 - [x] 9. Configure Debezium PostgreSQL CDC connector
-
-
-
   - Create Debezium connector configuration for PostgreSQL source
   - Configure table inclusion list: `public.users`, `public.products`
   - Set up Avro serialization with Schema Registry integration
   - Configure connector transforms: `ExtractNewRecordState` for clean events
+  - Configure data lineage metadata in CDC events with source timestamps and transformation tracking
   - Test change data capture with INSERT, UPDATE, DELETE operations
   - Verify schema evolution handling and compatibility
-  - _Requirements: 1.1, 1.2, 1.4, 5.4_
+  - _Requirements: 1.1, 1.2, 1.4, 1.5, 5.4_
 
 - [x] 10. Implement Kafka Connect S3 Sink connector for archival
   - Configure AWS S3 credentials and bucket access
@@ -180,21 +159,21 @@ Phase 4: Production (Tasks 13-16)
   - Configure batch settings: 1000 records or 60 seconds flush interval
   - Test data archiving and verify S3 object creation with proper structure
   - Implement error handling with dead letter queue for failed records
-  - _Requirements: 3.1, 3.2, 3.3, 7.3_
+  - _Requirements: 3.1, 3.2, 3.3, 4.4, 7.1, 7.2, 7.3_
 
 - [x] 11. Create comprehensive data validation and quality checks
   - Implement schema validation for incoming CDC events
   - Configure dead letter queues for schema violations and invalid data
   - Test validation with malformed data and schema evolution scenarios
   - Configure components to expose data quality metrics for monitoring systems
-  - _Requirements: 5.4, 6.4_
+  - _Requirements: 5.4, 6.2, 7.2_
 
 - [x] 12. Validate end-to-end data ingestion pipeline
   - Test complete flow: PostgreSQL CDC → Kafka → S3 archival
   - Verify data integrity and schema consistency across all stages
   - Monitor ingestion latency and throughput under normal load
   - Validate connector health and error handling mechanisms
-  - _Requirements: 2.1, 2.2, 2.3, 3.4_
+  - _Requirements: 2.1, 2.2, 2.3, 2.5, 3.4, 3.5_
 
 **Acceptance Criteria:**
 - [x] CDC capturing all PostgreSQL changes with proper schema evolution
@@ -205,26 +184,27 @@ Phase 4: Production (Tasks 13-16)
 ### Phase 4: Production - Data-Specific Operations
 
 - [ ] 13. Implement data-ingestion-specific security procedures
-  - Configure credential rotation procedures for PostgreSQL, Kafka, and AWS
-  - Validate data access controls and CDC user permissions
-  - Test security controls specific to data ingestion components
+  - Configure credential rotation procedures for PostgreSQL CDC user and Kafka Connect service accounts
+  - Validate CDC user permissions and data access controls for pipeline components
   - Document data-specific security procedures and compliance requirements
-  - _Requirements: 7.1, 7.2, 7.4_
+  - _Requirements: 7.4_
 
 - [ ] 14. Create data-specific backup and recovery procedures
   - Implement PostgreSQL data backup procedures with point-in-time recovery
   - Configure Kafka topic backup and replay procedures
   - Test data recovery scenarios: corruption, CDC slot issues, schema conflicts
-  - Document data-specific recovery procedures and RTO/RPO targets
-  - _Requirements: data protection, reliability_
+  - _Requirements: 4.3, 7.2_
 
 - [ ] 15. Conduct data pipeline performance testing
   - Perform load testing to validate 10,000 events/sec target throughput
   - Test CDC performance under sustained high-volume data changes
   - Validate S3 archival performance and batch processing efficiency
   - Test backpressure handling and graceful degradation scenarios
+  - Implement throughput monitoring metrics to provide actual vs target throughput rates
   - Document pipeline-specific performance characteristics and scaling procedures
-  - _Requirements: 2.1, 2.2, 2.4_
+  - _Requirements: 2.1, 2.2, 2.3, 2.4_
+
+
 
 **Acceptance Criteria:**
 - [ ] Data-specific security procedures implemented and tested
