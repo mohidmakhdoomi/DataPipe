@@ -79,7 +79,7 @@ Phase 4: Production (Tasks 13-16)
   - Configure KRaft controllers for metadata management (no ZooKeeper)
   - Set up inter-broker communication and replication factor 3
   - Configure Kafka for 2Gi shared HA cluster allocation:
-    - Set JVM heap size: `-Xmx2g -Xms2g`
+    - Set JVM heap size: `-XX:MaxRAMPercentage=75.0`
     - Enable G1GC: `-XX:+UseG1GC -XX:MaxGCPauseMillis=20`
     - Configure GC metrics exposure for monitoring systems
   - Create Kafka topics: `postgres.public.users`, `postgres.public.products`, `postgres.public.orders`, `postgres.public.order_items`
@@ -144,7 +144,7 @@ Phase 4: Production (Tasks 13-16)
 
 - [x] 9. Configure Debezium PostgreSQL CDC connector
   - Create Debezium connector configuration for PostgreSQL source
-  - Configure table inclusion list: `public.users`, `public.products`
+  - Configure table inclusion list: `public.users`, `public.products`, `public.orders`, `public.order_items`
   - Set up Avro serialization with Schema Registry integration
   - Configure connector transforms: `ExtractNewRecordState` for clean events
   - Configure data lineage metadata in CDC events with source timestamps and transformation tracking
