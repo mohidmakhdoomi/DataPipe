@@ -8,8 +8,8 @@ readonly NAMESPACE="data-ingestion"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/task8-logs"
 readonly CONFIG_FILE="task9-debezium-connector-config.json"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
-readonly SCHEMA_AUTH_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
-readonly SCHEMA_AUTH_PASS=$(~/Downloads/yq.exe 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
+readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
+readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 3: $*" | tee -a "${LOG_DIR}/phase3.log"

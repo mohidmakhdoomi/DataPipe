@@ -9,7 +9,7 @@ IFS=$'\n\t'       # Safer word splitting
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-connector"
-readonly S3_BUCKET=$(~/Downloads/yq.exe 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
+readonly S3_BUCKET=$(yq 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
 readonly LOG_DIR="${SCRIPT_DIR}/logs/task10-logs"
 MONITOR_PID=0
 

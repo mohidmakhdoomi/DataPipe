@@ -33,8 +33,8 @@ readonly CONN_CONFIGS=(
 )
 
 readonly SAMPLE_DB_FILE="sample_data_postgres.sql"
-readonly DB_USER=$(~/Downloads/yq.exe 'select(.metadata.name == "postgresql-credentials").data.username' 04-secrets.yaml | base64 --decode)
-readonly DB_NAME=$(~/Downloads/yq.exe 'select(.metadata.name == "postgresql-credentials").data.database' 04-secrets.yaml | base64 --decode)
+readonly DB_USER=$(yq 'select(.metadata.name == "postgresql-credentials").data.username' 04-secrets.yaml | base64 --decode)
+readonly DB_NAME=$(yq 'select(.metadata.name == "postgresql-credentials").data.database' 04-secrets.yaml | base64 --decode)
 
 # Load functions for metrics server
 source ${SCRIPT_DIR}/metrics-server.sh
