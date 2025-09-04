@@ -4,6 +4,7 @@ ZEN_NAME=zen-mcp-server
 ZIP_VERSION=5.10.0
 CUSTOM_CONFIG=custom_models.json
 
+mkdir -p .kiro/settings/zen
 cd .kiro/settings/zen
 
 BASE_DIR="$(pwd)"

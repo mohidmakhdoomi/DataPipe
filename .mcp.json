@@ -1,5 +1,17 @@
 {
     "mcpServers": {
+      "code2prompt": {
+        "command": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "-v",
+          "/e/Projects/DataPipe:/app/DataPipe",
+          "code2prompt-mcp"
+        ],
+        "env": {}
+      },
       "clear-thought": {
         "command": "docker",
         "args": [
@@ -8,9 +20,7 @@
           "-i",
           "waldzellai/clear-thought"
         ],
-        "env": {},
-        "disabled": false,
-        "autoApprove": []
+        "env": {}
       },
       "zen": {
         "command": "docker",
