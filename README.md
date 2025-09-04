@@ -164,7 +164,7 @@ DataPipe
 ├── kind-config.yaml            # 3-node Kind cluster definition
 ├── storage-classes.yaml        # Differentiated storage for DB vs. streaming
 ├── *.json                      # Kafka Connect connector configurations
-└── task*-*.yaml                # Kubernetes manifests for each pipeline component
+└── task*.yaml                  # Kubernetes manifests for each pipeline component
 ```
 
 ## 🗺️ Future Work & Roadmap
