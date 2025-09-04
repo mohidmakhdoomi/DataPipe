@@ -13,15 +13,12 @@ It captures real-time changes from a PostgreSQL database using Debezium CDC, str
 
 ## ✨ Features
 
-- **Real-time Change Data Capture (CDC)**: Captures row-level `INSERT`, `UPDATE`, and `DELETE` operations from PostgreSQL in real-time using Debezium without any custom application code.
-- **High-Throughput Streaming**: Built on a 3-broker KRaft-based Apache Kafka cluster, designed to handle a target of 10,000 events per second.
-- **Schema Management**: Integrates Confluent Schema Registry to manage Avro schemas, enforce compatibility rules, and handle schema evolution gracefully.
-- **Efficient S3 Archival**: Uses the Kafka Connect S3 Sink connector to batch-process events and archive them to AWS S3 as compressed Parquet files.
-- **Time-Based Partitioning**: Data in S3 is partitioned by `year/month/day/hour` for efficient querying by downstream analytics engines.
-- **Kubernetes Native**: The entire pipeline is defined declaratively with Kubernetes manifests, ensuring reproducibility and production parity.
-- **Resource-Constrained Operation**: Optimized to run all components (PostgreSQL, Kafka, Schema Registry, Kafka Connect) within a 4Gi memory limit.
-- **Local Development Focused**: Designed to run locally on Docker Desktop with `kind`, providing a complete development and testing environment.
-- **Comprehensive Security**: Implements Kubernetes Network Policies for strict service isolation and uses dedicated service accounts with minimal RBAC permissions.
+-   **Real-time CDC Streaming**: Captures database changes from PostgreSQL using Debezium and streams them through a high-availability, KRaft-based Kafka cluster.
+-   **Managed Schema Evolution**: Employs Confluent Schema Registry with Avro to enforce data contracts and handle schema changes without breaking the pipeline.
+-   **Optimized S3 Archival**: Archives the event stream to AWS S3 as compressed Parquet files, partitioned by time (`year/month/day/hour`) for efficient analytical queries.
+-   **Kubernetes-Native Deployment**: Defined entirely with Kubernetes manifests for reproducible, production-parity deployment on a local `kind` cluster.
+-   **Resource-Efficient**: Meticulously configured to run the complete pipeline—PostgreSQL, Kafka, and Connect—within a **4GB RAM** budget.
+-   **Secure by Design**: Enforces strict service-to-service communication with Network Policies and follows the principle of least privilege with RBAC.
 
 ## 🏗️ Architecture
 
