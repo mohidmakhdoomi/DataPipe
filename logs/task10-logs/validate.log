@@ -47,7 +47,7 @@ INSERT 0 1
 [2025-08-29 21:16:06] Task 10 Validate: ✅ Test record inserted successfully
 [2025-08-29 21:16:06] Task 10 Validate: Waiting 120 seconds for CDC and S3 processing...
 [2025-08-29 21:18:06] Task 10 Validate: Checking for data in S3...
-[2025-08-29 21:18:07] Task 10 Validate: Checking S3 path: s3://datapipe-ingestion-3187652482469/topics/postgres.public.users/year=2025/month=08/day=30/hour=01/
+[2025-08-29 21:18:07] Task 10 Validate: Checking S3 path: /topics/postgres.public.users/year=2025/month=08/day=30/hour=01/
 [2025-08-29 21:18:08] Task 10 Validate: ✅ Parquet files found in S3
 2025-08-29 21:15:49       4266 postgres.public.users+1+0000122101.snappy.parquet
 2025-08-29 21:12:35       3562 postgres.public.users+2+0000121349.snappy.parquet
@@ -55,7 +55,7 @@ INSERT 0 1
 2025-08-29 21:15:49       4027 postgres.public.users+4+0000122587.snappy.parquet
 [2025-08-29 21:18:10] Task 10 Validate: Validating Parquet file structure...
 [2025-08-29 21:18:11] Task 10 Validate: Found Parquet file: postgres.public.users+1+0000122101.snappy.parquet
-[2025-08-29 21:18:11] Task 10 Validate: Parquet file location: s3://datapipe-ingestion-3187652482469/topics/postgres.public.users/year=2025/month=08/day=30/hour=01/postgres.public.users+1+0000122101.snappy.parquet
+[2025-08-29 21:18:11] Task 10 Validate: Parquet file location: /topics/postgres.public.users/year=2025/month=08/day=30/hour=01/postgres.public.users+1+0000122101.snappy.parquet
 [2025-08-29 21:18:13] Task 10 Validate: ✅ Parquet file has valid size: 4266 bytes
 [2025-08-29 21:18:13] Task 10 Validate: Validating time-based partitioning structure...
 [2025-08-29 21:18:15] Task 10 Validate: ✅ Time-based partitioning structure found:

@@ -68,26 +68,26 @@ The pipeline will be designed for local development and deployment using Docker 
 4. WHEN schema violations occur THEN the system SHALL route invalid messages to dead letter queues
 5. WHEN schemas change THEN downstream consumers SHALL continue to function without modification
 
-### Requirement 6: Monitoring and Observability
+### Requirement 6: Pipeline Observability
 
-**User Story:** As a system operator, I want comprehensive monitoring of the ingestion pipeline, so that I can detect issues and ensure system health.
-
-#### Acceptance Criteria
-
-1. WHEN the system is running THEN it SHALL provide metrics for throughput, latency, and error rates
-2. WHEN components fail THEN the system SHALL generate alerts and notifications
-3. WHEN troubleshooting is needed THEN the system SHALL provide comprehensive logging
-4. WHEN performance monitoring is required THEN the system SHALL track resource utilization
-5. WHEN data quality issues occur THEN the system SHALL detect and report anomalies
-
-### Requirement 7: Security and Reliability
-
-**User Story:** As a security administrator, I want the pipeline to implement proper security controls and error handling, so that data is protected and the system is resilient to failures.
+**User Story:** As a system operator, I want the ingestion pipeline to expose data-specific metrics, so that monitoring infrastructure can detect data quality issues and pipeline-specific problems.
 
 #### Acceptance Criteria
 
-1. WHEN storing credentials THEN the system SHALL use Kubernetes Secrets
-2. WHEN data is transmitted THEN connections to AWS S3 SHALL use encrypted channels
-3. WHEN errors occur THEN the system SHALL implement dead letter queues and retry mechanisms
-4. WHEN authentication is required THEN the system SHALL use IAM roles for AWS access
-5. WHEN audit trails are needed THEN the system SHALL log all data access and modifications
+1. WHEN data quality issues occur THEN the system SHALL detect and emit data quality metrics
+2. WHEN pipeline-specific errors occur THEN the system SHALL emit detailed error context for data operations
+
+*Note: Infrastructure monitoring (Prometheus, Grafana, Alertmanager, system metrics, logging infrastructure) is provided by the orchestration-monitoring feature.*
+
+### Requirement 7: Data Security and Reliability
+
+**User Story:** As a security administrator, I want the pipeline to implement data-specific security controls and error handling, so that data is protected during ingestion, processing, and archival.
+
+#### Acceptance Criteria
+
+1. WHEN data is transmitted to AWS S3 THEN connections SHALL use encrypted channels (HTTPS/TLS)
+2. WHEN data validation fails or processing errors occur THEN the system SHALL route invalid data to dead letter queues and implement retry mechanisms for data recovery
+3. WHEN AWS services are accessed THEN the system SHALL use IAM roles for production or access keys for local development
+4. WHEN CDC user credentials are managed THEN the system SHALL support rotation of PostgreSQL and Kafka Connect service account credentials
+
+*Note: Infrastructure-level security (sealed-secrets, TLS encryption, network policies, system audit logging, RBAC) is provided by the orchestration-monitoring feature.*
