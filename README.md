@@ -9,7 +9,7 @@
 
 DataPipe is an end-to-end data pipeline demonstrating a Lambda Architecture for high-volume data processing. This repository contains the first major component: a high-throughput, resilient data ingestion pipeline designed for local development and testing.
 
-It captures real-time changes from a PostgreSQL database using Debezium CDC, streams them through a highly-available Kafka cluster, and reliably archives them to AWS S3 in Parquet format. The entire stack is orchestrated on Kubernetes (via `kind`) and is meticulously engineered to operate within a strict **4GB RAM budget**.
+It captures real-time changes from a PostgreSQL database using Debezium CDC, streams them through a highly-available Kafka cluster, and reliably archives them to AWS S3 in Parquet format. The entire stack is orchestrated on Kubernetes (via `kind`) and is meticulously engineered to operate within a strict 4GB RAM budget.
 
 ## ✨ Features
 
@@ -147,6 +147,25 @@ The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit
     kubectl exec -n data-ingestion deploy/kafka-connect -- curl -s http://localhost:8083/connectors | jq .
     ```
 -   **Check S3 Bucket**: After the data generator runs, navigate to your S3 bucket. You should see new objects organized in a `year=.../month=.../day=.../hour=...` directory structure.
+
+## 📂 Project Structure
+
+The repository is organized to separate Kubernetes manifests, connector configurations, automation scripts, and design documents.
+
+```txt
+DataPipe
+├── .kiro/specs/                # Project Design, Requirements, and Tasks
+├── 01-namespace.yaml           # Kubernetes Namespace and Resource Quotas
+├── 02-service-accounts.yaml    # RBAC Service Accounts, Roles, and Bindings
+├── 03-network-policies.yaml    # Network isolation rules for all components
+├── 04-secrets.yaml.example     # Template for secrets
+├── data-generator.py           # Performance test data generator
+├── deploy-pipeline.sh          # Main deployment automation script
+├── kind-config.yaml            # 3-node Kind cluster definition
+├── storage-classes.yaml        # Differentiated storage for DB vs. streaming
+├── *.json                      # Kafka Connect connector configurations
+└── task*-*.yaml                # Kubernetes manifests for each pipeline component
+```
 
 ## 🗺️ Future Work & Roadmap
 
