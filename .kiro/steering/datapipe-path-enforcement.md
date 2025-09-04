@@ -15,7 +15,7 @@ When using the `mcp__code2prompt__get_context` tool, always set the `path` param
 mcp__code2prompt__get_context:
   path: "DataPipe"
   include_patterns: ["*.yaml", "*.md", "*.json"]
-  exclude_patterns: ["logs/*"]
+  exclude_patterns: ["04-secrets.yaml", "logs/*"]
   include_hidden: true
 ```
 

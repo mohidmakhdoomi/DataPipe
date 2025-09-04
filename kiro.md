@@ -148,7 +148,6 @@
 - `task5-kafka-topics-job.yaml` - Kafka topics creation
 - `task6-schema-registry.yaml` - Schema Registry with authentication
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster with Debezium and S3 Sink plugins
-- `task9-deploy-connector.sh` - deploys Debezium and S3 Connector configurations
 - `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (KEEP THIS UPDATED!)
 - `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
 - `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
@@ -167,7 +166,6 @@
 - `task6-schema-registry.yaml` - Schema Registry deployment
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
 - `task9-debezium-connector-config.json` - Debezium PostgreSQL CDC connector configuration
-- `task9-deploy-connector.sh` - Capable of deploying both Debezium and S3 connectors configuration
 - `task10-s3-sink-connector-config.json` - S3 Sink connector configuration
 
 ## 🚀 **NEXT ACTIONS**

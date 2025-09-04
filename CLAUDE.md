@@ -127,7 +127,6 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `task6-schema-registry.yaml` - Schema Registry deployment
 - `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
 - `task9-debezium-connector-config.json` - Configuration for Debezium PostgreSQL CDC connector
-- `task9-deploy-connector.sh` - Capable of deploying both Debezium and S3 connectors configuration
 - `task10-s3-sink-connector-config.json` - Configuration for S3 Sink connector
 
 ### Additional Documentation
