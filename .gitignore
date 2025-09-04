@@ -6,6 +6,7 @@ test-script.sh
 .claude/
 .kiro/settings/zen/logs*
 .kiro/settings/zen/zen-mcp-server*
+.kiro/settings/code2prompt/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

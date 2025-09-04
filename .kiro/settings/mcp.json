@@ -1,5 +1,19 @@
 {
   "mcpServers": {
+    "code2prompt": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        "/e/Projects/DataPipe:/app/DataPipe",
+        "code2prompt-mcp"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": []
+    },
     "clear-thought-proxy": {
       "command": "mcp-proxy",
       "args": [

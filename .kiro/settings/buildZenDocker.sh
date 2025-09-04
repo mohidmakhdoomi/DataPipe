@@ -17,4 +17,4 @@ unzip -q "${ZEN_NAME}.zip"
 cp "${BASE_DIR}/${CUSTOM_CONFIG}" "${ZEN_DIR_PREFIX}-${ZIP_VERSION}/conf/${CUSTOM_CONFIG}"
 
 cd "${ZEN_DIR_PREFIX}-${ZIP_VERSION}"
-docker build --no-cache -t zen-mcp-server .
+docker build --no-cache -t "${ZEN_NAME}" .
