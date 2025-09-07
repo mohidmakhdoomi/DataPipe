@@ -1,0 +1,172 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-pipeline-security-audit
+  namespace: data-ingestion
+  labels:
+    app: security-audit
+    task: task13
+spec:
+  template:
+    metadata:
+      labels:
+        app: security-audit
+        task: task13
+    spec:
+      serviceAccountName: security-audit-sa
+      restartPolicy: Never
+      containers:
+      - name: security-audit
+        image: alpine:3.18
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            set -e
+            
+            # Install required tools
+            apk add --no-cache \
+              bash \
+              curl \
+              jq \
+              postgresql-client \
+              netcat-openbsd \
+              bind-tools \
+              aws-cli
+            
+            # Install kubectl
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            mv kubectl /usr/local/bin/
+            
+            echo "=== Data Pipeline Security Audit ==="
+            echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+            echo "Namespace: data-ingestion"
+            echo
+            
+            # Run all validation scripts
+            echo "1. PostgreSQL CDC User Permission Validation"
+            /scripts/task13-validate-cdc-permissions.sh || true
+            echo
+            
+            echo "2. S3 Bucket Policy Validation"
+            /scripts/task13-audit-s3-policies.sh || true
+            echo
+            
+            echo "3. Network Policy Validation"
+            /scripts/task13-network-policy-validation.sh || true
+            echo
+            
+            echo "4. RBAC Audit"
+            /scripts/task13-rbac-audit.sh || true
+            echo
+            
+            echo "=== Security Audit Complete ==="
+            echo "Check individual script outputs above for detailed results"
+            
+            # Keep container running for log collection
+            sleep 30
+        env:
+        - name: NAMESPACE
+          value: "data-ingestion"
+        - name: POSTGRES_HOST
+          value: "postgresql.data-ingestion.svc.cluster.local"
+        - name: S3_BUCKET_NAME
+          value: "datapipe-ingestion-dev"
+        - name: AWS_REGION
+          value: "us-east-1"
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: aws-credentials
+          mountPath: /root/.aws
+          readOnly: true
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      volumes:
+      - name: scripts
+        configMap:
+          name: security-audit-scripts
+          defaultMode: 0755
+      - name: aws-credentials
+        secret:
+          secretName: aws-credentials
+          optional: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: security-audit-sa
+  namespace: data-ingestion
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: data-ingestion
+  name: security-audit-role
+rules:
+# Permissions needed for security auditing
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets", "replicasets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["get", "list", "watch"]
+# Permission to execute commands in pods for connectivity testing
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: security-audit-cluster-role
+rules:
+# Cluster-level permissions for RBAC auditing
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch"]
+# Permission to check authorization
+- apiGroups: ["authorization.k8s.io"]
+  resources: ["subjectaccessreviews"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: security-audit-binding
+  namespace: data-ingestion
+subjects:
+- kind: ServiceAccount
+  name: security-audit-sa
+  namespace: data-ingestion
+roleRef:
+  kind: Role
+  name: security-audit-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: security-audit-cluster-binding
+subjects:
+- kind: ServiceAccount
+  name: security-audit-sa
+  namespace: data-ingestion
+roleRef:
+  kind: ClusterRole
+  name: security-audit-cluster-role
+  apiGroup: rbac.authorization.k8s.io

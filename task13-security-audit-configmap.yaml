@@ -1,0 +1,535 @@
+apiVersion: v1
+data:
+  task13-audit-s3-policies.sh: "#!/bin/bash\n# Task 13: S3 Bucket Policy Validation\n#
+    Validates S3 bucket policies follow least privilege principles\n\nset -euo pipefail\n\n#
+    Configuration\nS3_BUCKET_NAME=\"${S3_BUCKET_NAME:-datapipe-ingestion-dev}\"\nAWS_REGION=\"${AWS_REGION:-us-east-1}\"\n\n#
+    Colors for output\nRED='\\033[0;31m'\nGREEN='\\033[0;32m'\nYELLOW='\\033[1;33m'\nBLUE='\\033[0;34m'\nNC='\\033[0m'
+    # No Color\n\necho \"=== S3 Bucket Policy Validation ===\"\necho \"Bucket: $S3_BUCKET_NAME\"\necho
+    \"Region: $AWS_REGION\"\necho\n\n# Function to check if AWS CLI is configured\ncheck_aws_config()
+    {\n    echo -n \"Checking AWS CLI configuration... \"\n    \n    if aws sts get-caller-identity
+    >/dev/null 2>&1; then\n        echo -e \"${GREEN}✓ CONFIGURED${NC}\"\n        local
+    identity=$(aws sts get-caller-identity --query 'Arn' --output text)\n        echo
+    \"  Identity: $identity\"\n        return 0\n    else\n        echo -e \"${RED}✗
+    NOT CONFIGURED${NC}\"\n        echo \"Please configure AWS credentials\"\n        return
+    1\n    fi\n}\n\n# Function to check if bucket exists\ncheck_bucket_exists() {\n
+    \   local bucket=$1\n    echo -n \"Checking if bucket '$bucket' exists... \"\n
+    \   \n    if aws s3api head-bucket --bucket \"$bucket\" 2>/dev/null; then\n        echo
+    -e \"${GREEN}✓ EXISTS${NC}\"\n        return 0\n    else\n        echo -e \"${RED}✗
+    NOT FOUND${NC}\"\n        return 1\n    fi\n}\n\n# Function to get bucket policy\nget_bucket_policy()
+    {\n    local bucket=$1\n    echo -n \"Retrieving bucket policy... \"\n    \n    local
+    policy_file=\"/tmp/s3-policy-$bucket.json\"\n    \n    if aws s3api get-bucket-policy
+    --bucket \"$bucket\" --query 'Policy' --output text > \"$policy_file\" 2>/dev/null;
+    then\n        echo -e \"${GREEN}✓ RETRIEVED${NC}\"\n        echo \"  Policy saved
+    to: $policy_file\"\n        echo \"$policy_file\"\n        return 0\n    else\n
+    \       echo -e \"${YELLOW}⚠ NO POLICY FOUND${NC}\"\n        echo \"Bucket has
+    no explicit policy (using default permissions)\"\n        return 1\n    fi\n}\n\n#
+    Function to analyze bucket policy for least privilege\nanalyze_bucket_policy()
+    {\n    local policy_file=$1\n    \n    if [ ! -f \"$policy_file\" ]; then\n        echo
+    -e \"${YELLOW}⚠ No policy file to analyze${NC}\"\n        return 0\n    fi\n    \n
+    \   echo \"Analyzing bucket policy for least privilege compliance:\"\n    \n    #
+    Check for overly permissive actions\n    echo -n \"  - Checking for wildcard actions
+    (s3:*)... \"\n    if grep -q '\"s3:\\*\"' \"$policy_file\"; then\n        echo
+    -e \"${RED}✗ FOUND WILDCARD ACTIONS${NC}\"\n        echo \"    Recommendation:
+    Use specific actions like s3:PutObject, s3:GetObject\"\n    else\n        echo
+    -e \"${GREEN}✓ NO WILDCARD ACTIONS${NC}\"\n    fi\n    \n    # Check for overly
+    permissive resources\n    echo -n \"  - Checking for wildcard resources... \"\n
+    \   if grep -q '\"arn:aws:s3:::\\*\"' \"$policy_file\"; then\n        echo -e
+    \"${RED}✗ FOUND WILDCARD RESOURCES${NC}\"\n        echo \"    Recommendation:
+    Restrict to specific bucket and paths\"\n    else\n        echo -e \"${GREEN}✓
+    NO WILDCARD RESOURCES${NC}\"\n    fi\n    \n    # Check for public access\n    echo
+    -n \"  - Checking for public access... \"\n    if grep -q '\"Principal\": \"\\*\"'
+    \"$policy_file\"; then\n        echo -e \"${RED}✗ FOUND PUBLIC ACCESS${NC}\"\n
+    \       echo \"    Recommendation: Restrict to specific IAM users/roles\"\n    else\n
+    \       echo -e \"${GREEN}✓ NO PUBLIC ACCESS${NC}\"\n    fi\n    \n    # Check
+    for required actions for Kafka Connect S3 Sink\n    echo \"  - Checking required
+    actions for Kafka Connect:\"\n    local required_actions=(\"s3:PutObject\" \"s3:PutObjectAcl\"
+    \"s3:ListBucket\")\n    \n    for action in \"${required_actions[@]}\"; do\n        echo
+    -n \"    - $action: \"\n        if grep -q \"\\\"$action\\\"\" \"$policy_file\";
+    then\n            echo -e \"${GREEN}✓ ALLOWED${NC}\"\n        else\n            echo
+    -e \"${YELLOW}⚠ NOT EXPLICITLY ALLOWED${NC}\"\n        fi\n    done\n    \n    #
+    Check for unnecessary actions\n    echo \"  - Checking for potentially unnecessary
+    actions:\"\n    local unnecessary_actions=(\"s3:DeleteObject\" \"s3:DeleteBucket\"
+    \"s3:CreateBucket\")\n    \n    for action in \"${unnecessary_actions[@]}\"; do\n
+    \       echo -n \"    - $action: \"\n        if grep -q \"\\\"$action\\\"\" \"$policy_file\";
+    then\n            echo -e \"${YELLOW}⚠ ALLOWED (may be unnecessary)${NC}\"\n        else\n
+    \           echo -e \"${GREEN}✓ NOT ALLOWED${NC}\"\n        fi\n    done\n}\n\n#
+    Function to check bucket encryption\ncheck_bucket_encryption() {\n    local bucket=$1\n
+    \   echo -n \"Checking bucket encryption... \"\n    \n    if aws s3api get-bucket-encryption
+    --bucket \"$bucket\" >/dev/null 2>&1; then\n        echo -e \"${GREEN}✓ ENCRYPTION
+    ENABLED${NC}\"\n        \n        # Get encryption details\n        local encryption=$(aws
+    s3api get-bucket-encryption --bucket \"$bucket\" --query 'ServerSideEncryptionConfiguration.Rules[0].ApplyServerSideEncryptionByDefault.SSEAlgorithm'
+    --output text)\n        echo \"  Algorithm: $encryption\"\n    else\n        echo
+    -e \"${RED}✗ NO ENCRYPTION${NC}\"\n        echo \"  Recommendation: Enable server-side
+    encryption (SSE-S3 or SSE-KMS)\"\n    fi\n}\n\n# Function to check bucket versioning\ncheck_bucket_versioning()
+    {\n    local bucket=$1\n    echo -n \"Checking bucket versioning... \"\n    \n
+    \   local versioning=$(aws s3api get-bucket-versioning --bucket \"$bucket\" --query
+    'Status' --output text)\n    \n    case \"$versioning\" in\n        \"Enabled\")\n
+    \           echo -e \"${GREEN}✓ ENABLED${NC}\"\n            ;;\n        \"Suspended\")\n
+    \           echo -e \"${YELLOW}⚠ SUSPENDED${NC}\"\n            ;;\n        \"None\"|\"null\")\n
+    \           echo -e \"${YELLOW}⚠ DISABLED${NC}\"\n            echo \"  Recommendation:
+    Consider enabling versioning for data protection\"\n            ;;\n        *)\n
+    \           echo -e \"${YELLOW}⚠ UNKNOWN STATUS: $versioning${NC}\"\n            ;;\n
+    \   esac\n}\n\n# Function to check bucket public access block\ncheck_public_access_block()
+    {\n    local bucket=$1\n    echo -n \"Checking public access block settings...
+    \"\n    \n    if aws s3api get-public-access-block --bucket \"$bucket\" >/dev/null
+    2>&1; then\n        echo -e \"${GREEN}✓ CONFIGURED${NC}\"\n        \n        local
+    pab=$(aws s3api get-public-access-block --bucket \"$bucket\" --query 'PublicAccessBlockConfiguration')\n
+    \       echo \"  Settings:\"\n        echo \"$pab\" | jq -r 'to_entries[] | \"
+    \   \\(.key): \\(.value)\"'\n    else\n        echo -e \"${YELLOW}⚠ NOT CONFIGURED${NC}\"\n
+    \       echo \"  Recommendation: Configure public access block for security\"\n
+    \   fi\n}\n\n# Function to check bucket lifecycle configuration\ncheck_lifecycle_policy()
+    {\n    local bucket=$1\n    echo -n \"Checking lifecycle policy... \"\n    \n
+    \   if aws s3api get-bucket-lifecycle-configuration --bucket \"$bucket\" >/dev/null
+    2>&1; then\n        echo -e \"${GREEN}✓ CONFIGURED${NC}\"\n        \n        local
+    rules_count=$(aws s3api get-bucket-lifecycle-configuration --bucket \"$bucket\"
+    --query 'length(Rules)' --output text)\n        echo \"  Rules configured: $rules_count\"\n
+    \   else\n        echo -e \"${YELLOW}⚠ NOT CONFIGURED${NC}\"\n        echo \"
+    \ Recommendation: Configure lifecycle rules for cost optimization\"\n    fi\n}\n\n#
+    Function to generate security recommendations\ngenerate_recommendations() {\n
+    \   local bucket=$1\n    \n    echo\n    echo \"=== Security Recommendations ===\"\n
+    \   echo\n    echo \"1. Bucket Policy Best Practices:\"\n    echo \"   - Use specific
+    actions instead of s3:*\"\n    echo \"   - Restrict resources to specific paths:
+    arn:aws:s3:::$bucket/topics/*\"\n    echo \"   - Use IAM roles instead of IAM
+    users when possible\"\n    echo \"   - Implement condition statements for additional
+    security\"\n    echo\n    echo \"2. Encryption:\"\n    echo \"   - Enable server-side
+    encryption (SSE-S3 minimum, SSE-KMS preferred)\"\n    echo \"   - Consider bucket
+    key for cost optimization with SSE-KMS\"\n    echo\n    echo \"3. Access Control:\"\n
+    \   echo \"   - Enable public access block settings\"\n    echo \"   - Use VPC
+    endpoints for private access from Kubernetes\"\n    echo \"   - Implement MFA
+    delete for critical buckets\"\n    echo\n    echo \"4. Monitoring:\"\n    echo
+    \"   - Enable CloudTrail for API logging\"\n    echo \"   - Configure S3 access
+    logging\"\n    echo \"   - Set up CloudWatch alarms for unusual access patterns\"\n
+    \   echo\n    echo \"5. Data Management:\"\n    echo \"   - Configure lifecycle
+    policies for cost optimization\"\n    echo \"   - Enable versioning for data protection\"\n
+    \   echo \"   - Consider cross-region replication for disaster recovery\"\n}\n\n#
+    Main validation\nmain() {\n    local exit_code=0\n    \n    echo \"Starting S3
+    bucket policy validation...\"\n    echo\n    \n    # Check AWS configuration\n
+    \   if ! check_aws_config; then\n        echo -e \"${RED}ERROR: AWS CLI not configured${NC}\"\n
+    \       exit 1\n    fi\n    \n    echo\n    \n    # Check bucket exists\n    if
+    ! check_bucket_exists \"$S3_BUCKET_NAME\"; then\n        echo -e \"${RED}ERROR:
+    Bucket does not exist${NC}\"\n        exit 1\n    fi\n    \n    echo\n    \n    #
+    Get and analyze bucket policy\n    local policy_file\n    if policy_file=$(get_bucket_policy
+    \"$S3_BUCKET_NAME\"); then\n        echo\n        analyze_bucket_policy \"$policy_file\"\n
+    \   fi\n    \n    echo\n    \n    # Check encryption\n    check_bucket_encryption
+    \"$S3_BUCKET_NAME\"\n    \n    echo\n    \n    # Check versioning\n    check_bucket_versioning
+    \"$S3_BUCKET_NAME\"\n    \n    echo\n    \n    # Check public access block\n    check_public_access_block
+    \"$S3_BUCKET_NAME\"\n    \n    echo\n    \n    # Check lifecycle policy\n    check_lifecycle_policy
+    \"$S3_BUCKET_NAME\"\n    \n    # Generate recommendations\n    generate_recommendations
+    \"$S3_BUCKET_NAME\"\n    \n    # Generate audit report\n    local timestamp=$(date
+    -u +\"%Y-%m-%dT%H:%M:%SZ\")\n    local report_file=\"/tmp/s3-policy-audit-$timestamp.json\"\n
+    \   \n    cat > \"$report_file\" << EOF\n{\n  \"audit_type\": \"s3_bucket_policy\",\n
+    \ \"timestamp\": \"$timestamp\",\n  \"bucket\": \"$S3_BUCKET_NAME\",\n  \"region\":
+    \"$AWS_REGION\",\n  \"status\": \"COMPLETED\",\n  \"checks_performed\": [\n    \"bucket_exists\",\n
+    \   \"bucket_policy_analysis\",\n    \"encryption_status\",\n    \"versioning_status\",\n
+    \   \"public_access_block\",\n    \"lifecycle_policy\"\n  ],\n  \"policy_file\":
+    \"$([ -n \"${policy_file:-}\" ] && echo \"$policy_file\" || echo \"null\")\"\n}\nEOF\n
+    \   \n    echo\n    echo \"=== Validation Summary ===\"\n    echo -e \"${GREEN}✓
+    S3 bucket policy validation completed${NC}\"\n    echo \"Audit report saved to:
+    $report_file\"\n    \n    exit $exit_code\n}\n\n# Run main function\nmain \"$@\""
+  task13-network-policy-validation.sh: "#!/bin/bash\n# Task 13: Network Policy Validation\n#
+    Tests network isolation between data pipeline components\n\nset -euo pipefail\n\n#
+    Configuration\nNAMESPACE=\"${NAMESPACE:-data-ingestion}\"\n\n# Colors for output\nRED='\\033[0;31m'\nGREEN='\\033[0;32m'\nYELLOW='\\033[1;33m'\nBLUE='\\033[0;34m'\nNC='\\033[0m'
+    # No Color\n\necho \"=== Network Policy Validation ===\"\necho \"Namespace: $NAMESPACE\"\necho\n\n#
+    Function to check if namespace exists\ncheck_namespace() {\n    local ns=$1\n
+    \   echo -n \"Checking namespace '$ns'... \"\n    \n    if kubectl get namespace
+    \"$ns\" >/dev/null 2>&1; then\n        echo -e \"${GREEN}✓ EXISTS${NC}\"\n        return
+    0\n    else\n        echo -e \"${RED}✗ NOT FOUND${NC}\"\n        return 1\n    fi\n}\n\n#
+    Function to list network policies\nlist_network_policies() {\n    local ns=$1\n
+    \   echo \"Network policies in namespace '$ns':\"\n    \n    local policies=$(kubectl
+    get networkpolicy -n \"$ns\" -o name 2>/dev/null || echo \"\")\n    \n    if [
+    -z \"$policies\" ]; then\n        echo -e \"${YELLOW}⚠ NO NETWORK POLICIES FOUND${NC}\"\n
+    \       echo \"  This means all traffic is allowed by default\"\n        return
+    1\n    else\n        echo \"$policies\" | while read policy; do\n            local
+    policy_name=$(echo \"$policy\" | cut -d'/' -f2)\n            echo -e \"  ${GREEN}✓${NC}
+    $policy_name\"\n        done\n        return 0\n    fi\n}\n\n# Function to analyze
+    network policy\nanalyze_network_policy() {\n    local ns=$1\n    local policy_name=$2\n
+    \   \n    echo \"Analyzing network policy: $policy_name\"\n    \n    # Get policy
+    details\n    local policy_yaml=\"/tmp/netpol-$policy_name.yaml\"\n    kubectl
+    get networkpolicy \"$policy_name\" -n \"$ns\" -o yaml > \"$policy_yaml\"\n    \n
+    \   # Check if policy has ingress rules\n    echo -n \"  - Ingress rules: \"\n
+    \   if grep -q \"ingress:\" \"$policy_yaml\"; then\n        local ingress_count=$(grep
+    -A 20 \"ingress:\" \"$policy_yaml\" | grep -c \"- \" || echo \"0\")\n        echo
+    -e \"${GREEN}✓ $ingress_count rules${NC}\"\n    else\n        echo -e \"${YELLOW}⚠
+    NONE (denies all ingress)${NC}\"\n    fi\n    \n    # Check if policy has egress
+    rules\n    echo -n \"  - Egress rules: \"\n    if grep -q \"egress:\" \"$policy_yaml\";
+    then\n        local egress_count=$(grep -A 20 \"egress:\" \"$policy_yaml\" | grep
+    -c \"- \" || echo \"0\")\n        echo -e \"${GREEN}✓ $egress_count rules${NC}\"\n
+    \   else\n        echo -e \"${YELLOW}⚠ NONE (denies all egress)${NC}\"\n    fi\n
+    \   \n    # Check pod selector\n    echo -n \"  - Pod selector: \"\n    local
+    selector=$(kubectl get networkpolicy \"$policy_name\" -n \"$ns\" -o jsonpath='{.spec.podSelector}')\n
+    \   if [ \"$selector\" = \"{}\" ]; then\n        echo -e \"${YELLOW}⚠ ALL PODS${NC}\"\n
+    \   else\n        echo -e \"${GREEN}✓ SPECIFIC PODS${NC}\"\n    fi\n}\n\n# Function
+    to test network connectivity\ntest_network_connectivity() {\n    local ns=$1\n
+    \   \n    echo \"Testing network connectivity between components:\"\n    \n    #
+    Test PostgreSQL connectivity from Kafka Connect\n    echo -n \"  - Kafka Connect
+    → PostgreSQL: \"\n    if test_connection_from_to \"$ns\" \"app=kafka-connect\"
+    \"postgresql.data-ingestion.svc.cluster.local\" \"5432\"; then\n        echo -e
+    \"${GREEN}✓ ALLOWED${NC}\"\n    else\n        echo -e \"${RED}✗ BLOCKED${NC}\"\n
+    \   fi\n    \n    # Test Kafka connectivity from Kafka Connect\n    echo -n \"
+    \ - Kafka Connect → Kafka: \"\n    if test_connection_from_to \"$ns\" \"app=kafka-connect\"
+    \"kafka-headless.data-ingestion.svc.cluster.local\" \"9092\"; then\n        echo
+    -e \"${GREEN}✓ ALLOWED${NC}\"\n    else\n        echo -e \"${RED}✗ BLOCKED${NC}\"\n
+    \   fi\n    \n    # Test Schema Registry connectivity from Kafka Connect\n    echo
+    -n \"  - Kafka Connect → Schema Registry: \"\n    if test_connection_from_to \"$ns\"
+    \"app=kafka-connect\" \"schema-registry.data-ingestion.svc.cluster.local\" \"8081\";
+    then\n        echo -e \"${GREEN}✓ ALLOWED${NC}\"\n    else\n        echo -e \"${RED}✗
+    BLOCKED${NC}\"\n    fi\n    \n    # Test Kafka connectivity from Schema Registry\n
+    \   echo -n \"  - Schema Registry → Kafka: \"\n    if test_connection_from_to
+    \"$ns\" \"app=schema-registry\" \"kafka-headless.data-ingestion.svc.cluster.local\"
+    \"9092\"; then\n        echo -e \"${GREEN}✓ ALLOWED${NC}\"\n    else\n        echo
+    -e \"${RED}✗ BLOCKED${NC}\"\n    fi\n    \n    # Test external connectivity (should
+    be allowed for S3)\n    echo -n \"  - Kafka Connect → External (S3): \"\n    if
+    test_external_connectivity \"$ns\" \"app=kafka-connect\"; then\n        echo -e
+    \"${GREEN}✓ ALLOWED${NC}\"\n    else\n        echo -e \"${RED}✗ BLOCKED${NC}\"\n
+    \   fi\n}\n\n# Function to test connection from one pod to another\ntest_connection_from_to()
+    {\n    local ns=$1\n    local from_selector=$2\n    local to_host=$3\n    local
+    to_port=$4\n    \n    # Get a pod matching the selector\n    local from_pod=$(kubectl
+    get pods -n \"$ns\" -l \"$from_selector\" -o jsonpath='{.items[0].metadata.name}'
+    2>/dev/null)\n    \n    if [ -z \"$from_pod\" ]; then\n        return 1\n    fi\n
+    \   \n    # Test connection with timeout\n    kubectl exec -n \"$ns\" \"$from_pod\"
+    -- timeout 5 nc -z \"$to_host\" \"$to_port\" >/dev/null 2>&1\n}\n\n# Function
+    to test external connectivity\ntest_external_connectivity() {\n    local ns=$1\n
+    \   local from_selector=$2\n    \n    # Get a pod matching the selector\n    local
+    from_pod=$(kubectl get pods -n \"$ns\" -l \"$from_selector\" -o jsonpath='{.items[0].metadata.name}'
+    2>/dev/null)\n    \n    if [ -z \"$from_pod\" ]; then\n        return 1\n    fi\n
+    \   \n    # Test connection to AWS S3 (should work for S3 sink connector)\n    kubectl
+    exec -n \"$ns\" \"$from_pod\" -- timeout 5 nc -z s3.amazonaws.com 443 >/dev/null
+    2>&1\n}\n\n# Function to test DNS resolution\ntest_dns_resolution() {\n    local
+    ns=$1\n    \n    echo \"Testing DNS resolution:\"\n    \n    # Test from Kafka
+    Connect pod\n    local test_pod=$(kubectl get pods -n \"$ns\" -l \"app=kafka-connect\"
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)\n    \n    if [ -z \"$test_pod\"
+    ]; then\n        echo -e \"${YELLOW}⚠ No Kafka Connect pod found for DNS testing${NC}\"\n
+    \       return 1\n    fi\n    \n    local services=(\"postgresql.data-ingestion.svc.cluster.local\"
+    \"kafka-headless.data-ingestion.svc.cluster.local\" \"schema-registry.data-ingestion.svc.cluster.local\")\n
+    \   \n    for service in \"${services[@]}\"; do\n        echo -n \"  - $service:
+    \"\n        if kubectl exec -n \"$ns\" \"$test_pod\" -- nslookup \"$service\"
+    >/dev/null 2>&1; then\n            echo -e \"${GREEN}✓ RESOLVES${NC}\"\n        else\n
+    \           echo -e \"${RED}✗ FAILS${NC}\"\n        fi\n    done\n}\n\n# Function
+    to check for default deny policies\ncheck_default_deny() {\n    local ns=$1\n
+    \   \n    echo \"Checking for default deny policies:\"\n    \n    # Check if there's
+    a default deny-all policy\n    echo -n \"  - Default deny-all ingress: \"\n    if
+    kubectl get networkpolicy -n \"$ns\" -o yaml | grep -q \"podSelector: {}\"; then\n
+    \       echo -e \"${GREEN}✓ CONFIGURED${NC}\"\n    else\n        echo -e \"${YELLOW}⚠
+    NOT CONFIGURED${NC}\"\n        echo \"    Recommendation: Implement default deny-all
+    policy for better security\"\n    fi\n}\n\n# Function to generate network security
+    recommendations\ngenerate_network_recommendations() {\n    echo\n    echo \"===
+    Network Security Recommendations ===\"\n    echo\n    echo \"1. Default Deny Policy:\"\n
+    \   echo \"   - Implement a default deny-all NetworkPolicy\"\n    echo \"   -
+    Explicitly allow only required connections\"\n    echo\n    echo \"2. Component-Specific
+    Policies:\"\n    echo \"   - PostgreSQL: Allow ingress only from Kafka Connect\"\n
+    \   echo \"   - Kafka: Allow ingress from Kafka Connect and Schema Registry\"\n
+    \   echo \"   - Schema Registry: Allow ingress from Kafka Connect\"\n    echo
+    \"   - Kafka Connect: Allow egress to PostgreSQL, Kafka, Schema Registry, and
+    S3\"\n    echo\n    echo \"3. DNS and System Services:\"\n    echo \"   - Allow
+    DNS resolution to kube-system/kube-dns\"\n    echo \"   - Allow access to Kubernetes
+    API if needed\"\n    echo\n    echo \"4. External Access:\"\n    echo \"   - Restrict
+    egress to specific external services (S3 endpoints)\"\n    echo \"   - Use FQDN-based
+    policies where supported\"\n    echo\n    echo \"5. Monitoring and Logging:\"\n
+    \   echo \"   - Allow access to monitoring systems (Prometheus, Grafana)\"\n    echo
+    \"   - Ensure logging infrastructure can collect logs\"\n}\n\n# Function to create
+    test network policy (dry-run)\ncreate_test_policy() {\n    local ns=$1\n    \n
+    \   echo \"Example NetworkPolicy for data pipeline security:\"\n    \n    cat
+    << EOF\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name:
+    data-pipeline-security\n  namespace: $ns\nspec:\n  podSelector: {}\n  policyTypes:\n
+    \ - Ingress\n  - Egress\n  ingress: []  # Deny all ingress by default\n  egress:\n
+    \ # Allow DNS resolution\n  - to: []\n    ports:\n    - protocol: UDP\n      port:
+    53\n  # Allow access to Kubernetes API\n  - to: []\n    ports:\n    - protocol:
+    TCP\n      port: 443\n---\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n
+    \ name: kafka-connect-policy\n  namespace: $ns\nspec:\n  podSelector:\n    matchLabels:\n
+    \     app: kafka-connect\n  policyTypes:\n  - Egress\n  egress:\n  # Allow access
+    to PostgreSQL\n  - to:\n    - podSelector:\n        matchLabels:\n          app:
+    postgresql\n    ports:\n    - protocol: TCP\n      port: 5432\n  # Allow access
+    to Kafka\n  - to:\n    - podSelector:\n        matchLabels:\n          app: kafka\n
+    \   ports:\n    - protocol: TCP\n      port: 9092\n  # Allow access to Schema
+    Registry\n  - to:\n    - podSelector:\n        matchLabels:\n          app: schema-registry\n
+    \   ports:\n    - protocol: TCP\n      port: 8081\n  # Allow external access for
+    S3\n  - to: []\n    ports:\n    - protocol: TCP\n      port: 443\nEOF\n}\n\n#
+    Main validation\nmain() {\n    local exit_code=0\n    \n    echo \"Starting network
+    policy validation...\"\n    echo\n    \n    # Check namespace exists\n    if !
+    check_namespace \"$NAMESPACE\"; then\n        echo -e \"${RED}ERROR: Namespace
+    does not exist${NC}\"\n        exit 1\n    fi\n    \n    echo\n    \n    # List
+    network policies\n    if ! list_network_policies \"$NAMESPACE\"; then\n        exit_code=1\n
+    \   fi\n    \n    echo\n    \n    # Analyze each network policy\n    local policies=$(kubectl
+    get networkpolicy -n \"$NAMESPACE\" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null
+    || echo \"\")\n    \n    if [ -n \"$policies\" ]; then\n        for policy in
+    $policies; do\n            analyze_network_policy \"$NAMESPACE\" \"$policy\"\n
+    \           echo\n        done\n    fi\n    \n    # Test network connectivity\n
+    \   test_network_connectivity \"$NAMESPACE\"\n    \n    echo\n    \n    # Test
+    DNS resolution\n    test_dns_resolution \"$NAMESPACE\"\n    \n    echo\n    \n
+    \   # Check for default deny policies\n    check_default_deny \"$NAMESPACE\"\n
+    \   \n    # Generate recommendations\n    generate_network_recommendations\n    \n
+    \   echo\n    echo \"=== Example NetworkPolicy ===\"\n    create_test_policy \"$NAMESPACE\"\n
+    \   \n    # Generate audit report\n    local timestamp=$(date -u +\"%Y-%m-%dT%H:%M:%SZ\")\n
+    \   local report_file=\"/tmp/network-policy-audit-$timestamp.json\"\n    \n    cat
+    > \"$report_file\" << EOF\n{\n  \"audit_type\": \"network_policy\",\n  \"timestamp\":
+    \"$timestamp\",\n  \"namespace\": \"$NAMESPACE\",\n  \"status\": $([ $exit_code
+    -eq 0 ] && echo '\"PASS\"' || echo '\"FAIL\"'),\n  \"checks_performed\": [\n    \"network_policies_exist\",\n
+    \   \"connectivity_testing\",\n    \"dns_resolution\",\n    \"default_deny_check\"\n
+    \ ],\n  \"policies_found\": [$(kubectl get networkpolicy -n \"$NAMESPACE\" -o
+    jsonpath='{range .items[*]}\"{.metadata.name}\"{end}' 2>/dev/null | sed 's/\"\"/,
+    /g' | sed 's/, $//' || echo \"\")]\n}\nEOF\n    \n    echo\n    echo \"=== Validation
+    Summary ===\"\n    if [ $exit_code -eq 0 ]; then\n        echo -e \"${GREEN}✓
+    Network policy validation completed${NC}\"\n    else\n        echo -e \"${YELLOW}⚠
+    Network policy validation completed with warnings${NC}\"\n    fi\n    echo \"Audit
+    report saved to: $report_file\"\n    \n    exit $exit_code\n}\n\n# Run main function\nmain
+    \"$@\""
+  task13-rbac-audit.sh: "#!/bin/bash\n# Task 13: Kubernetes RBAC Audit\n# Validates
+    service account permissions follow least privilege\n\nset -euo pipefail\n\n# Configuration\nNAMESPACE=\"${NAMESPACE:-data-ingestion}\"\n\n#
+    Colors for output\nRED='\\033[0;31m'\nGREEN='\\033[0;32m'\nYELLOW='\\033[1;33m'\nBLUE='\\033[0;34m'\nNC='\\033[0m'
+    # No Color\n\necho \"=== Kubernetes RBAC Audit ===\"\necho \"Namespace: $NAMESPACE\"\necho\n\n#
+    Function to check if namespace exists\ncheck_namespace() {\n    local ns=$1\n
+    \   echo -n \"Checking namespace '$ns'... \"\n    \n    if kubectl get namespace
+    \"$ns\" >/dev/null 2>&1; then\n        echo -e \"${GREEN}✓ EXISTS${NC}\"\n        return
+    0\n    else\n        echo -e \"${RED}✗ NOT FOUND${NC}\"\n        return 1\n    fi\n}\n\n#
+    Function to list service accounts\nlist_service_accounts() {\n    local ns=$1\n
+    \   echo \"Service accounts in namespace '$ns':\"\n    \n    local service_accounts=$(kubectl
+    get serviceaccount -n \"$ns\" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null
+    || echo \"\")\n    \n    if [ -z \"$service_accounts\" ]; then\n        echo -e
+    \"${YELLOW}⚠ NO SERVICE ACCOUNTS FOUND${NC}\"\n        return 1\n    else\n        for
+    sa in $service_accounts; do\n            if [ \"$sa\" != \"default\" ]; then\n
+    \               echo -e \"  ${GREEN}✓${NC} $sa\"\n            else\n                echo
+    -e \"  ${BLUE}•${NC} $sa (default)\"\n            fi\n        done\n        return
+    0\n    fi\n}\n\n# Function to analyze service account permissions\nanalyze_service_account()
+    {\n    local ns=$1\n    local sa=$2\n    \n    echo \"Analyzing service account:
+    $sa\"\n    \n    # Check if service account exists\n    if ! kubectl get serviceaccount
+    \"$sa\" -n \"$ns\" >/dev/null 2>&1; then\n        echo -e \"  ${RED}✗ Service
+    account not found${NC}\"\n        return 1\n    fi\n    \n    # Check automountServiceAccountToken\n
+    \   echo -n \"  - Auto-mount token: \"\n    local automount=$(kubectl get serviceaccount
+    \"$sa\" -n \"$ns\" -o jsonpath='{.automountServiceAccountToken}' 2>/dev/null ||
+    echo \"null\")\n    \n    case \"$automount\" in\n        \"false\")\n            echo
+    -e \"${GREEN}✓ DISABLED${NC}\"\n            ;;\n        \"true\"|\"null\")\n            echo
+    -e \"${YELLOW}⚠ ENABLED${NC}\"\n            echo \"    Recommendation: Disable
+    if not needed for security\"\n            ;;\n        *)\n            echo -e
+    \"${YELLOW}⚠ UNKNOWN: $automount${NC}\"\n            ;;\n    esac\n    \n    #
+    Find role bindings for this service account\n    echo \"  - Role bindings:\"\n
+    \   local bindings_found=false\n    \n    # Check cluster role bindings\n    local
+    cluster_bindings=$(kubectl get clusterrolebinding -o json | jq -r --arg sa \"$sa\"
+    --arg ns \"$ns\" '.items[] | select(.subjects[]? | select(.kind==\"ServiceAccount\"
+    and .name==$sa and .namespace==$ns)) | .metadata.name' 2>/dev/null || echo \"\")\n
+    \   \n    if [ -n \"$cluster_bindings\" ]; then\n        for binding in $cluster_bindings;
+    do\n            local role=$(kubectl get clusterrolebinding \"$binding\" -o jsonpath='{.roleRef.name}')\n
+    \           echo -e \"    ${YELLOW}⚠ ClusterRoleBinding:${NC} $binding → $role\"\n
+    \           bindings_found=true\n            \n            # Analyze cluster role
+    permissions\n            analyze_cluster_role \"$role\"\n        done\n    fi\n
+    \   \n    # Check role bindings in namespace\n    local role_bindings=$(kubectl
+    get rolebinding -n \"$ns\" -o json | jq -r --arg sa \"$sa\" '.items[] | select(.subjects[]?
+    | select(.kind==\"ServiceAccount\" and .name==$sa)) | .metadata.name' 2>/dev/null
+    || echo \"\")\n    \n    if [ -n \"$role_bindings\" ]; then\n        for binding
+    in $role_bindings; do\n            local role=$(kubectl get rolebinding \"$binding\"
+    -n \"$ns\" -o jsonpath='{.roleRef.name}')\n            local role_kind=$(kubectl
+    get rolebinding \"$binding\" -n \"$ns\" -o jsonpath='{.roleRef.kind}')\n            echo
+    -e \"    ${GREEN}✓ RoleBinding:${NC} $binding → $role ($role_kind)\"\n            bindings_found=true\n
+    \           \n            # Analyze role permissions\n            if [ \"$role_kind\"
+    = \"Role\" ]; then\n                analyze_role \"$ns\" \"$role\"\n            elif
+    [ \"$role_kind\" = \"ClusterRole\" ]; then\n                analyze_cluster_role
+    \"$role\"\n            fi\n        done\n    fi\n    \n    if [ \"$bindings_found\"
+    = false ]; then\n        echo -e \"    ${GREEN}✓ NO BINDINGS${NC} (uses default
+    permissions only)\"\n    fi\n}\n\n# Function to analyze role permissions\nanalyze_role()
+    {\n    local ns=$1\n    local role=$2\n    \n    echo \"    Role permissions for
+    '$role':\"\n    \n    if ! kubectl get role \"$role\" -n \"$ns\" >/dev/null 2>&1;
+    then\n        echo -e \"      ${RED}✗ Role not found${NC}\"\n        return 1\n
+    \   fi\n    \n    # Get role rules\n    local rules=$(kubectl get role \"$role\"
+    -n \"$ns\" -o json | jq -r '.rules[] | \"\\(.apiGroups // [\"\"]) \\(.resources
+    // [\"\"]) \\(.verbs // [\"\"])\"' 2>/dev/null || echo \"\")\n    \n    if [ -z
+    \"$rules\" ]; then\n        echo -e \"      ${GREEN}✓ NO RULES${NC}\"\n        return
+    0\n    fi\n    \n    echo \"$rules\" | while IFS= read -r rule; do\n        local
+    api_groups=$(echo \"$rule\" | cut -d' ' -f1 | tr -d '[]\"' | tr ',' ' ')\n        local
+    resources=$(echo \"$rule\" | cut -d' ' -f2 | tr -d '[]\"' | tr ',' ' ')\n        local
+    verbs=$(echo \"$rule\" | cut -d' ' -f3 | tr -d '[]\"' | tr ',' ' ')\n        \n
+    \       # Check for overly permissive rules\n        if [[ \"$resources\" == *\"*\"*
+    ]] || [[ \"$verbs\" == *\"*\"* ]]; then\n            echo -e \"      ${RED}⚠ OVERLY
+    PERMISSIVE:${NC} $api_groups/$resources ($verbs)\"\n        else\n            echo
+    -e \"      ${GREEN}✓${NC} $api_groups/$resources ($verbs)\"\n        fi\n    done\n}\n\n#
+    Function to analyze cluster role permissions\nanalyze_cluster_role() {\n    local
+    role=$1\n    \n    echo \"    ClusterRole permissions for '$role':\"\n    \n    if
+    ! kubectl get clusterrole \"$role\" >/dev/null 2>&1; then\n        echo -e \"
+    \     ${RED}✗ ClusterRole not found${NC}\"\n        return 1\n    fi\n    \n    #
+    Get cluster role rules\n    local rules=$(kubectl get clusterrole \"$role\" -o
+    json | jq -r '.rules[] | \"\\(.apiGroups // [\"\"]) \\(.resources // [\"\"]) \\(.verbs
+    // [\"\"])\"' 2>/dev/null || echo \"\")\n    \n    if [ -z \"$rules\" ]; then\n
+    \       echo -e \"      ${GREEN}✓ NO RULES${NC}\"\n        return 0\n    fi\n
+    \   \n    echo \"$rules\" | while IFS= read -r rule; do\n        local api_groups=$(echo
+    \"$rule\" | cut -d' ' -f1 | tr -d '[]\"' | tr ',' ' ')\n        local resources=$(echo
+    \"$rule\" | cut -d' ' -f2 | tr -d '[]\"' | tr ',' ' ')\n        local verbs=$(echo
+    \"$rule\" | cut -d' ' -f3 | tr -d '[]\"' | tr ',' ' ')\n        \n        # Check
+    for overly permissive rules\n        if [[ \"$resources\" == *\"*\"* ]] || [[
+    \"$verbs\" == *\"*\"* ]]; then\n            echo -e \"      ${RED}⚠ OVERLY PERMISSIVE:${NC}
+    $api_groups/$resources ($verbs)\"\n        else\n            echo -e \"      ${GREEN}✓${NC}
+    $api_groups/$resources ($verbs)\"\n        fi\n    done\n}\n\n# Function to test
+    specific permissions\ntest_permissions() {\n    local ns=$1\n    local sa=$2\n
+    \   \n    echo \"Testing specific permissions for '$sa':\"\n    \n    # Test common
+    permissions that should be restricted\n    local restricted_tests=(\n        \"create
+    pods\"\n        \"delete pods\"\n        \"create secrets\"\n        \"delete
+    secrets\"\n        \"create configmaps\"\n        \"delete configmaps\"\n        \"get
+    secrets --all-namespaces\"\n    )\n    \n    for test in \"${restricted_tests[@]}\";
+    do\n        echo -n \"  - $test: \"\n        if kubectl auth can-i $test --as=\"system:serviceaccount:$ns:$sa\"
+    >/dev/null 2>&1; then\n            echo -e \"${YELLOW}⚠ ALLOWED${NC}\"\n        else\n
+    \           echo -e \"${GREEN}✓ DENIED${NC}\"\n        fi\n    done\n    \n    #
+    Test permissions that might be needed for data pipeline\n    local pipeline_tests=(\n
+    \       \"get pods\"\n        \"list pods\"\n        \"get configmaps\"\n        \"list
+    configmaps\"\n        \"get secrets\"\n        \"list secrets\"\n    )\n    \n
+    \   echo \"  Pipeline-specific permissions:\"\n    for test in \"${pipeline_tests[@]}\";
+    do\n        echo -n \"    - $test: \"\n        if kubectl auth can-i $test --as=\"system:serviceaccount:$ns:$sa\"
+    -n \"$ns\" >/dev/null 2>&1; then\n            echo -e \"${GREEN}✓ ALLOWED${NC}\"\n
+    \       else\n            echo -e \"${YELLOW}⚠ DENIED${NC}\"\n        fi\n    done\n}\n\n#
+    Function to check for default service account usage\ncheck_default_sa_usage()
+    {\n    local ns=$1\n    \n    echo \"Checking for default service account usage:\"\n
+    \   \n    local pods_using_default=$(kubectl get pods -n \"$ns\" -o json | jq
+    -r '.items[] | select(.spec.serviceAccountName == \"default\" or (.spec.serviceAccountName
+    == null)) | .metadata.name' 2>/dev/null || echo \"\")\n    \n    if [ -z \"$pods_using_default\"
+    ]; then\n        echo -e \"  ${GREEN}✓ No pods using default service account${NC}\"\n
+    \   else\n        echo -e \"  ${YELLOW}⚠ Pods using default service account:${NC}\"\n
+    \       for pod in $pods_using_default; do\n            echo \"    - $pod\"\n
+    \       done\n        echo \"  Recommendation: Use dedicated service accounts
+    for each component\"\n    fi\n}\n\n# Function to generate RBAC recommendations\ngenerate_rbac_recommendations()
+    {\n    echo\n    echo \"=== RBAC Security Recommendations ===\"\n    echo\n    echo
+    \"1. Service Account Best Practices:\"\n    echo \"   - Create dedicated service
+    accounts for each component\"\n    echo \"   - Disable automountServiceAccountToken
+    when not needed\"\n    echo \"   - Avoid using the default service account\"\n
+    \   echo\n    echo \"2. Role-Based Access Control:\"\n    echo \"   - Use Roles
+    instead of ClusterRoles when possible\"\n    echo \"   - Grant minimal required
+    permissions only\"\n    echo \"   - Avoid wildcard permissions (*) in resources
+    and verbs\"\n    echo\n    echo \"3. Component-Specific Permissions:\"\n    echo
+    \"   - PostgreSQL: Minimal permissions (no Kubernetes API access needed)\"\n    echo
+    \"   - Kafka: Basic pod management permissions\"\n    echo \"   - Schema Registry:
+    ConfigMap access for configuration\"\n    echo \"   - Kafka Connect: Secret and
+    ConfigMap access for connectors\"\n    echo\n    echo \"4. Monitoring and Auditing:\"\n
+    \   echo \"   - Regularly audit service account permissions\"\n    echo \"   -
+    Monitor for privilege escalation attempts\"\n    echo \"   - Use admission controllers
+    to enforce policies\"\n}\n\n# Function to create example RBAC manifests\ncreate_example_rbac()
+    {\n    local ns=$1\n    \n    echo \"Example RBAC configuration for data pipeline:\"\n
+    \   \n    cat << EOF\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name:
+    kafka-connect-sa\n  namespace: $ns\nautomountServiceAccountToken: true\n---\napiVersion:
+    rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  namespace: $ns\n  name:
+    kafka-connect-role\nrules:\n- apiGroups: [\"\"]\n  resources: [\"secrets\", \"configmaps\"]\n
+    \ verbs: [\"get\", \"list\", \"watch\"]\n- apiGroups: [\"\"]\n  resources: [\"pods\"]\n
+    \ verbs: [\"get\", \"list\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind:
+    RoleBinding\nmetadata:\n  name: kafka-connect-binding\n  namespace: $ns\nsubjects:\n-
+    kind: ServiceAccount\n  name: kafka-connect-sa\n  namespace: $ns\nroleRef:\n  kind:
+    Role\n  name: kafka-connect-role\n  apiGroup: rbac.authorization.k8s.io\n---\napiVersion:
+    v1\nkind: ServiceAccount\nmetadata:\n  name: postgresql-sa\n  namespace: $ns\nautomountServiceAccountToken:
+    false\nEOF\n}\n\n# Main audit\nmain() {\n    local exit_code=0\n    \n    echo
+    \"Starting RBAC audit...\"\n    echo\n    \n    # Check namespace exists\n    if
+    ! check_namespace \"$NAMESPACE\"; then\n        echo -e \"${RED}ERROR: Namespace
+    does not exist${NC}\"\n        exit 1\n    fi\n    \n    echo\n    \n    # List
+    service accounts\n    if ! list_service_accounts \"$NAMESPACE\"; then\n        exit_code=1\n
+    \   fi\n    \n    echo\n    \n    # Analyze each service account\n    local service_accounts=$(kubectl
+    get serviceaccount -n \"$NAMESPACE\" -o jsonpath='{.items[*].metadata.name}' 2>/dev/null
+    || echo \"\")\n    \n    if [ -n \"$service_accounts\" ]; then\n        for sa
+    in $service_accounts; do\n            if [ \"$sa\" != \"default\" ]; then\n                analyze_service_account
+    \"$NAMESPACE\" \"$sa\"\n                echo\n                test_permissions
+    \"$NAMESPACE\" \"$sa\"\n                echo\n            fi\n        done\n    fi\n
+    \   \n    # Check default service account usage\n    check_default_sa_usage \"$NAMESPACE\"\n
+    \   \n    # Generate recommendations\n    generate_rbac_recommendations\n    \n
+    \   echo\n    echo \"=== Example RBAC Configuration ===\"\n    create_example_rbac
+    \"$NAMESPACE\"\n    \n    # Generate audit report\n    local timestamp=$(date
+    -u +\"%Y-%m-%dT%H:%M:%SZ\")\n    local report_file=\"/tmp/rbac-audit-$timestamp.json\"\n
+    \   \n    cat > \"$report_file\" << EOF\n{\n  \"audit_type\": \"rbac\",\n  \"timestamp\":
+    \"$timestamp\",\n  \"namespace\": \"$NAMESPACE\",\n  \"status\": $([ $exit_code
+    -eq 0 ] && echo '\"PASS\"' || echo '\"FAIL\"'),\n  \"checks_performed\": [\n    \"service_accounts_exist\",\n
+    \   \"role_bindings_analysis\",\n    \"permission_testing\",\n    \"default_sa_usage_check\"\n
+    \ ],\n  \"service_accounts\": [$(kubectl get serviceaccount -n \"$NAMESPACE\"
+    -o jsonpath='{range .items[*]}\"{.metadata.name}\"{end}' 2>/dev/null | sed 's/\"\"/,
+    /g' | sed 's/, $//' || echo \"\")]\n}\nEOF\n    \n    echo\n    echo \"=== Audit
+    Summary ===\"\n    if [ $exit_code -eq 0 ]; then\n        echo -e \"${GREEN}✓
+    RBAC audit completed${NC}\"\n    else\n        echo -e \"${YELLOW}⚠ RBAC audit
+    completed with warnings${NC}\"\n    fi\n    echo \"Audit report saved to: $report_file\"\n
+    \   \n    exit $exit_code\n}\n\n# Run main function\nmain \"$@\""
+  task13-validate-cdc-permissions.sh: "#!/bin/bash\n# Task 13: PostgreSQL CDC User
+    Permission Validation\n# Validates that the Debezium CDC user has minimal required
+    permissions\n\nset -euo pipefail\n\n# Configuration\nPOSTGRES_HOST=\"${POSTGRES_HOST:-postgresql.data-ingestion.svc.cluster.local}\"\nPOSTGRES_PORT=\"${POSTGRES_PORT:-5432}\"\nPOSTGRES_DB=\"${POSTGRES_DB:-ecommerce}\"\nCDC_USER=\"${CDC_USER:-debezium}\"\n\n#
+    Colors for output\nRED='\\033[0;31m'\nGREEN='\\033[0;32m'\nYELLOW='\\033[1;33m'\nNC='\\033[0m'
+    # No Color\n\necho \"=== PostgreSQL CDC User Permission Validation ===\"\necho
+    \"Host: $POSTGRES_HOST:$POSTGRES_PORT\"\necho \"Database: $POSTGRES_DB\"\necho
+    \"CDC User: $CDC_USER\"\necho\n\n# Function to check if user exists\ncheck_user_exists()
+    {\n    local user=$1\n    echo -n \"Checking if user '$user' exists... \"\n    \n
+    \   if kubectl exec -n data-ingestion postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\"
+    -tAc \\\n        \"SELECT 1 FROM pg_roles WHERE rolname='$user';\" | grep -q 1;
+    then\n        echo -e \"${GREEN}✓ EXISTS${NC}\"\n        return 0\n    else\n
+    \       echo -e \"${RED}✗ NOT FOUND${NC}\"\n        return 1\n    fi\n}\n\n# Function
+    to check replication permissions\ncheck_replication_permission() {\n    local
+    user=$1\n    echo -n \"Checking REPLICATION permission for '$user'... \"\n    \n
+    \   if kubectl exec -n data-ingestion postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\"
+    -tAc \\\n        \"SELECT rolreplication FROM pg_roles WHERE rolname='$user';\"
+    | grep -q t; then\n        echo -e \"${GREEN}✓ HAS REPLICATION${NC}\"\n        return
+    0\n    else\n        echo -e \"${RED}✗ NO REPLICATION${NC}\"\n        return 1\n
+    \   fi\n}\n\n# Function to check table permissions\ncheck_table_permissions()
+    {\n    local user=$1\n    local tables=(\"users\" \"products\" \"orders\" \"order_items\")\n
+    \   \n    echo \"Checking SELECT permissions on required tables:\"\n    local
+    all_good=true\n    \n    for table in \"${tables[@]}\"; do\n        echo -n \"
+    \ - $table: \"\n        \n        if kubectl exec -n data-ingestion postgresql-0
+    -- psql -U postgres -d \"$POSTGRES_DB\" -tAc \\\n            \"SELECT has_table_privilege('$user',
+    'public.$table', 'SELECT');\" | grep -q t; then\n            echo -e \"${GREEN}✓
+    SELECT${NC}\"\n        else\n            echo -e \"${RED}✗ NO SELECT${NC}\"\n
+    \           all_good=false\n        fi\n    done\n    \n    return $([ \"$all_good\"
+    = true ] && echo 0 || echo 1)\n}\n\n# Function to check for excessive permissions\ncheck_excessive_permissions()
+    {\n    local user=$1\n    echo \"Checking for excessive permissions (should be
+    minimal):\"\n    \n    # Check if user is superuser\n    echo -n \"  - Superuser
+    check: \"\n    if kubectl exec -n data-ingestion postgresql-0 -- psql -U postgres
+    -d \"$POSTGRES_DB\" -tAc \\\n        \"SELECT rolsuper FROM pg_roles WHERE rolname='$user';\"
+    | grep -q f; then\n        echo -e \"${GREEN}✓ NOT SUPERUSER${NC}\"\n    else\n
+    \       echo -e \"${YELLOW}⚠ IS SUPERUSER (excessive)${NC}\"\n    fi\n    \n    #
+    Check if user can create databases\n    echo -n \"  - Create DB check: \"\n    if
+    kubectl exec -n data-ingestion postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\"
+    -tAc \\\n        \"SELECT rolcreatedb FROM pg_roles WHERE rolname='$user';\" |
+    grep -q f; then\n        echo -e \"${GREEN}✓ CANNOT CREATE DB${NC}\"\n    else\n
+    \       echo -e \"${YELLOW}⚠ CAN CREATE DB (excessive)${NC}\"\n    fi\n    \n
+    \   # Check if user can create roles\n    echo -n \"  - Create Role check: \"\n
+    \   if kubectl exec -n data-ingestion postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\"
+    -tAc \\\n        \"SELECT rolcreaterole FROM pg_roles WHERE rolname='$user';\"
+    | grep -q f; then\n        echo -e \"${GREEN}✓ CANNOT CREATE ROLES${NC}\"\n    else\n
+    \       echo -e \"${YELLOW}⚠ CAN CREATE ROLES (excessive)${NC}\"\n    fi\n}\n\n#
+    Function to check replication slot\ncheck_replication_slot() {\n    echo -n \"Checking
+    for Debezium replication slot... \"\n    \n    if kubectl exec -n data-ingestion
+    postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\" -tAc \\\n        \"SELECT
+    1 FROM pg_replication_slots WHERE slot_name='debezium_slot';\" | grep -q 1; then\n
+    \       echo -e \"${GREEN}✓ SLOT EXISTS${NC}\"\n        \n        # Check slot
+    status\n        echo -n \"  - Slot status: \"\n        local active=$(kubectl
+    exec -n data-ingestion postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\" -tAc
+    \\\n            \"SELECT active FROM pg_replication_slots WHERE slot_name='debezium_slot';\")\n
+    \       \n        if [ \"$active\" = \"t\" ]; then\n            echo -e \"${GREEN}ACTIVE${NC}\"\n
+    \       else\n            echo -e \"${YELLOW}INACTIVE${NC}\"\n        fi\n    else\n
+    \       echo -e \"${YELLOW}⚠ SLOT NOT FOUND${NC}\"\n    fi\n}\n\n# Function to
+    check publication\ncheck_publication() {\n    echo -n \"Checking for Debezium
+    publication... \"\n    \n    if kubectl exec -n data-ingestion postgresql-0 --
+    psql -U postgres -d \"$POSTGRES_DB\" -tAc \\\n        \"SELECT 1 FROM pg_publication
+    WHERE pubname='dbz_publication';\" | grep -q 1; then\n        echo -e \"${GREEN}✓
+    PUBLICATION EXISTS${NC}\"\n        \n        # Check which tables are included\n
+    \       echo \"  - Published tables:\"\n        kubectl exec -n data-ingestion
+    postgresql-0 -- psql -U postgres -d \"$POSTGRES_DB\" -c \\\n            \"SELECT
+    schemaname, tablename FROM pg_publication_tables WHERE pubname='dbz_publication';\"
+    | \\\n            grep -E \"(users|products|orders|order_items)\" | while read
+    line; do\n                echo \"    $line\"\n            done\n    else\n        echo
+    -e \"${YELLOW}⚠ PUBLICATION NOT FOUND${NC}\"\n    fi\n}\n\n# Main validation\nmain()
+    {\n    local exit_code=0\n    \n    echo \"Starting CDC user permission validation...\"\n
+    \   echo\n    \n    # Check user exists\n    if ! check_user_exists \"$CDC_USER\";
+    then\n        echo -e \"${RED}ERROR: CDC user does not exist${NC}\"\n        exit
+    1\n    fi\n    \n    echo\n    \n    # Check replication permission\n    if !
+    check_replication_permission \"$CDC_USER\"; then\n        echo -e \"${RED}ERROR:
+    CDC user lacks REPLICATION permission${NC}\"\n        exit_code=1\n    fi\n    \n
+    \   echo\n    \n    # Check table permissions\n    if ! check_table_permissions
+    \"$CDC_USER\"; then\n        echo -e \"${RED}ERROR: CDC user lacks required SELECT
+    permissions${NC}\"\n        exit_code=1\n    fi\n    \n    echo\n    \n    # Check
+    for excessive permissions\n    check_excessive_permissions \"$CDC_USER\"\n    \n
+    \   echo\n    \n    # Check replication infrastructure\n    check_replication_slot\n
+    \   echo\n    check_publication\n    \n    echo\n    echo \"=== Validation Summary
+    ===\"\n    if [ $exit_code -eq 0 ]; then\n        echo -e \"${GREEN}✓ CDC user
+    permissions are properly configured${NC}\"\n        echo \"✓ User has minimal
+    required permissions (REPLICATION + SELECT on specific tables)\"\n        echo
+    \"✓ No excessive permissions detected\"\n    else\n        echo -e \"${RED}✗ CDC
+    user permission issues detected${NC}\"\n        echo \"Please review and fix the
+    identified issues\"\n    fi\n    \n    # Generate audit report\n    local timestamp=$(date
+    -u +\"%Y-%m-%dT%H:%M:%SZ\")\n    local report_file=\"/tmp/cdc-permissions-audit-$timestamp.json\"\n
+    \   \n    cat > \"$report_file\" << EOF\n{\n  \"audit_type\": \"cdc_permissions\",\n
+    \ \"timestamp\": \"$timestamp\",\n  \"user\": \"$CDC_USER\",\n  \"database\":
+    \"$POSTGRES_DB\",\n  \"host\": \"$POSTGRES_HOST\",\n  \"status\": $([ $exit_code
+    -eq 0 ] && echo '\"PASS\"' || echo '\"FAIL\"'),\n  \"checks_performed\": [\n    \"user_exists\",\n
+    \   \"replication_permission\",\n    \"table_select_permissions\",\n    \"excessive_permissions_check\",\n
+    \   \"replication_slot_status\",\n    \"publication_status\"\n  ]\n}\nEOF\n    \n
+    \   echo \"Audit report saved to: $report_file\"\n    \n    exit $exit_code\n}\n\n#
+    Run main function\nmain \"$@\""
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: security-audit-scripts
+  namespace: data-ingestion
