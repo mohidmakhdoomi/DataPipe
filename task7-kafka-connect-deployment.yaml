@@ -44,7 +44,7 @@ data:
     rest.advertised.port=8083
     
     # Plugin Configuration
-    plugin.path=/kafka/connect,/usr/share/java/confluent-common
+    plugin.path=/kafka/connect
     
     # Worker Settings
     task.shutdown.graceful.timeout.ms=10000
@@ -118,7 +118,7 @@ data:
   CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
   CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
   CONNECT_REST_PORT: "8083"
-  CONNECT_PLUGIN_PATH: "/kafka/connect,/usr/share/java/confluent-common"
+  CONNECT_PLUGIN_PATH: "/kafka/connect"
   CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
   KAFKA_OPTS: "-Dlog4j.configuration=file:/kafka/config/connect-log4j.properties"
   KAFKA_BOOTSTRAP_SERVERS: "kafka-headless.data-ingestion.svc.cluster.local:9092"
