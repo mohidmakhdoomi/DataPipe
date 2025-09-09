@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ZEN_NAME=zen-mcp-server
-ZIP_VERSION=5.10.0
+ZIP_VERSION=5.11.0
 CUSTOM_CONFIG=custom_models.json
 
 mkdir -p .kiro/settings/zen
