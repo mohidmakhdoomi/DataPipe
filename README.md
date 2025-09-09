@@ -82,12 +82,12 @@ The project is being implemented in phases.
 
 -   **✅ Phase 1: Foundation**: Infrastructure setup, including Kind cluster, persistent volumes, namespaces, and PostgreSQL deployment.
 -   **✅ Phase 2: Core Services**: Deployment of the 3-broker Kafka cluster, Schema Registry, and the Kafka Connect framework.
--   **🚧 Phase 3: Integration (In Progress)**: Configuration of the Debezium and S3 Sink connectors to establish the end-to-end data flow.
--   **◻️ Phase 4: Production Readiness**: Implementation of security procedures, backup/recovery plans, and full-scale performance testing.
+-   **✅ Phase 3: Integration**: Configuration of the Debezium and S3 Sink connectors to establish the end-to-end data flow.
+-   **🚧 Phase 4: Production Readiness (In Progress)**: Implementation of security procedures, backup/recovery plans, and full-scale performance testing.
 
 ## ⚙️ Resource Allocation (4Gi Constraint)
 
-The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit, making it ideal for local development on standard laptops.
+The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit, making it ideal for local development on standard personal computers.
 
 | Service           | Requested Memory | CPU Request/Limit | Storage |
 | ----------------- | ---------------- | ----------------- | ------- |
