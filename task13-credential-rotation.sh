@@ -176,12 +176,7 @@ cleanup_old_postgresql_user() {
     
     # Revoke all privileges first
     kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
-        REASSIGN OWNED BY $old_user TO $new_user;
-        REVOKE ALL PRIVILEGES ON DATABASE ecommerce FROM $old_user;
-        REVOKE ALL PRIVILEGES ON SCHEMA public FROM $old_user;
-        REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM $old_user;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM $old_user;
-        DROP OWNED BY $old_user;
+        DROP ROLE IF EXISTS $old_user;
     " || {
         log WARN "Failed to revoke some privileges from old user"
     }
@@ -218,11 +213,8 @@ rotate_postgresql_credentials() {
     # Step 1: Create new CDC user with same permissions
     log INFO "Creating new CDC user: $new_user"
     kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
-        CREATE USER $new_user WITH REPLICATION PASSWORD '$new_password';
-        GRANT CONNECT ON DATABASE ecommerce TO $new_user;
-        GRANT USAGE ON SCHEMA public TO $new_user;
-        GRANT SELECT ON ALL TABLES IN SCHEMA public TO $new_user;
-        ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO $new_user;
+        CREATE USER $new_user WITH REPLICATION PASSWORD '$new_password' IN ROLE debezium_parent; 
+        ALTER ROLE $new_user SET ROLE debezium_parent;
     " || {
         log ERROR "Failed to create new CDC user"
         return 1
@@ -321,7 +313,7 @@ rotate_postgresql_credentials() {
     echo "$current_user" > "/tmp/task13-old-user-$(date +%Y%m%d-%H%M%S).txt"
     log INFO "Old user '$current_user' should be cleaned up after validation period"
     log INFO "To clean up old user after validation, run:"
-    log INFO "kubectl exec -n $NAMESPACE postgresql-0 -- psql -U postgres -d ecommerce -c \"REASSIGN OWNED BY $current_user TO $new_user; DROP OWNED BY $current_user; DROP USER IF EXISTS $current_user;\""
+    log INFO "kubectl exec -n $NAMESPACE postgresql-0 -- psql -U postgres -d ecommerce -c \"DROP ROLE IF EXISTS $current_user;\""
     
     log SUCCESS "PostgreSQL CDC user rotation completed successfully"
     return 0
