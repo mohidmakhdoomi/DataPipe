@@ -173,14 +173,7 @@ cleanup_old_postgresql_user() {
     fi
     
     log INFO "Cleaning up old PostgreSQL user: $old_user"
-    
-    # Revoke all privileges first
-    kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
-        DROP ROLE IF EXISTS $old_user;
-    " || {
-        log WARN "Failed to revoke some privileges from old user"
-    }
-    
+       
     # Drop the old user
     kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
         DROP USER IF EXISTS $old_user;
@@ -313,7 +306,7 @@ rotate_postgresql_credentials() {
     echo "$current_user" > "/tmp/task13-old-user-$(date +%Y%m%d-%H%M%S).txt"
     log INFO "Old user '$current_user' should be cleaned up after validation period"
     log INFO "To clean up old user after validation, run:"
-    log INFO "kubectl exec -n $NAMESPACE postgresql-0 -- psql -U postgres -d ecommerce -c \"DROP ROLE IF EXISTS $current_user;\""
+    log INFO "kubectl exec -n $NAMESPACE postgresql-0 -- psql -U postgres -d ecommerce -c \"DROP USER IF EXISTS $current_user;\""
     
     log SUCCESS "PostgreSQL CDC user rotation completed successfully"
     return 0
