@@ -218,6 +218,7 @@ spec:
         - name: init-scripts
           mountPath: /tmp/init-schema.sql
           subPath: init-schema.sql
+          readOnly: true
         - name: modified-scripts
           mountPath: /docker-entrypoint-initdb.d
       containers:
@@ -271,6 +272,7 @@ spec:
         - name: postgresql-config
           mountPath: /etc/postgresql/postgresql.conf
           subPath: postgresql.conf
+          readOnly: true
         - name: tmp
           mountPath: /tmp
         - name: run
@@ -278,6 +280,7 @@ spec:
         - name: modified-scripts
           mountPath: /docker-entrypoint-initdb.d/init-schema.sql
           subPath: init-schema.sql
+          readOnly: true
         livenessProbe:
           exec:
             command:
