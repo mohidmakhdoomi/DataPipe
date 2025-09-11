@@ -114,7 +114,7 @@ tail -f /tmp/task13-rotation-*.log
 5. **Rolling Restart and Resume**
    ```bash
    # Rolling restart Kafka Connect
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion --timeout=120s
+   kubectl rollout restart deployment/kafka-connect -n data-ingestion
    kubectl rollout status deployment/kafka-connect -n data-ingestion --timeout=120s
    
    # Resume connector
@@ -177,8 +177,8 @@ Three-phase rotation to ensure all clients can authenticate during transition.
      --patch='{"data":{"SCHEMA_AUTH_USER":"'$(echo -n "admin" | base64 -w 0)'","SCHEMA_AUTH_PASS":"'$(echo -n "new_admin_password" | base64 -w 0)'"}}'
    
    # Rolling restart Schema Registry and Kafka Connect
-   kubectl rollout restart deployment/schema-registry -n data-ingestion --timeout=120s
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion --timeout=120s
+   kubectl rollout restart deployment/schema-registry -n data-ingestion
+   kubectl rollout restart deployment/kafka-connect -n data-ingestion
    ```
 
 3. **Phase 3: Remove Old Credentials**
@@ -192,7 +192,7 @@ Three-phase rotation to ensure all clients can authenticate during transition.
    EOF"
    
    # Final restart
-   kubectl rollout restart deployment/schema-registry -n data-ingestion --timeout=120s
+   kubectl rollout restart deployment/schema-registry -n data-ingestion
    ```
 
 ### 3. AWS S3 Access Key Rotation
@@ -222,7 +222,7 @@ Rotate AWS access keys used by S3 Sink connector with minimal downtime.
 3. **Rolling Restart and Validation**
    ```bash
    # Restart Kafka Connect
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion --timeout=120s
+   kubectl rollout restart deployment/kafka-connect -n data-ingestion
    
    # Validate S3 access
    ./task13-access-validation.sh --component s3
@@ -551,13 +551,13 @@ kubectl describe pod -n data-ingestion -l app=kafka-connect
 **Solution:**
 ```bash
 # Sequential restarts instead of parallel
-kubectl rollout restart deployment/schema-registry -n data-ingestion --timeout=120s
+kubectl rollout restart deployment/schema-registry -n data-ingestion
 kubectl rollout status deployment/schema-registry -n data-ingestion --timeout=120s
 
 # Wait for memory to stabilize
 sleep 30
 
-kubectl rollout restart deployment/kafka-connect -n data-ingestion --timeout=120s
+kubectl rollout restart deployment/kafka-connect -n data-ingestion
 kubectl rollout status deployment/kafka-connect -n data-ingestion --timeout=120s
 ```
 
