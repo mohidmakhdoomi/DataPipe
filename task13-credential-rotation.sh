@@ -307,7 +307,12 @@ rotate_postgresql_credentials() {
     
     # Step 8: Validate CDC is working by checking user in kafka connect log
     log INFO "Validating CDC functionality..."
-    if ! kubectl logs deploy/kafka-connect -n data-ingestion -c kafka-connect | grep -q "INFO    database.user = $new_user"; then
+    local log_info=$(kubectl logs deploy/kafka-connect -n data-ingestion -c kafka-connect)
+    local log_match=$(echo "$log_info" | grep -o "database.user = $new_user")
+
+    if [[ "$log_match" == "database.user = $new_user" ]]; then
+        log SUCCESS "CDC is successfully processing changes after rotation"
+    else
         log ERROR "CDC is not processing changes after rotation"
         return 1
     fi
@@ -463,6 +468,15 @@ rollback_rotation() {
     
     # Restore previous Kubernetes secrets if backup exists
     if kubectl get secret debezium-credentials-backup -n "$NAMESPACE" &> /dev/null; then
+        log INFO "Pausing Debezium connector..."
+        kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
+            log ERROR "Failed to pause Debezium connector"
+            return 1
+        }
+        
+        # Wait for connector to pause
+        sleep 5
+
         log INFO "Restoring previous credentials from backup..."
         kubectl delete secret debezium-credentials -n "$NAMESPACE" || true
         kubectl get secret debezium-credentials-backup -n "$NAMESPACE" -o yaml | \
@@ -471,10 +485,23 @@ rollback_rotation() {
             log ERROR "Failed to restore credentials from backup"
             return 1
         }
+                
+        # Delete Kafka Connect pod to force restart with restored credentials
+        log INFO "Deleting Kafka Connect pod to force restart..."
+        kubectl delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
+            log ERROR "Failed to delete Kafka Connect pod"
+            return 1
+        }
         
-        # Restart Kafka Connect with restored credentials
-        kubectl rollout restart deployment/kafka-connect -n "$NAMESPACE" || {
-            log ERROR "Failed to restart Kafka Connect during rollback"
+        # Wait for new pod to be ready
+        kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
+            log ERROR "Kafka Connect pod did not become ready"
+            return 1
+        }
+        
+        log INFO "Resuming Debezium connector..."
+        kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
+            log ERROR "Failed to resume Debezium connector"
             return 1
         }
     fi
@@ -516,7 +543,7 @@ main() {
     case $COMPONENT in
         postgresql)
             if ! rotate_postgresql_credentials; then
-                log ERROR "PostgreSQL credential rotation failed"
+                log ERROR "PostgreSQL CDC credential rotation failed"
                 rollback_rotation
                 exit 1
             fi
