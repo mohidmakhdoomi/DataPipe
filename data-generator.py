@@ -133,8 +133,8 @@ def benchmark_performance(target_rate, duration, table_name):
 
             # Rate limiting - aim for target_rate events per second
             # Each batch has batch_size events, so we need target_rate/batch_size batches per second
-            # Then adjust target_batch_interval by 2% to account for expected overhead/difference
-            target_batch_interval = 0.98 / (target_rate / batch_size)
+            # Then adjust target_batch_interval by 3% to account for expected overhead/difference
+            target_batch_interval = 0.97 / (target_rate / batch_size)
 
             elapsed = time.time() - batch_start_time
             if elapsed < target_batch_interval:
