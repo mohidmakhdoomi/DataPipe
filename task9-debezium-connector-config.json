@@ -58,7 +58,7 @@
     "topic.creation.default.retention.ms": "604800000",
     "provide.transaction.metadata": "true",
     "skipped.operations": "none",
-    "tombstones.on.delete": "false",
+    "tombstones.on.delete": "true",
     "publication.autocreate.mode": "all_tables",
     "slot.drop.on.stop": "false",
     "slot.max.retries": "6",
