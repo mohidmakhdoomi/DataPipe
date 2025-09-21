@@ -9,6 +9,7 @@
     "database.password": "${env:DBZ_DB_PASSWORD}",
     "database.dbname": "ecommerce",
     "database.server.name": "postgres",
+    "message.key.columns": "public.users:id;public.products:id;public.orders:id;public.order_items:order_id",
     "topic.prefix": "postgres",
     "table.include.list": "public.users,public.products,public.orders,public.order_items",
     "plugin.name": "pgoutput",
