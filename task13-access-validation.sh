@@ -114,13 +114,18 @@ validate_postgresql_permissions() {
     fi
     
     # Test 2: CDC user exists and has replication privileges
+    local current_user=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+        SELECT usename FROM pg_stat_replication" | tr -d ' ' || echo "")
+
+    if [[ ! -n "$current_user" ]]; then
+        record_test_result "CDC User Replication Privileges" "FAIL" "No CDC user from pg_stat_replication"
+    fi
+
     local cdc_user_info
     cdc_user_info=$(kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
         SELECT rolname, rolreplication, rolcanlogin 
         FROM pg_roles 
-        WHERE rolname LIKE 'debezium%' 
-        ORDER BY rolname DESC 
-        LIMIT 1;" 2>/dev/null | tr -d ' ' || echo "")
+        WHERE rolname='$current_user' " 2>/dev/null | tr -d ' ' || echo "")
     if [[ -n "$cdc_user_info" ]]; then
         local user_name=$(echo "$cdc_user_info" | cut -d'|' -f1)
         local has_replication=$(echo "$cdc_user_info" | cut -d'|' -f2)
@@ -132,7 +137,7 @@ validate_postgresql_permissions() {
             record_test_result "CDC User Replication Privileges" "FAIL" "User $user_name missing required privileges (replication: $has_replication, login: $can_login)"
         fi
     else
-        record_test_result "CDC User Replication Privileges" "FAIL" "No CDC user found"
+        record_test_result "CDC User Replication Privileges" "FAIL" "No CDC user from pg_roles"
     fi
     
     # Test 3: CDC user has SELECT permissions on required tables
