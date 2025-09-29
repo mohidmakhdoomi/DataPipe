@@ -10,7 +10,7 @@
 #
 # Usage: ./task13-credential-rotation.sh [--dry-run] [--component postgresql|kafka-connect|schema-registry|all]
 #
-# Requirements: kubectl, aws cli (for S3 validation), awk (for arithmetic operations)
+# Requirements: kubectl, jq, yq, openssl, base64
 
 set -euo pipefail
 
@@ -93,7 +93,7 @@ validate_prerequisites() {
     log INFO "Validating prerequisites..."
     
     # Check required tools
-    local tools=("kubectl" "aws" "jq" "awk")
+    local tools=("kubectl" "jq" "yq" "openssl" "base64")
     for tool in "${tools[@]}"; do
         if ! command -v "$tool" &> /dev/null; then
             log ERROR "Required tool '$tool' is not installed"
@@ -496,6 +496,19 @@ rollback_rotation() {
             sed 's/schema-registry-auth-backup/schema-registry-auth/' | \
             kubectl apply -f - || {
             log ERROR "Failed to restore schema registry credentials from backup"
+            return 1
+        }
+
+        # Delete Schema Registry pod to force restart with restored credentials
+        log INFO "Deleting Schema Registry pod to force restart..."
+        kubectl delete pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" || {
+            log ERROR "Failed to delete Schema Registry pod"
+            return 1
+        }
+        
+        # Wait for new pod to be ready
+        kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" --timeout=300s || {
+            log ERROR "Schema Registry pod did not become ready"
             return 1
         }
     fi

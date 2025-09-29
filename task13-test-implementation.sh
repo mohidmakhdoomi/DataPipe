@@ -191,7 +191,7 @@ test_script_syntax() {
 test_required_tools() {
     log INFO "Testing required tools availability..."
     
-    local tools=("kubectl" "jq" "openssl" "base64")
+    local tools=("kubectl" "jq" "yq" "openssl" "base64")
     local missing_tools=()
     
     for tool in "${tools[@]}"; do

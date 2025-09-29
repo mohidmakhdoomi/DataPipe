@@ -90,10 +90,8 @@ tail -f /tmp/task13-rotation-*.log
 
 2. **Create New CDC User**
    ```sql
-   CREATE USER debezium_20240115_1030 WITH REPLICATION PASSWORD 'secure_generated_password';
-   GRANT USAGE ON SCHEMA public TO debezium_20240115_1030;
-   GRANT SELECT ON ALL TABLES IN SCHEMA public TO debezium_20240115_1030;
-   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO debezium_20240115_1030;
+   CREATE USER debezium_20240115_1030 WITH REPLICATION PASSWORD 'secure_generated_password' IN ROLE debezium_parent; 
+   ALTER ROLE debezium_20240115_1030 SET ROLE debezium_parent;
    ```
 
 3. **Pause Connector and Transfer Slot**
@@ -108,14 +106,14 @@ tail -f /tmp/task13-rotation-*.log
 4. **Update Kubernetes Secrets**
    ```bash
    kubectl patch secret debezium-credentials -n data-ingestion \
-     --patch='{"data":{"DBZ_DB_USERNAME":"'$(echo -n "debezium_20240115_1030" | base64 -w 0)'","DBZ_DB_PASSWORD":"'$(echo -n "secure_generated_password" | base64 -w 0)'"}}'
+     --patch='{"data":{"db-username":"'$(echo -n "debezium_20240115_1030" | base64 -w 0)'","db-password":"'$(echo -n "secure_generated_password" | base64 -w 0)'"}}'
    ```
 
-5. **Rolling Restart and Resume**
+5. **Delete Pod to Restart and Resume**
    ```bash
-   # Rolling restart Kafka Connect
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion
-   kubectl rollout status deployment/kafka-connect -n data-ingestion --timeout=120s
+   # Restart Kafka Connect
+   kubectl delete pod -l app=kafka-connect,component=worker -n data-ingestion
+   kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s
    
    # Resume connector
    curl -X PUT http://kafka-connect:8083/connectors/postgres-cdc-connector/resume
@@ -142,13 +140,8 @@ If rotation fails:
      kubectl apply -f -
    
    # Restart Kafka Connect
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion
-   ```
-
-2. **Replication Slot Recovery**
-   ```sql
-   -- If slot ownership transfer failed, revert
-   ALTER REPLICATION SLOT debezium_slot OWNER TO debezium_old;
+   kubectl delete pod -l app=kafka-connect,component=worker -n data-ingestion
+   kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s
    ```
 
 ### 2. Schema Registry Credential Rotation
@@ -160,78 +153,21 @@ Three-phase rotation to ensure all clients can authenticate during transition.
 
 1. **Phase 1: Add New Credentials**
    ```bash
-   # Update user.properties with both old and new credentials
-   kubectl exec -n data-ingestion deployment/schema-registry -- sh -c "
-   cat > /etc/schema-registry/user.properties << EOF
-   admin: new_admin_password,admin
-   admin_old: old_admin_password,admin
-   probe: probe,readonly
-   developer: developer,developer
-   EOF"
+   # Update schema-registry-auth with new admin credentials
+   local old_user_info=$(kubectl get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.user-info' | base64 -d)
+   local new_user_info=$(echo "$old_user_info" | sed "s/admin:.*/admin:new_admin_password,admin/")
+   new_user_info="${new_user_info//$'\n'/\\n}"
+   kubectl patch secret schema-registry-auth -n data-ingestion \
+        --patch="{\"stringData\":{\"user-info\":\"$new_user_info\",\"admin-password\":\"new_admin_password\"}}"
    ```
 
 2. **Phase 2: Update Clients**
-   ```bash
-   # Update Kafka Connect credentials
-   kubectl patch secret debezium-credentials -n data-ingestion \
-     --patch='{"data":{"SCHEMA_AUTH_USER":"'$(echo -n "admin" | base64 -w 0)'","SCHEMA_AUTH_PASS":"'$(echo -n "new_admin_password" | base64 -w 0)'"}}'
-   
-   # Rolling restart Schema Registry and Kafka Connect
-   kubectl rollout restart deployment/schema-registry -n data-ingestion
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion
-   ```
-
-3. **Phase 3: Remove Old Credentials**
-   ```bash
-   # After validation, remove old credentials
-   kubectl exec -n data-ingestion deployment/schema-registry -- sh -c "
-   cat > /etc/schema-registry/user.properties << EOF
-   admin: new_admin_password,admin
-   probe: probe,readonly
-   developer: developer,developer
-   EOF"
-   
-   # Final restart
-   kubectl rollout restart deployment/schema-registry -n data-ingestion
-   ```
-
-### 3. AWS S3 Access Key Rotation
-
-#### Overview
-Rotate AWS access keys used by S3 Sink connector with minimal downtime.
-
-#### Prerequisites
-- AWS CLI configured
-- IAM permissions to create/delete access keys
-- S3 bucket access validated
-
-#### Procedure
-
-1. **Create New Access Key**
-   ```bash
-   # Create new access key (AWS CLI)
-   aws iam create-access-key --user-name datapipe-s3-user
-   ```
-
-2. **Update Kubernetes Secret**
-   ```bash
-   kubectl patch secret debezium-credentials -n data-ingestion \
-     --patch='{"data":{"AWS_ACCESS_KEY_ID":"'$(echo -n "NEW_ACCESS_KEY" | base64 -w 0)'","AWS_SECRET_ACCESS_KEY":"'$(echo -n "NEW_SECRET_KEY" | base64 -w 0)'"}}'
-   ```
-
-3. **Rolling Restart and Validation**
-   ```bash
-   # Restart Kafka Connect
-   kubectl rollout restart deployment/kafka-connect -n data-ingestion
-   
-   # Validate S3 access
-   ./task13-access-validation.sh --component s3
-   ```
-
-4. **Cleanup Old Access Key**
-   ```bash
-   # After validation, delete old access key
-   aws iam delete-access-key --user-name datapipe-s3-user --access-key-id OLD_ACCESS_KEY
+   ```bash  
+   # Restart Schema Registry and Kafka Connect
+   kubectl delete pod -l app=schema-registry,component=schema-management -n data-ingestion
+   kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=300s
+   kubectl delete pod -l app=kafka-connect,component=worker -n data-ingestion
+   kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s
    ```
 
 ## Access Control Validation
@@ -269,7 +205,7 @@ Use the provided validation script to verify access controls:
 
 #### Schema Registry
 - [ ] Service is accessible and running
-- [ ] Authentication is working (if enabled)
+- [ ] Authentication is working
 - [ ] Compatibility level is set to BACKWARD
 - [ ] Can connect to Kafka cluster
 - [ ] Subjects are being registered correctly
@@ -411,22 +347,8 @@ Use the provided validation script to verify access controls:
 
 2. **Recovery Steps**
    ```bash
-   # Recreate Kind cluster
-   kind create cluster --config kind-config.yaml
-   
-   # Apply base configuration
-   kubectl apply -f 01-namespace.yaml
-   kubectl apply -f 02-service-accounts.yaml
-   kubectl apply -f 03-network-policies.yaml
-   
-   # Restore secrets (from encrypted backup)
-   kubectl apply -f secrets-backup-encrypted.yaml
-   
-   # Deploy services
-   kubectl apply -f task4-postgresql-statefulset.yaml
-   kubectl apply -f task5-kafka-kraft-3brokers.yaml
-   kubectl apply -f task6-schema-registry.yaml
-   kubectl apply -f task7-kafka-connect-deployment.yaml
+   # Recreate Kind cluster, apply configurations, deploy services
+   ./deploy-pipeline.sh
    
    # Validate recovery
    ./task13-access-validation.sh --component all
@@ -521,11 +443,6 @@ SELECT rolname, rolreplication FROM pg_roles WHERE rolname LIKE 'debezium%';
 
 **Solution:**
 ```bash
-# Option 1: Manual slot ownership transfer
-kubectl exec -n data-ingestion postgresql-0 -- psql -U postgres -d ecommerce -c "
-ALTER REPLICATION SLOT debezium_slot OWNER TO new_debezium_user;"
-
-# Option 2: Use Debezium offset recovery
 # Let Debezium recreate the slot from stored offsets
 curl -X DELETE http://kafka-connect:8083/connectors/postgres-cdc-connector
 # Redeploy connector - it will resume from last committed offset
@@ -551,14 +468,14 @@ kubectl describe pod -n data-ingestion -l app=kafka-connect
 **Solution:**
 ```bash
 # Sequential restarts instead of parallel
-kubectl rollout restart deployment/schema-registry -n data-ingestion
-kubectl rollout status deployment/schema-registry -n data-ingestion --timeout=120s
+kubectl delete pod -l app=schema-registry,component=schema-management -n data-ingestion
+kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=300s
 
 # Wait for memory to stabilize
 sleep 30
 
-kubectl rollout restart deployment/kafka-connect -n data-ingestion
-kubectl rollout status deployment/kafka-connect -n data-ingestion --timeout=120s
+kubectl delete pod -l app=kafka-connect,component=worker -n data-ingestion
+kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s
 ```
 
 #### 3. Schema Registry Authentication Issues
@@ -580,11 +497,11 @@ kubectl exec -n data-ingestion deployment/kafka-connect -- env | grep SCHEMA
 **Solution:**
 ```bash
 # Verify credentials match
-kubectl get secret debezium-credentials -n data-ingestion -o yaml | grep SCHEMA_AUTH
+kubectl get secret schema-registry-auth -n data-ingestion -o yaml | grep admin
 
 # Update credentials if needed
-kubectl patch secret debezium-credentials -n data-ingestion \
-  --patch='{"data":{"SCHEMA_AUTH_USER":"'$(echo -n "admin" | base64 -w 0)'","SCHEMA_AUTH_PASS":"'$(echo -n "correct_password" | base64 -w 0)'"}}'
+kubectl patch secret schema-registry-auth -n data-ingestion \
+  --patch='{"data":{"admin-user":"'$(echo -n "admin" | base64 -w 0)'","admin-password":"'$(echo -n "correct_password" | base64 -w 0)'"}}'
 ```
 
 #### 4. S3 Access Denied
@@ -609,8 +526,8 @@ kubectl exec -n data-ingestion deployment/kafka-connect -- aws s3 ls s3://your-b
 aws iam get-user-policy --user-name datapipe-s3-user --policy-name S3AccessPolicy
 
 # Update credentials if needed
-kubectl patch secret debezium-credentials -n data-ingestion \
-  --patch='{"data":{"AWS_ACCESS_KEY_ID":"'$(echo -n "new_key" | base64 -w 0)'","AWS_SECRET_ACCESS_KEY":"'$(echo -n "new_secret" | base64 -w 0)'"}}'
+kubectl patch secret aws-credentials -n data-ingestion \
+  --patch='{"data":{"access-key-id":"'$(echo -n "new_key" | base64 -w 0)'","secret-access-key":"'$(echo -n "new_secret" | base64 -w 0)'"}}'
 ```
 
 ### Diagnostic Commands
