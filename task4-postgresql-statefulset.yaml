@@ -110,12 +110,12 @@ data:
     CREATE INDEX idx_order_items_order_id ON order_items(order_id);
     CREATE INDEX idx_order_items_product_id ON order_items(product_id);
     
-    -- Create debezium user for CDC
-    CREATE USER debezium WITH REPLICATION PASSWORD 'debezium_password';
-    GRANT CONNECT ON DATABASE ecommerce TO debezium;
-    GRANT USAGE ON SCHEMA public TO debezium;
-    GRANT SELECT ON ALL TABLES IN SCHEMA public TO debezium;
-    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO debezium;
+    -- Create debezium_parent role for CDC
+    CREATE ROLE debezium_parent WITH REPLICATION NOLOGIN;
+    GRANT CONNECT ON DATABASE ecommerce TO debezium_parent;
+    GRANT USAGE ON SCHEMA public TO debezium_parent;
+    GRANT SELECT ON ALL TABLES IN SCHEMA public TO debezium_parent;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO debezium_parent;
     
     -- Create publication for CDC
     CREATE PUBLICATION dbz_publication FOR ALL TABLES;
@@ -195,9 +195,32 @@ spec:
           # Verify permissions (fail fast if incorrect)
           stat -c "%u:%g %a" /var/run/postgresql | grep -q "70:70 2775" || exit 1
           echo "PostgreSQL runtime directory permissions fixed"
+
+          cp /tmp/init-schema.sql /docker-entrypoint-initdb.d/init-schema.sql
+          echo "CREATE USER $DBZ_DB_USERNAME WITH REPLICATION PASSWORD '$DBZ_DB_PASSWORD' IN ROLE debezium_parent; ALTER ROLE $DBZ_DB_USERNAME SET ROLE debezium_parent;" >> /docker-entrypoint-initdb.d/init-schema.sql
+          echo "PostgreSQL Debezium user created"
+        env:
+        - name: DBZ_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: debezium-credentials
+              key: db-username
+        - name: DBZ_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: debezium-credentials
+              key: db-password
         volumeMounts:
         - name: run
           mountPath: /var/run/postgresql
+        - name: tmp
+          mountPath: /tmp
+        - name: init-scripts
+          mountPath: /tmp/init-schema.sql
+          subPath: init-schema.sql
+          readOnly: true
+        - name: modified-scripts
+          mountPath: /docker-entrypoint-initdb.d
       containers:
       - name: postgresql
         image: postgres:15-alpine
@@ -249,13 +272,15 @@ spec:
         - name: postgresql-config
           mountPath: /etc/postgresql/postgresql.conf
           subPath: postgresql.conf
-        - name: init-scripts
-          mountPath: /docker-entrypoint-initdb.d/init-schema.sql
-          subPath: init-schema.sql
+          readOnly: true
         - name: tmp
           mountPath: /tmp
         - name: run
           mountPath: /var/run/postgresql
+        - name: modified-scripts
+          mountPath: /docker-entrypoint-initdb.d/init-schema.sql
+          subPath: init-schema.sql
+          readOnly: true
         livenessProbe:
           exec:
             command:
@@ -286,6 +311,8 @@ spec:
       - name: tmp
         emptyDir: {}
       - name: run
+        emptyDir: {}
+      - name: modified-scripts
         emptyDir: {}
   volumeClaimTemplates:
   - metadata:
