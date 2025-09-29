@@ -1,67 +1,69 @@
-[2025-08-29 21:16:00] Task 10 Validate: === Starting Task 10: Validating S3 Sink Connector and Archival ===
-[2025-08-29 21:16:00] Task 10 Validate: Discovering pod names...
-[2025-08-29 21:16:01] Task 10 Validate: Using pods:
-[2025-08-29 21:16:01] Task 10 Validate:   Kafka Connect S3: kafka-connect-5487669d97-9q9b2
-[2025-08-29 21:16:01] Task 10 Validate:   PostgreSQL: postgresql-0
-[2025-08-29 21:16:01] Task 10 Validate:   Kafka: kafka-0
-[2025-08-29 21:16:01] Task 10 Validate: Starting background resource monitoring
-[2025-08-29 21:16:01] Task 10 Validate: Checking S3 Sink connector status...
-[2025-08-29 21:16:02] Task 10 Validate: Connector state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task count: 24
-[2025-08-29 21:16:02] Task 10 Validate: ✅ S3 Sink connector and tasks are RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 0 state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 1 state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 2 state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 3 state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 4 state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 5 state: RUNNING
-[2025-08-29 21:16:02] Task 10 Validate: Task 6 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 7 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 8 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 9 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 10 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 11 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 12 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 13 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 14 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 15 state: RUNNING
-[2025-08-29 21:16:03] Task 10 Validate: Task 16 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 17 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 18 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 19 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 20 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 21 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 22 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Task 23 state: RUNNING
-[2025-08-29 21:16:04] Task 10 Validate: Checking S3 bucket accessibility...
-[2025-08-29 21:16:06] Task 10 Validate: ✅ S3 bucket is accessible
-[2025-08-29 21:16:06] Task 10 Validate: Testing data flow to S3...
-[2025-08-29 21:16:06] Task 10 Validate: Inserting test record with email: task10-s3-validation-1756516566@example.com
+[2025-09-29 02:40:33] Task 10 Validate: === Starting Task 10: Validating S3 Sink Connector and Archival ===
+[2025-09-29 02:40:33] Task 10 Validate: Discovering pod names...
+[2025-09-29 02:40:33] Task 10 Validate: Using pods:
+[2025-09-29 02:40:33] Task 10 Validate:   Kafka Connect S3: kafka-connect-5487669d97-gkh6g
+[2025-09-29 02:40:33] Task 10 Validate:   PostgreSQL: postgresql-0
+[2025-09-29 02:40:33] Task 10 Validate:   Kafka: kafka-0
+[2025-09-29 02:40:33] Task 10 Validate: Starting background resource monitoring
+[2025-09-29 02:40:33] Task 10 Validate: Checking S3 Sink connector status...
+[2025-09-29 02:40:34] Task 10 Validate: Connector state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task count: 24
+[2025-09-29 02:40:34] Task 10 Validate: ✅ S3 Sink connector and tasks are RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 0 state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 1 state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 2 state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 3 state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 4 state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 5 state: RUNNING
+[2025-09-29 02:40:34] Task 10 Validate: Task 6 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 7 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 8 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 9 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 10 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 11 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 12 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 13 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 14 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 15 state: RUNNING
+[2025-09-29 02:40:35] Task 10 Validate: Task 16 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 17 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 18 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 19 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 20 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 21 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 22 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Task 23 state: RUNNING
+[2025-09-29 02:40:36] Task 10 Validate: Checking S3 bucket accessibility...
+[2025-09-29 02:40:38] Task 10 Validate: ✅ S3 bucket is accessible
+[2025-09-29 02:40:38] Task 10 Validate: Testing data flow to S3...
+[2025-09-29 02:40:38] Task 10 Validate: Inserting test record with email: task10-s3-validation-1759128038@example.com
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
    id   
 --------
- 731086
+ 746046
 (1 row)
 
 INSERT 0 1
-[2025-08-29 21:16:06] Task 10 Validate: ✅ Test record inserted successfully
-[2025-08-29 21:16:06] Task 10 Validate: Waiting 120 seconds for CDC and S3 processing...
-[2025-08-29 21:18:06] Task 10 Validate: Checking for data in S3...
-[2025-08-29 21:18:07] Task 10 Validate: Checking S3 path: /topics/postgres.public.users/year=2025/month=08/day=30/hour=01/
-[2025-08-29 21:18:08] Task 10 Validate: ✅ Parquet files found in S3
-2025-08-29 21:15:49       4266 postgres.public.users+1+0000122101.snappy.parquet
-2025-08-29 21:12:35       3562 postgres.public.users+2+0000121349.snappy.parquet
-2025-08-29 21:15:49       3745 postgres.public.users+3+0000121857.snappy.parquet
-2025-08-29 21:15:49       4027 postgres.public.users+4+0000122587.snappy.parquet
-[2025-08-29 21:18:10] Task 10 Validate: Validating Parquet file structure...
-[2025-08-29 21:18:11] Task 10 Validate: Found Parquet file: postgres.public.users+1+0000122101.snappy.parquet
-[2025-08-29 21:18:11] Task 10 Validate: Parquet file location: /topics/postgres.public.users/year=2025/month=08/day=30/hour=01/postgres.public.users+1+0000122101.snappy.parquet
-[2025-08-29 21:18:13] Task 10 Validate: ✅ Parquet file has valid size: 4266 bytes
-[2025-08-29 21:18:13] Task 10 Validate: Validating time-based partitioning structure...
-[2025-08-29 21:18:15] Task 10 Validate: ✅ Time-based partitioning structure found:
+[2025-09-29 02:40:39] Task 10 Validate: ✅ Test record inserted successfully
+[2025-09-29 02:40:39] Task 10 Validate: Waiting 120 seconds for CDC and S3 processing...
+[2025-09-29 02:42:39] Task 10 Validate: Checking for data in S3...
+[2025-09-29 02:42:39] Task 10 Validate: Checking S3 path: /topics/postgres.public.users/year=2025/month=09/day=29/hour=06/
+[2025-09-29 02:42:40] Task 10 Validate: ✅ Parquet files found in S3
+2025-09-29 02:35:44       3429 postgres.public.users+2+0000123845.snappy.parquet
+2025-09-29 02:37:09       3562 postgres.public.users+2+0000123846.snappy.parquet
+2025-09-29 02:37:53       3393 postgres.public.users+2+0000123848.snappy.parquet
+2025-09-29 02:40:20       3745 postgres.public.users+2+0000123849.snappy.parquet
+2025-09-29 02:39:57       4095 postgres.public.users+4+0000125176.snappy.parquet
+2025-09-29 02:40:20       4074 postgres.public.users+4+0000125178.snappy.parquet
+[2025-09-29 02:42:42] Task 10 Validate: Validating Parquet file structure...
+[2025-09-29 02:42:43] Task 10 Validate: Found Parquet file: postgres.public.users+2+0000123845.snappy.parquet
+[2025-09-29 02:42:43] Task 10 Validate: Parquet file location: /topics/postgres.public.users/year=2025/month=09/day=29/hour=06/postgres.public.users+2+0000123845.snappy.parquet
+[2025-09-29 02:42:45] Task 10 Validate: ✅ Parquet file has valid size: 3429 bytes
+[2025-09-29 02:42:45] Task 10 Validate: Validating time-based partitioning structure...
+[2025-09-29 02:42:46] Task 10 Validate: ✅ Time-based partitioning structure found:
                            PRE year=2025/
-[2025-08-29 21:18:15] Task 10 Validate: Checking connector metrics and performance...
-[2025-08-29 21:18:15] Task 10 Validate: Connector metrics:
+[2025-09-29 02:42:46] Task 10 Validate: Checking connector metrics and performance...
+[2025-09-29 02:42:46] Task 10 Validate: Connector metrics:
 {
   "name": "s3-sink-connector",
   "connector": {
@@ -192,28 +194,28 @@ INSERT 0 1
   ],
   "type": "sink"
 }
-[2025-08-29 21:18:15] Task 10 Validate: ✅ No failed tasks found
-[2025-08-29 21:18:15] Task 10 Validate: Checking dead letter queue for errors...
-[2025-08-29 21:18:20] Task 10 Validate: DLQ message count: 0
-[2025-08-29 21:18:20] Task 10 Validate: ✅ No messages in dead letter queue
-[2025-08-29 21:18:20] Task 10 Validate: Checking resource usage...
-kafka-0                           23m   467Mi   
-kafka-1                           22m   491Mi   
-kafka-2                           24m   409Mi   
-kafka-connect-5487669d97-9q9b2    47m   685Mi   
-postgresql-0                      11m   61Mi    
-schema-registry-7996d6869-zm444   10m   224Mi   
-[2025-08-29 21:18:20] Task 10 Validate: ✅ Resource usage information retrieved
-[2025-08-29 21:18:20] Task 10 Validate: === S3 Archival Validation Complete ===
-[2025-08-29 21:18:20] Task 10 Validate: 
-[2025-08-29 21:18:20] Task 10 Validate: Summary:
-[2025-08-29 21:18:20] Task 10 Validate: - S3 Sink connector status: ✅ PASSED
-[2025-08-29 21:18:21] Task 10 Validate: - S3 bucket accessibility: Validated
-[2025-08-29 21:18:21] Task 10 Validate: - Data flow to S3: Tested
-[2025-08-29 21:18:21] Task 10 Validate: - Parquet file structure: Validated
-[2025-08-29 21:18:21] Task 10 Validate: - Time-based partitioning: Verified
-[2025-08-29 21:18:21] Task 10 Validate: - Error handling (DLQ): Checked
-[2025-08-29 21:18:21] Task 10 Validate: 
-[2025-08-29 21:18:21] Task 10 Validate: ✅ All validation tests passed - Task 10 is complete!
-[2025-08-29 21:18:21] Task 10 Validate: ✅ S3 archival is operational with Parquet format and time-based partitioning
-[2025-08-29 21:18:21] Task 10 Validate: Stopping background resource monitoring
+[2025-09-29 02:42:46] Task 10 Validate: ✅ No failed tasks found
+[2025-09-29 02:42:47] Task 10 Validate: Checking dead letter queue for errors...
+[2025-09-29 02:42:50] Task 10 Validate: DLQ message count: 0
+[2025-09-29 02:42:50] Task 10 Validate: ✅ No messages in dead letter queue
+[2025-09-29 02:42:50] Task 10 Validate: Checking resource usage...
+kafka-0                           19m   486Mi   
+kafka-1                           19m   486Mi   
+kafka-2                           23m   422Mi   
+kafka-connect-5487669d97-gkh6g    40m   693Mi   
+postgresql-0                      8m    56Mi    
+schema-registry-7996d6869-8bqg7   8m    243Mi   
+[2025-09-29 02:42:51] Task 10 Validate: ✅ Resource usage information retrieved
+[2025-09-29 02:42:51] Task 10 Validate: === S3 Archival Validation Complete ===
+[2025-09-29 02:42:51] Task 10 Validate: 
+[2025-09-29 02:42:51] Task 10 Validate: Summary:
+[2025-09-29 02:42:51] Task 10 Validate: - S3 Sink connector status: ✅ PASSED
+[2025-09-29 02:42:51] Task 10 Validate: - S3 bucket accessibility: Validated
+[2025-09-29 02:42:51] Task 10 Validate: - Data flow to S3: Tested
+[2025-09-29 02:42:51] Task 10 Validate: - Parquet file structure: Validated
+[2025-09-29 02:42:51] Task 10 Validate: - Time-based partitioning: Verified
+[2025-09-29 02:42:51] Task 10 Validate: - Error handling (DLQ): Checked
+[2025-09-29 02:42:51] Task 10 Validate: 
+[2025-09-29 02:42:51] Task 10 Validate: ✅ All validation tests passed - Task 10 is complete!
+[2025-09-29 02:42:51] Task 10 Validate: ✅ S3 archival is operational with Parquet format and time-based partitioning
+[2025-09-29 02:42:51] Task 10 Validate: Stopping background resource monitoring
