@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: batch-analytics
+  labels:
+    name: batch-analytics
+    purpose: batch-processing
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/warn: baseline
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: batch-analytics-quota
+  namespace: batch-analytics
+spec:
+  hard:
+    requests.memory: "12Gi"
+    limits.memory: "12Gi"
+    requests.cpu: "6"
+    limits.cpu: "8"
+    pods: "20"
+    persistentvolumeclaims: "10"
+    secrets: "15"
+    configmaps: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: batch-analytics-limits
+  namespace: batch-analytics
+spec:
+  limits:
+  - default:
+      memory: "1Gi"
+      cpu: "500m"
+    defaultRequest:
+      memory: "512Mi"
+      cpu: "250m"
+    max:
+      memory: "4Gi"
+      cpu: "2"
+    min:
+      memory: "256Mi"
+      cpu: "100m"
+    type: Container

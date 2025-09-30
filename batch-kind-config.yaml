@@ -1,0 +1,92 @@
+# Kind Configuration for Batch Analytics Layer
+# 3-node cluster architecture (1 control-plane + 2 worker nodes)
+# 12GB RAM allocation for batch processing workloads
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: batch-analytics
+
+# 3-node cluster: 1 control-plane + 2 worker nodes optimized for batch processing
+nodes:
+- role: control-plane
+  # Control-plane node with ingress capabilities and batch monitoring
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true,workload-type=batch-control"
+  
+  # Port mappings for batch layer services and monitoring
+  extraPortMappings:
+  # Spark UI access for batch job monitoring
+  - containerPort: 30040
+    hostPort: 4040
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # Spark History Server for batch job analysis
+  - containerPort: 30041
+    hostPort: 18080
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # Jupyter/Notebook interface for data exploration (future use)
+  - containerPort: 30042
+    hostPort: 8888
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # dbt documentation server
+  - containerPort: 30043
+    hostPort: 8080
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+  
+  # Monitoring and metrics endpoints
+  - containerPort: 30044
+    hostPort: 9090
+    protocol: TCP
+    listenAddress: "127.0.0.1"
+
+# Worker node 1 - optimized for Spark driver workloads
+- role: worker
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload-type=spark-driver"
+        # Reserve resources for Spark driver (3GB RAM, 1.5 CPU)
+        system-reserved: "memory=1Gi,cpu=500m"
+        kube-reserved: "memory=512Mi,cpu=250m"
+
+# Worker node 2 - optimized for Spark executor workloads  
+- role: worker
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "workload-type=spark-executors"
+        # Reserve resources for Spark executors (8GB RAM, 4 CPU)
+        system-reserved: "memory=1Gi,cpu=500m"
+        kube-reserved: "memory=512Mi,cpu=250m"
+
+# Containerd configuration for efficient image management and caching
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5001"]
+    endpoint = ["http://kind-registry:5000"]
+  
+  # Optimize for large Spark images
+  [plugins."io.containerd.grpc.v1.cri"]
+    max_container_log_line_size = 1048576
+    
+  # Enable image snapshotter for faster startup
+  [plugins."io.containerd.grpc.v1.cri".containerd]
+    snapshotter = "overlayfs"
+    
+  # Configure runtime for batch workloads
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true

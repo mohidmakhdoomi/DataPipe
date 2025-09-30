@@ -1,0 +1,34 @@
+# Storage Classes for Batch Analytics Layer
+# Optimized for large-scale batch processing and checkpoint storage
+---
+# Batch processing storage class for Spark checkpoints and temporary data
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: batch-processing-local-path
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: storage
+    workload-type: batch-processing
+  annotations:
+    storageclass.kubernetes.io/description: "Local path storage optimized for batch processing workloads"
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain  # Retain data for development persistence
+volumeBindingMode: WaitForFirstConsumer  # Ensure co-location with pods
+allowVolumeExpansion: false  # Not supported by local-path provisioner
+---
+# Analytics storage class for dbt artifacts and documentation
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: analytics-local-path
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: storage
+    workload-type: analytics
+  annotations:
+    storageclass.kubernetes.io/description: "Local path storage optimized for analytics workloads"
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain  # Retain data for development persistence
+volumeBindingMode: WaitForFirstConsumer  # Ensure co-location with pods
+allowVolumeExpansion: false  # Not supported by local-path provisioner

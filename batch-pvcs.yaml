@@ -1,0 +1,65 @@
+# Persistent Volume Claims for Batch Analytics Layer
+# Optimized for Spark checkpoints, history server, and dbt artifacts
+---
+# Spark History Server PVC - for storing Spark application logs and history
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spark-history-pvc
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: spark-history
+    app.kubernetes.io/part-of: batch-analytics-layer
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Spark History Server storage for batch job logs and metrics"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: batch-processing-local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Spark Checkpoints PVC - for Spark application checkpoints and temporary data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spark-checkpoints-pvc
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: spark-checkpoints
+    app.kubernetes.io/part-of: batch-analytics-layer
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "Spark checkpoints and temporary data storage"
+spec:
+  accessModes:
+    - ReadWriteOnce  # Local-path provisioner only supports ReadWriteOnce
+  storageClassName: batch-processing-local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+# dbt Artifacts PVC - for dbt project files, documentation, and artifacts
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dbt-artifacts-pvc
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: dbt-artifacts
+    app.kubernetes.io/part-of: batch-analytics-layer
+  annotations:
+    volume.kubernetes.io/storage-provisioner: rancher.io/local-path
+    description: "dbt project artifacts, documentation, and compiled models"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: analytics-local-path
+  resources:
+    requests:
+      storage: 2Gi
