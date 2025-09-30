@@ -6,9 +6,9 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_DIR="${SCRIPT_DIR}/logs/task8-logs"
-readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/logs/resource-logs"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly LOG_DIR="${SCRIPT_DIR}/logs/data-ingestion-pipeline/task8-logs"
+readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/logs/data-ingestion-pipeline/resource-logs"
 readonly MAX_MEMORY_MI=3584  # 3.5Gi in Mi (leaves 512Mi buffer)
 readonly TIMEOUT=600         # 10 min per phase
 readonly NAMESPACE="data-ingestion"
@@ -107,7 +107,7 @@ main() {
     fi
     
     log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/resource-monitor.sh" &
+    bash "${SCRIPT_DIR}/resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/logs/data-ingestion-pipeline/resource-logs" &
     MONITOR_PID=$!
     
     # Execute phases sequentially
@@ -125,7 +125,7 @@ main() {
     for phase_info in "${phases[@]}"; do
         IFS=':' read -r phase_num phase_name phase_script <<< "$phase_info"
         
-        if ! execute_phase "$phase_num" "$phase_name" "${SCRIPT_DIR}/${phase_script}"; then
+        if ! execute_phase "$phase_num" "$phase_name" "${SCRIPT_DIR}/1-data-ingestion-pipeline/${phase_script}"; then
             failed_phases+=("Phase ${phase_num}: ${phase_name}")
             log "Phase ${phase_num} failed - stopping execution"
             break

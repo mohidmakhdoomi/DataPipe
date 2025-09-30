@@ -6,10 +6,10 @@ set -euo pipefail
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="postgres-cdc-connector"
-readonly LOG_DIR="${SCRIPT_DIR}/logs/task9-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/logs/data-ingestion-pipeline/task9-logs"
 readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
@@ -716,7 +716,7 @@ main() {
     fi
 
     log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/resource-monitor.sh" &
+    bash "${SCRIPT_DIR}/resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/logs/data-ingestion-pipeline/resource-logs" &
     MONITOR_PID=$!
     
     # Step 2: Check connector status

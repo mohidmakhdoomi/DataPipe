@@ -5,8 +5,8 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/logs/deploy-logs"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOG_DIR="${SCRIPT_DIR}/logs/data-ingestion-pipeline/deploy-logs"
 MONITOR_PID=0
 
 readonly KIND_CONFIG="kind-config.yaml"
@@ -66,6 +66,8 @@ exit_one() {
 main() {
     log "========== Starting Data Ingestion Pipeline deployment =========="
 
+    export SCRIPT_DIR="${SCRIPT_DIR}"
+
     log "Deleting existing cluster if needed"
     if ! kind delete cluster -n ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Failed to delete existing cluster"
@@ -73,7 +75,7 @@ main() {
     fi
 
     log "Creating cluster using ${KIND_CONFIG}"
-    if ! kind create cluster --config ${SCRIPT_DIR}/${KIND_CONFIG} >/dev/null 2>&1; then
+    if ! kind create cluster --config ${SCRIPT_DIR}/1-data-ingestion-pipeline/${KIND_CONFIG} >/dev/null 2>&1; then
         log "❌ : Failed to create cluster"
         exit_one
     fi
@@ -89,14 +91,14 @@ main() {
     # Start background resource monitoring if available
     if [[ -f "${SCRIPT_DIR}/resource-monitor.sh" ]]; then
         log "Starting background resource monitoring"
-        bash "${SCRIPT_DIR}/resource-monitor.sh" &
+        bash "${SCRIPT_DIR}/resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/logs/data-ingestion-pipeline/resource-logs" &
         MONITOR_PID=$!
     fi
 
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
         log "Applying ${current_file}"
-        if ! kubectl apply -f ${SCRIPT_DIR}/${current_file} >/dev/null 2>&1; then
+        if ! kubectl apply -f ${SCRIPT_DIR}/1-data-ingestion-pipeline/${current_file} >/dev/null 2>&1; then
             log "❌ : Failed to apply ${current_file}"
             exit_one
         fi
@@ -124,7 +126,7 @@ main() {
     for current_record in "${CONN_CONFIGS[@]}"; do
         IFS=':' read -r connector_name connector_config_file <<< "$current_record"
         log "Deploying Connector config ${connector_name}"
-        if ! bash ${SCRIPT_DIR}/${CONN_DEPLOY_SCRIPT} ${connector_name} ${connector_config_file} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
+        if ! bash ${SCRIPT_DIR}/1-data-ingestion-pipeline/${CONN_DEPLOY_SCRIPT} ${connector_name} ${connector_config_file} 2>&1 | tee -a "${LOG_DIR}/main.log"; then
             log "❌ : Failed to deploy ${connector_name} using config ${connector_config_file}"
             exit_one
         fi
@@ -150,7 +152,7 @@ main() {
     export LOG_DIR="${LOG_DIR}"
 
     log "Executing Data Generator - performance benchmark..."
-    if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 180; then
+    if python "${SCRIPT_DIR}/1-data-ingestion-pipeline/data-generator.py" --rate 4000 --duration 180; then
         log "✅ Data Generator completed successfully"
     else
         log "❌ : Data Generator failed"

@@ -1,9 +1,8 @@
 #!/bin/bash
-# Task 8 Resource Monitor - Background monitoring script
-# Based on Gemini's technical guidance for accurate resource measurement
+# Resource Monitor - Background monitoring script
 
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/resource-logs"
-readonly NAMESPACE="data-ingestion"
+readonly NAMESPACE="$1"
+readonly LOG_DIR="$2"
 readonly CRITICAL_THRESHOLD=3584  # 3.5Gi in Mi
 readonly WARNING_THRESHOLD=3276   # 3.2Gi in Mi
 

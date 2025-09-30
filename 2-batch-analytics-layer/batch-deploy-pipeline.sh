@@ -5,8 +5,8 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/logs/batch-deploy-logs"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LOG_DIR="${SCRIPT_DIR}/logs/batch-analytics-layer/deploy-logs"
 MONITOR_PID=0
 
 readonly KIND_CONFIG="batch-kind-config.yaml"
@@ -56,7 +56,7 @@ main() {
     fi
 
     log "Creating cluster using ${KIND_CONFIG}"
-    if ! kind create cluster --config ${SCRIPT_DIR}/${KIND_CONFIG} >/dev/null 2>&1; then
+    if ! kind create cluster --config ${SCRIPT_DIR}/2-batch-analytics-layer/${KIND_CONFIG} >/dev/null 2>&1; then
         log "❌ : Failed to create cluster"
         exit_one
     fi
@@ -72,14 +72,14 @@ main() {
     # Start background resource monitoring if available
     if [[ -f "${SCRIPT_DIR}/resource-monitor.sh" ]]; then
         log "Starting background resource monitoring"
-        bash "${SCRIPT_DIR}/resource-monitor.sh" &
+        bash "${SCRIPT_DIR}/resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/logs/batch-analytics-layer/resource-logs" &
         MONITOR_PID=$!
     fi
     
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
         log "Applying ${current_file}"
-        if ! kubectl apply -f ${SCRIPT_DIR}/${current_file} >/dev/null 2>&1; then
+        if ! kubectl apply -f ${SCRIPT_DIR}/2-batch-analytics-layer/${current_file} >/dev/null 2>&1; then
             log "❌ : Failed to apply ${current_file}"
             exit_one
         fi
