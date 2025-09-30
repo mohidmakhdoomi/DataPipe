@@ -1,13 +1,49 @@
-# Kiro Core Memory - Data Ingestion Pipeline Project
+# Kiro Core Memory - DataPipe Lambda Architecture Project
 
 ## 🎯 **PROJECT OVERVIEW**
 
-**Project:** Data Ingestion Pipeline  
-**Architecture:** PostgreSQL → Debezium CDC → Kafka → S3 Archival  
+**Project:** DataPipe Lambda Architecture Implementation  
+**Architecture:** Multi-layer data processing with speed and batch layers  
 **Environment:** Local development on Windows Docker Desktop + Kubernetes (Kind)  
-**Constraint:** 4Gi total RAM allocation  
+**Total System:** 24GB RAM, multiple Kind clusters for different layers
+
+### **Active Projects:**
+
+#### **1. Data Ingestion Pipeline (PHASE 4 - Production)**
+- **Architecture:** PostgreSQL → Debezium CDC → Kafka → S3 Archival  
+- **Constraint:** 4Gi RAM allocation  
+- **Status:** 12/15 tasks completed (80% complete)
+- **Current:** Task 13 - Data-ingestion-specific security procedures
+
+#### **2. Batch Analytics Layer (PHASE 1 - Foundation)**
+- **Architecture:** S3 → Apache Iceberg → Spark → Snowflake + dbt  
+- **Constraint:** 12Gi RAM allocation  
+- **Status:** 1/16 tasks completed (6% complete)
+- **Current:** Task 2 - Deploy Spark Operator for batch processing  
 
 ## 📋 **CURRENT STATUS**
+
+## 🔥 **BATCH ANALYTICS LAYER PROJECT**
+
+### **✅ PHASE 1: FOUNDATION (IN PROGRESS - 1/4 COMPLETED)**
+- ✅ **Task 1:** Kind Kubernetes cluster setup for batch layer ✅ **COMPLETED**
+  - 3-node cluster: `batch-analytics` (1 control-plane + 2 workers)
+  - 24GB+ RAM per node (exceeds 12GB requirement)
+  - Port mappings: Spark UI (4040), History (18080), dbt (8080), Monitoring (9090)
+  - Namespace: `batch-analytics` with 12Gi resource quota
+  - Storage: 17Gi PVC allocation (spark-history, spark-checkpoints, dbt-artifacts)
+  - RBAC: Service accounts for Spark Operator, drivers, executors, dbt
+- [ ] **Task 2:** Deploy Spark Operator for batch processing
+- [ ] **Task 3:** Configure AWS S3 access and credentials  
+- [ ] **Task 4:** Set up Snowflake connection and authentication
+
+### **Current Phase**
+- 🎯 **Phase 1:** Foundation (Tasks 1-4) - 1/4 tasks completed (25%)
+- **Next:** Task 2 - Deploy Spark Operator for batch processing
+
+---
+
+## 📊 **DATA INGESTION PIPELINE PROJECT**
 
 ### **✅ PHASE 1: FOUNDATION (COMPLETED)**
 - ✅ **Task 1:** Kind Kubernetes cluster setup
@@ -90,19 +126,34 @@
 - **Storage:** local-path provisioner (default)
 - **Network:** Port mappings for direct host access
 
-### **Resource Allocation (Validated)**
+### **Data Ingestion Pipeline - Resource Allocation (Validated)**
 - **PostgreSQL:** 512Mi memory, 5Gi storage ✅
 - **Kafka Cluster:** 2Gi memory (682Mi limit per broker), 10Gi storage ✅
 - **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
 - **Kafka Connect:** 1Gi memory (1Gi request, 1Gi limit) ✅
-- **Available for Phase 2:** 0Mi (Phase 2 complete within budget) ✅
 - **Total Usage:** 4Gi of 4Gi allocated (100% utilized) ✅
 
+### **Batch Analytics Layer - Resource Allocation (Configured)**
+- **Spark Driver:** 3GB RAM, 1.5 CPU (planned)
+- **Spark Executors:** 8GB RAM (4GB each), 4 CPU (planned)
+- **dbt Runner:** 1GB RAM, 0.5 CPU (planned)
+- **Total Allocation:** 12GB RAM, 6 CPU ✅
+- **Available Resources:** 24GB+ per node (exceeds requirements) ✅
+
 ### **Port Mappings**
+
+**Data Ingestion Pipeline:**
 - PostgreSQL: `localhost:5432` → `30432`
 - Kafka: `localhost:9092` → `30092`
 - Schema Registry: `localhost:8081` → `30081`
 - Kafka Connect: `localhost:8083` → `30083`
+
+**Batch Analytics Layer:**
+- Spark UI: `localhost:4040` → `30040`
+- Spark History: `localhost:18080` → `30041`
+- Jupyter: `localhost:8888` → `30042`
+- dbt Docs: `localhost:8080` → `30043`
+- Monitoring: `localhost:9090` → `30044`
 
 ## 📊 **IMPLEMENTATION PHASES**
 
@@ -155,40 +206,56 @@
 
 ## 📁 **KEY FILES**
 
-### **Key Implementation Files**
-- `task4-postgresql-statefulset.yaml` - PostgreSQL with CDC
-- `task5-kafka-kraft-3brokers.yaml` - 3-broker Kafka cluster
-- `task5-kafka-topics-job.yaml` - Kafka topics creation
-- `task6-schema-registry.yaml` - Schema Registry with authentication
-- `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster with Debezium and S3 Sink plugins
-- `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks (KEEP THIS UPDATED!)
-- `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
-- `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
+### **Batch Analytics Layer Files**
+- `batch-kind-config.yaml` - Kind cluster configuration for batch processing
+- `batch-01-namespace.yaml` - Batch analytics namespace and resource quotas
+- `batch-02-service-accounts.yaml` - Service accounts and RBAC for Spark/dbt
+- `batch-storage-classes.yaml` - Storage classes optimized for batch workloads
+- `batch-pvcs.yaml` - Persistent volume claims for Spark and dbt
+- `setup-batch-cluster.sh` - Automated cluster setup script
+- `verify-batch-cluster.sh` - Cluster verification script
+- `task1-completion-summary.md` - Task 1 completion documentation
+- `.kiro/specs/batch-analytics-layer/tasks.md` - Implementation tasks
+- `.kiro/specs/batch-analytics-layer/design.md` - Architecture design
+- `.kiro/specs/batch-analytics-layer/requirements.md` - Requirements
 
-### Configuration Files
-- `kind-config.yaml` - 3-node Kind cluster (1 control-plane + 2 workers) configuration
+### **Data Ingestion Pipeline Files**
+- `kind-config.yaml` - Data ingestion cluster configuration
 - `01-namespace.yaml` - Data ingestion namespace
 - `02-service-accounts.yaml` - Service accounts for components
 - `03-network-policies.yaml` - Network isolation policies
 - `04-secrets.yaml` - Secret management
 - `storage-classes.yaml` - Differentiated storage classes for workload types
 - `data-services-pvcs.yaml` - Persistent volume claims for all services
-- `task4-postgresql-statefulset.yaml` - PostgreSQL deployment
-- `task5-kafka-kraft-3brokers.yaml` - Kafka cluster deployment
+- `task4-postgresql-statefulset.yaml` - PostgreSQL with CDC
+- `task5-kafka-kraft-3brokers.yaml` - 3-broker Kafka cluster
 - `task5-kafka-topics-job.yaml` - Kafka topics creation
-- `task6-schema-registry.yaml` - Schema Registry deployment
-- `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster deployment
+- `task6-schema-registry.yaml` - Schema Registry with authentication
+- `task7-kafka-connect-deployment.yaml` - Kafka Connect cluster with Debezium and S3 Sink plugins
 - `task9-debezium-connector-config.json` - Debezium PostgreSQL CDC connector configuration
 - `task10-s3-sink-connector-config.json` - S3 Sink connector configuration
+- `.kiro/specs/data-ingestion-pipeline/tasks.md` - Implementation tasks
+- `.kiro/specs/data-ingestion-pipeline/design.md` - Architecture design
+- `.kiro/specs/data-ingestion-pipeline/requirements.md` - Requirements
 
 ## 🚀 **NEXT ACTIONS**
 
-1. **Immediate:** Begin Phase 4 Production Tasks (Tasks 13-15)
+### **Immediate Priority: Batch Analytics Layer**
+1. **Task 2:** Deploy Spark Operator for batch processing
+   - Install Spark Operator with proper RBAC configuration
+   - Configure Spark application templates with resource allocations
+   - Set up Spark history server for monitoring
+   - Test basic Spark batch job submission
+
+### **Secondary Priority: Data Ingestion Pipeline**
 2. **Task 13:** Implement data-ingestion-specific security procedures
 3. **Task 14:** Create data-specific backup and recovery procedures
 4. **Task 15:** Conduct data pipeline performance testing
-5. **Strategy:** Continue multi-model consensus validation for complex decisions
-6. **Focus:** Production readiness with security, backup, and performance validation
+
+### **Strategy**
+- **Focus:** Complete Batch Analytics Layer foundation (Tasks 1-4)
+- **Approach:** Continue multi-model consensus validation for complex decisions
+- **Goal:** Establish complete Lambda Architecture with both speed and batch layers
 
 ## 💡 **KEY LEARNINGS**
 
@@ -210,11 +277,19 @@
 - **Technical coherence:** Unanimous agreement on sound architecture
 - **Production readiness:** Foundation components validated for development workloads
 - **Specification compliance:** Tasks 4-8 meet all requirements exactly
-- **Task 8 Success:** All 6 validation phases passed with performance exceeding targets - see logs/task8-logs/task8-validation-report.md
+- **Task 8 Success:** All 6 validation phases passed with performance exceeding targets
+
+### **Recent Achievements**
+- **Batch Analytics Task 1:** ✅ Kind cluster setup completed with 24GB+ RAM per node
+- **Cluster Verification:** ✅ All port mappings, RBAC, and storage configured correctly
+- **Resource Allocation:** ✅ 12GB quota established, 17Gi storage provisioned
+- **Infrastructure Ready:** ✅ Spark Operator deployment prerequisites in place
 
 ---
 
 **Last Updated:** 2025-01-09 Current Time  
-**Status:** Phase 1, 2 & 3 Complete, Phase 4 Production Ready to Begin
+**Status:** 
+- **Data Ingestion Pipeline:** Phase 4 Production (12/15 tasks, 80% complete)
+- **Batch Analytics Layer:** Phase 1 Foundation (1/16 tasks, 6% complete)
 **Confidence:** Very High (comprehensive validation with performance exceeding targets)
-**Progress:** 12/15 tasks completed (80% of implementation)
+**Overall Progress:** 13/31 total tasks completed across both projects

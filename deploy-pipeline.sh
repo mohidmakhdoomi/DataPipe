@@ -36,8 +36,10 @@ readonly SAMPLE_DB_FILE="sample_data_postgres.sql"
 readonly DB_USER=$(yq 'select(.metadata.name == "postgresql-credentials").data.username' 04-secrets.yaml | base64 --decode)
 readonly DB_NAME=$(yq 'select(.metadata.name == "postgresql-credentials").data.database' 04-secrets.yaml | base64 --decode)
 
-# Load functions for metrics server
-source ${SCRIPT_DIR}/metrics-server.sh
+# Load functions for metrics server (if available)
+if [[ -f "${SCRIPT_DIR}/metrics-server.sh" ]]; then
+    source "${SCRIPT_DIR}/metrics-server.sh"
+fi
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
@@ -76,14 +78,20 @@ main() {
         exit_one
     fi
     
-    if ! install_metrics_server; then
-        log "❌ : metrics-server not available"
-        exit_one
+    # Install metrics server if available
+    if command -v install_metrics_server >/dev/null 2>&1; then
+        if ! install_metrics_server; then
+            log "❌ : metrics-server not available"
+            exit_one
+        fi
     fi
 
-    log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/resource-monitor.sh" &
-    MONITOR_PID=$!
+    # Start background resource monitoring if available
+    if [[ -f "${SCRIPT_DIR}/resource-monitor.sh" ]]; then
+        log "Starting background resource monitoring"
+        bash "${SCRIPT_DIR}/resource-monitor.sh" &
+        MONITOR_PID=$!
+    fi
 
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
