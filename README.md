@@ -124,9 +124,9 @@ The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit
     -   Other secrets can be left as default for local development.
 
 3.  **Deploy the Pipeline**
-    The `deploy-pipeline.sh` script automates the entire setup process.
+    The `deploy-data-ingestion-pipeline.sh` script automates the entire setup process.
     ```sh
-    ./deploy-pipeline.sh
+    ./deploy-data-ingestion-pipeline.sh
     ```
     This script will:
     -   Create a 3-node `kind` Kubernetes cluster.
@@ -154,17 +154,17 @@ The repository is organized to separate Kubernetes manifests, connector configur
 
 ```txt
 DataPipe
-├── .kiro/specs/                # Project Design, Requirements, and Tasks
-├── 01-namespace.yaml           # Kubernetes Namespace and Resource Quotas
-├── 02-service-accounts.yaml    # RBAC Service Accounts, Roles, and Bindings
-├── 03-network-policies.yaml    # Network isolation rules for all components
-├── 04-secrets.yaml.example     # Template for secrets
-├── data-generator.py           # Performance test data generator
-├── deploy-pipeline.sh          # Main deployment automation script
-├── kind-config.yaml            # 3-node Kind cluster definition
-├── storage-classes.yaml        # Differentiated storage for DB vs. streaming
-├── *.json                      # Kafka Connect connector configurations
-└── task*.yaml                  # Kubernetes manifests for each pipeline component
+├── .kiro/specs/                         # Project Design, Requirements, and Tasks
+├── 01-namespace.yaml                    # Kubernetes Namespace and Resource Quotas
+├── 02-service-accounts.yaml             # RBAC Service Accounts, Roles, and Bindings
+├── 03-network-policies.yaml             # Network isolation rules for all components
+├── 04-secrets.yaml.example              # Template for secrets
+├── data-generator.py                    # Performance test data generator
+├── deploy-data-ingestion-pipeline.sh    # Main deployment automation script
+├── kind-config.yaml                     # 3-node Kind cluster definition
+├── storage-classes.yaml                 # Differentiated storage for DB vs. streaming
+├── *.json                               # Kafka Connect connector configurations
+└── task*.yaml                           # Kubernetes manifests for each pipeline component
 ```
 
 ## 🗺️ Future Work & Roadmap
