@@ -5,7 +5,7 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 LOG_DIR="${SCRIPT_DIR}/../logs/batch-analytics-layer/deploy-logs"
 MONITOR_PID=0
@@ -49,8 +49,6 @@ exit_one() {
 # Main execution
 main() {
     log "========== Starting Batch Analytics Pipeline deployment =========="
-
-    export SCRIPT_DIR="${SCRIPT_DIR}"
     
     log "Deleting existing cluster if needed"
     if ! kind delete cluster -n ${NAMESPACE} >/dev/null 2>&1; then

@@ -67,8 +67,6 @@ exit_one() {
 main() {
     log "========== Starting Data Ingestion Pipeline deployment =========="
 
-    export SCRIPT_DIR="${SCRIPT_DIR}"
-
     log "Deleting existing cluster if needed"
     if ! kind delete cluster -n ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Failed to delete existing cluster"
@@ -123,6 +121,8 @@ main() {
         log "❌ : Namespace ${NAMESPACE} not found"
         exit_one
     fi
+
+    export SCRIPT_DIR="${SCRIPT_DIR}"
 
     for current_record in "${CONN_CONFIGS[@]}"; do
         IFS=':' read -r connector_name connector_config_file <<< "$current_record"

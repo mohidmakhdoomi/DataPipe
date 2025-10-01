@@ -6,7 +6,7 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task8-logs"
 readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs"
@@ -122,6 +122,8 @@ main() {
     )
     
     local failed_phases=()
+
+    export SCRIPT_DIR="${SCRIPT_DIR}"
     
     for phase_info in "${phases[@]}"; do
         IFS=':' read -r phase_num phase_name phase_script <<< "$phase_info"
