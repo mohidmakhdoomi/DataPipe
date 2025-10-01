@@ -11,7 +11,7 @@ LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/deploy-logs"
 MONITOR_PID=0
 
 readonly KIND_CONFIG="kind-config.yaml"
-readonly NAMESPACE="data-ingestion"
+NAMESPACE="data-ingestion"
 
 readonly CONFIG_FILES=(
     "01-namespace.yaml"
@@ -81,6 +81,7 @@ main() {
     
     # Install metrics server if available
     if command -v install_metrics_server >/dev/null 2>&1; then
+        export NAMESPACE="${NAMESPACE}"
         if ! install_metrics_server; then
             log "❌ : metrics-server not available"
             exit_one

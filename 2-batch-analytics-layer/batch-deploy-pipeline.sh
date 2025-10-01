@@ -11,7 +11,7 @@ LOG_DIR="${SCRIPT_DIR}/../logs/batch-analytics-layer/deploy-logs"
 MONITOR_PID=0
 
 readonly KIND_CONFIG="batch-kind-config.yaml"
-readonly NAMESPACE="batch-analytics"
+NAMESPACE="batch-analytics"
 
 readonly CONFIG_FILES=(
     "batch-01-namespace.yaml"
@@ -64,6 +64,7 @@ main() {
     
     # Install metrics server if available
     if command -v install_metrics_server >/dev/null 2>&1; then
+        export NAMESPACE="${NAMESPACE}"
         if ! install_metrics_server; then
             log "❌ : metrics-server not available"
             exit_one
