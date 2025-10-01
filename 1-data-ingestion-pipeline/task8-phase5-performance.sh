@@ -4,9 +4,10 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
-LOG_DIR="${SCRIPT_DIR}/logs/data-ingestion-pipeline/task8-logs"
+LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task8-logs"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 5: $*" | tee -a "${LOG_DIR}/phase5.log"
@@ -40,7 +41,7 @@ main() {
     
     # Run Python performance benchmark
     log "Executing performance benchmark..."
-    if python "${SCRIPT_DIR}/1-data-ingestion-pipeline/task8-phase5-performance.py"; then
+    if python "${SCRIPT_DIR}/task8-phase5-performance.py"; then
         log "✅ Performance benchmark completed successfully"
         return 0
     else

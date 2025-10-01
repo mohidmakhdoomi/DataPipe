@@ -6,11 +6,12 @@ set -euo pipefail
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-connector"
 readonly S3_BUCKET=$(yq 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
-readonly LOG_DIR="${SCRIPT_DIR}/logs/data-ingestion-pipeline/task10-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task10-logs"
 MONITOR_PID=0
 
 # Ensure log directory exists
@@ -318,7 +319,7 @@ main() {
     fi
 
     log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/logs/data-ingestion-pipeline/resource-logs" &
+    bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs" &
     MONITOR_PID=$!
     
     # Step 2: Check connector status
