@@ -63,18 +63,18 @@ graph TB
 
 ## 💻 Technology Stack
 
-| Component             | Technology                                                                                                    | Purpose                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| **Orchestration**     | [Kubernetes (Kind)](https://kind.sigs.k8s.io/)                                                                | Container orchestration for local development |
-| **Database (Source)** | [PostgreSQL](https://www.postgresql.org/)                                                                     | OLTP database and CDC source                  |
-| **Streaming**         | [Apache Kafka (KRaft)](https://kafka.apache.org/)                                                             | Distributed event streaming platform          |
-| **CDC**               | [Debezium](https://debezium.io/)                                                                              | Real-time change data capture                 |
-| **Schema Management** | [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html)            | Avro schema management and evolution          |
-| **Integration**       | [Kafka Connect](https://docs.confluent.io/platform/current/connect/index.html)                                | Framework for scalable data streaming         |
-| **Storage (Archive)** | [AWS S3](https://aws.amazon.com/s3/)                                                                          | Durable, long-term object storage             |
-| **Data Format**       | [Apache Parquet](https://parquet.apache.org/)                                                                 | Columnar storage format for analytics         |
-| **Schema Format**     | [Apache Avro](https://avro.apache.org/)                                                                       | Data serialization format with schemas        |
-| **Deployment**        | [Bash](https://www.gnu.org/software/bash/), [Python](https://www.python.org/)                                  | Automation and data generation scripts        |
+| Component             | Technology                                                                                         | Purpose                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **Orchestration**     | [Kubernetes (Kind)](https://kind.sigs.k8s.io/)                                                     | Container orchestration for local development |
+| **Database (Source)** | [PostgreSQL](https://www.postgresql.org/)                                                          | OLTP database and CDC source                  |
+| **Streaming**         | [Apache Kafka (KRaft)](https://kafka.apache.org/)                                                  | Distributed event streaming platform          |
+| **CDC**               | [Debezium](https://debezium.io/)                                                                   | Real-time change data capture                 |
+| **Schema Management** | [Confluent Schema Registry](https://docs.confluent.io/platform/current/schema-registry/index.html) | Avro schema management and evolution          |
+| **Integration**       | [Kafka Connect](https://docs.confluent.io/platform/current/connect/index.html)                     | Framework for scalable data streaming         |
+| **Storage (Archive)** | [AWS S3](https://aws.amazon.com/s3/)                                                               | Durable, long-term object storage             |
+| **Data Format**       | [Apache Parquet](https://parquet.apache.org/)                                                      | Columnar storage format for analytics         |
+| **Schema Format**     | [Apache Avro](https://avro.apache.org/)                                                            | Data serialization format with schemas        |
+| **Deployment**        | [Bash](https://www.gnu.org/software/bash/), [Python](https://www.python.org/)                      | Automation and data generation scripts        |
 
 ## 📊 Project Status
 
@@ -89,13 +89,13 @@ The project is being implemented in phases.
 
 The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit, making it ideal for local development on standard personal computers.
 
-| Service           | Requested Memory | CPU Request/Limit | Storage |
-| ----------------- | ---------------- | ----------------- | ------- |
-| PostgreSQL        | `512Mi`          | `500m` / `1`      | `5Gi`   |
-| Kafka Cluster (3) | `1.5Gi` (total)  | `750m` / `1.5`    | `10Gi`  |
-| Schema Registry   | `384Mi`          | `250m` / `500m`   | -       |
-| Kafka Connect     | `1Gi`            | `500m` / `1`      | -       |
-| **Total**         | **~3.4Gi**       | **~2 / 4**        | **15Gi**  |
+| Service           | Requested Memory | CPU Request/Limit | Storage  |
+| ----------------- | ---------------- | ----------------- | -------- |
+| PostgreSQL        | `512Mi`          | `500m` / `1`      | `5Gi`    |
+| Kafka Cluster (3) | `1.5Gi` (total)  | `750m` / `1.5`    | `10Gi`   |
+| Schema Registry   | `384Mi`          | `250m` / `500m`   | -        |
+| Kafka Connect     | `1Gi`            | `500m` / `1`      | -        |
+| **Total**         | **~3.4Gi**       | **~2 / 4**        | **15Gi** |
 
 ## 🚀 Getting Started
 
@@ -111,7 +111,7 @@ The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit
 1.  **Clone the Repository**
     ```sh
     git clone <your-repo-url>
-    cd DataPipe
+    cd DataPipe/1-data-ingestion-pipeline
     ```
 
 2.  **Configure Secrets**
@@ -150,21 +150,27 @@ The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit
 
 ## 📂 Project Structure
 
-The repository is organized to separate Kubernetes manifests, connector configurations, automation scripts, and design documents.
+The repository is organized to separate different pipeline components, with the data ingestion pipeline contained in its own directory alongside Kubernetes manifests, connector configurations, and automation scripts.
 
 ```txt
 DataPipe
-├── .kiro/specs/                         # Project Design, Requirements, and Tasks
-├── 01-namespace.yaml                    # Kubernetes Namespace and Resource Quotas
-├── 02-service-accounts.yaml             # RBAC Service Accounts, Roles, and Bindings
-├── 03-network-policies.yaml             # Network isolation rules for all components
-├── 04-secrets.yaml.example              # Template for secrets
-├── data-generator.py                    # Performance test data generator
-├── deploy-data-ingestion-pipeline.sh    # Main deployment automation script
-├── kind-config.yaml                     # 3-node Kind cluster definition
-├── storage-classes.yaml                 # Differentiated storage for DB vs. streaming
-├── *.json                               # Kafka Connect connector configurations
-└── task*.yaml                           # Kubernetes manifests for each pipeline component
+├── .kiro/specs/                                    # Project Design, Requirements, and Tasks
+├── 1-data-ingestion-pipeline/                      # Data Ingestion Pipeline Components
+│   ├── 01-namespace.yaml                           # Kubernetes Namespace and Resource Quotas
+│   ├── 02-service-accounts.yaml                    # RBAC Service Accounts, Roles, and Bindings
+│   ├── 03-network-policies.yaml                    # Network isolation rules for all components
+│   ├── 04-secrets.yaml.example                     # Template for secrets
+│   ├── data-generator.py                           # Performance test data generator
+│   ├── deploy-data-ingestion-pipeline.sh           # Main deployment automation script
+│   ├── kind-config.yaml                            # 3-node Kind cluster definition
+│   ├── storage-classes.yaml                        # Differentiated storage for DB vs. streaming
+│   ├── *.json                                      # Kafka Connect connector configurations
+│   ├── task*.yaml                                  # Kubernetes manifests for each pipeline component
+│   └── task*.sh                                    # Validation and testing scripts
+├── 2-batch-analytics-layer/                        # Batch Analytics Layer (Future Phase)
+├── logs/                                           # Pipeline execution logs
+├── utils-dev/                                      # Development utilities and query tools
+└── README.md                                       # This file
 ```
 
 ## 🗺️ Future Work & Roadmap
