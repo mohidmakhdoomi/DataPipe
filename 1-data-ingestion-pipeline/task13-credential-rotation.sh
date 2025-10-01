@@ -23,7 +23,7 @@ readonly POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
 readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 readonly SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
 readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
-readonly LOG_FILE="${LOG_DIR}/task13-rotation-$(date +%Y%m%d-%H%M%S).log"
+readonly LOG_FILE="${LOG_DIR}/credential-rotation.log"
 readonly SCHEMA_AUTH_USER="admin"
 SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.admin-password' | base64 -d)
 
@@ -31,11 +31,11 @@ SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registr
 mkdir -p "${LOG_DIR}"
 
 # Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m' # No Color
 
 # Logging function
 log() {
@@ -45,10 +45,10 @@ log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     case $level in
-        INFO)  echo -e "${BLUE}[INFO]${NC} $message" | tee -a "$LOG_FILE" ;;
-        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" | tee -a "$LOG_FILE" ;;
-        ERROR) echo -e "${RED}[ERROR]${NC} $message" | tee -a "$LOG_FILE" ;;
-        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" | tee -a "$LOG_FILE" ;;
+        INFO)  echo -e "${BLUE}[INFO]${NC} $message" ;;
+        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" ;;
+        ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
+        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
     esac
     echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
 }

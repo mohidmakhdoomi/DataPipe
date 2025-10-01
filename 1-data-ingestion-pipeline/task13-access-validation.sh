@@ -17,18 +17,20 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Configuration
-NAMESPACE="data-ingestion"
-POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
-KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
-SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
-KAFKA_SERVICE="kafka-headless.${NAMESPACE}.svc.cluster.local:9092"
+readonly NAMESPACE="data-ingestion"
+readonly POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
+readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
+readonly SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
+readonly KAFKA_SERVICE="kafka-headless.${NAMESPACE}.svc.cluster.local:9092"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
+readonly LOG_FILE="${LOG_DIR}/access-validation.log"
 
 # Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m' # No Color
 
 # Logging function
 log() {
@@ -44,6 +46,7 @@ log() {
         SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
         DEBUG) [[ "${VERBOSE:-false}" == "true" ]] && echo -e "[DEBUG] $message" ;;
     esac
+    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
 }
 
 # Parse command line arguments
