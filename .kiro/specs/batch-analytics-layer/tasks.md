@@ -28,7 +28,7 @@ Phase 4: Production (Tasks 13-16)
 
 
   - Create kind-config.yaml with single control-plane and 2 worker nodes
-  - Initialize cluster with containerd image store and 12GB RAM allocation
+  - Initialize cluster with containerd image store and 12Gi RAM allocation
   - Configure port mappings for Spark UI (4040) and monitoring endpoints
   - Verify cluster connectivity and resource availability
   - _Requirements: 5.1, 5.2_
@@ -58,7 +58,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 2.1, 5.3, cloud connectivity_
 
 **Acceptance Criteria:**
-- [ ] Kind cluster running with 12GB RAM allocation
+- [ ] Kind cluster running with 12Gi RAM allocation
 - [ ] Spark Operator operational for batch job execution
 - [ ] AWS S3 access configured with proper permissions
 - [ ] Snowflake connection established with authentication working
@@ -202,10 +202,10 @@ Upon completion of all tasks, the batch layer should demonstrate:
 
 ## Resource Allocation Summary
 
-- **Total RAM**: 12GB allocated across all components
-- **Spark Driver**: 3GB RAM, 1.5 CPU
-- **Spark Executors**: 8GB RAM (4GB each), 4 CPU
-- **dbt Runner**: 1GB RAM, 0.5 CPU
+- **Total RAM**: 12Gi allocated across all components
+- **Spark Driver**: 3Gi RAM, 1.5 CPU
+- **Spark Executors**: 8Gi RAM (4Gi each), 4 CPU
+- **dbt Runner**: 1Gi RAM, 0.5 CPU
 - **Storage**: S3 for data lake, Snowflake for data warehouse
 
 ## E-commerce Business Logic Implementation

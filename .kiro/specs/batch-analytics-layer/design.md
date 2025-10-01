@@ -40,7 +40,7 @@ graph TB
     end
     
     subgraph "Infrastructure"
-        K8S[Kubernetes<br/>Docker Desktop + kind<br/>12GB RAM]
+        K8S[Kubernetes<br/>Docker Desktop + kind<br/>12Gi RAM]
         PV[Persistent Volumes<br/>Spark Checkpoints]
     end
     
@@ -750,13 +750,13 @@ alerts:
 
 ## Performance and Scalability
 
-### Resource Allocation (12GB Total)
+### Resource Allocation (12Gi Total)
 ```yaml
 resource_allocation:
-  spark_driver: 3GB RAM, 1.5 CPU
-  spark_executors: 8GB RAM (4GB each), 4 CPU
-  dbt_runner: 1GB RAM, 0.5 CPU
-  total: 12GB RAM, 6 CPU
+  spark_driver: 3Gi RAM, 1.5 CPU
+  spark_executors: 8Gi RAM (4Gi each), 4 CPU
+  dbt_runner: 1Gi RAM, 0.5 CPU
+  total: 12Gi RAM, 6 CPU
 ```
 
 ### Performance Optimization

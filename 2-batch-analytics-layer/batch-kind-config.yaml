@@ -1,6 +1,6 @@
 # Kind Configuration for Batch Analytics Layer
 # 3-node cluster architecture (1 control-plane + 2 worker nodes)
-# 12GB RAM allocation for batch processing workloads
+# 12Gi RAM allocation for batch processing workloads
 
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -57,7 +57,7 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "workload-type=spark-driver"
-        # Reserve resources for Spark driver (3GB RAM, 1.5 CPU)
+        # Reserve resources for Spark driver (3Gi RAM, 1.5 CPU)
         system-reserved: "memory=1Gi,cpu=500m"
         kube-reserved: "memory=512Mi,cpu=250m"
 
@@ -69,7 +69,7 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "workload-type=spark-executors"
-        # Reserve resources for Spark executors (8GB RAM, 4 CPU)
+        # Reserve resources for Spark executors (8Gi RAM, 4 CPU)
         system-reserved: "memory=1Gi,cpu=500m"
         kube-reserved: "memory=512Mi,cpu=250m"
 

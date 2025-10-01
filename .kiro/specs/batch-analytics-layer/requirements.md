@@ -66,7 +66,7 @@ The pipeline will be designed for local development and deployment using Docker 
 2. WHEN using Kubernetes THEN the system SHALL use kind provisioner with Spark Operator
 3. WHEN connecting to cloud services THEN the system SHALL connect to real AWS S3 and Snowflake instances
 4. WHEN Spark batch jobs run THEN they SHALL execute on Kubernetes with proper resource allocation
-5. WHEN running locally THEN the system SHALL require no more than 5GB RAM for operation
+5. WHEN running locally THEN the system SHALL require no more than 5Gi RAM for operation
 
 ### Requirement 6: E-commerce Business Intelligence
 

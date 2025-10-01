@@ -99,6 +99,18 @@
       "description": "xAI's Grok 4 via OpenRouter with vision"
     },
     {
+      "model_name": "anthropic/claude-sonnet-4.5",
+      "aliases": ["sonnet", "claude-sonnet", "claude4.5-sonnet", "claude-4.5-sonnet", "claude"],
+      "context_window": 1000000,
+      "max_output_tokens": 64000,
+      "supports_extended_thinking": true,
+      "supports_json_mode": true,
+      "supports_function_calling": true,
+      "supports_images": true,
+      "max_image_size_mb": 5.0,
+      "description": "Claude 4.5 Sonnet - Balanced performance with vision"
+    },
+    {
       "model_name": "anthropic/claude-opus-4.1",
       "aliases": ["opus", "claude-opus", "claude-opus-4.1", "claude-4.1-opus"],
       "context_window": 200000,
@@ -112,8 +124,8 @@
     },
     {
       "model_name": "anthropic/claude-sonnet-4",
-      "aliases": ["sonnet", "claude-sonnet", "claude4-sonnet", "claude-4-sonnet", "claude"],
-      "context_window": 200000,
+      "aliases": ["claude4-sonnet", "claude-4-sonnet"],
+      "context_window": 1000000,
       "max_output_tokens": 64000,
       "supports_extended_thinking": true,
       "supports_json_mode": true,

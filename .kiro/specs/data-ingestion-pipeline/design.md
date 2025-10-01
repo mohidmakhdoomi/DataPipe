@@ -800,7 +800,7 @@ acks=1
 num.replica.fetchers=4
 replica.fetch.max.bytes=1048576
 
-# GC optimization for 2GB heap
+# GC optimization for 2Gi heap
 -XX:+UseG1GC
 -XX:MaxGCPauseMillis=20
 -XX:InitiatingHeapOccupancyPercent=35
@@ -843,8 +843,8 @@ container_limits:
 ```
 
 ### System Memory Considerations
-- Total application allocation: 4GB
-- System memory reservation: 2GB (handled at cluster level)
+- Total application allocation: 4Gi
+- System memory reservation: 2Gi (handled at cluster level)
 - OOM killer protection: Enabled via cgroups
 
 ## Deployment Architecture

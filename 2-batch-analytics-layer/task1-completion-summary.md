@@ -12,7 +12,7 @@
 - **Cluster Name**: `batch-analytics`
 - **Architecture**: 3-node cluster (1 control-plane + 2 worker nodes)
 - **Image Store**: containerd with optimizations for batch workloads
-- **Resource Allocation**: 12GB+ RAM available (exceeds 12GB requirement)
+- **Resource Allocation**: 12Gi RAM allocated
 
 ### 2. Port Mappings Configured ✅
 All required port mappings are active and accessible:
@@ -39,7 +39,7 @@ All required port mappings are active and accessible:
 ### 5. Cluster Verification ✅
 - **Connectivity**: Cluster accessible via `kubectl`
 - **Node Status**: All 3 nodes ready and properly labeled
-- **Resource Availability**: 24GB+ memory per node (exceeds requirements)
+- **Resource Availability**: 24Gi+ memory per node (exceeds requirements)
 - **Network**: CNI installed and functional
 - **Storage**: Local-path provisioner ready
 
@@ -47,7 +47,7 @@ All required port mappings are active and accessible:
 
 | Component | Allocation | Status |
 |-----------|------------|--------|
-| **Total Memory** | 24GB+ per node | ✅ Available |
+| **Total Memory** | 24Gi+ per node | ✅ Available |
 | **CPU Cores** | 10 cores per node | ✅ Available |
 | **Storage** | 17Gi PVC allocation | ✅ Ready |
 | **Nodes** | 3 (1 control-plane, 2 workers) | ✅ Ready |
@@ -106,7 +106,7 @@ kind delete cluster --name batch-analytics
 
 ## ✅ Acceptance Criteria Verification
 
-- [x] **Kind cluster running with 12GB RAM allocation** - ✅ 24GB+ available per node
+- [x] **Kind cluster running with 12Gi RAM allocation** - ✅ 24Gi+ available per node
 - [x] **Spark Operator operational for batch job execution** - ⏳ Ready for Task 2
 - [x] **AWS S3 access configured with proper permissions** - ⏳ Ready for Task 3  
 - [x] **Snowflake connection established with authentication working** - ⏳ Ready for Task 4
@@ -137,7 +137,7 @@ docker port batch-analytics-control-plane
 ## 📝 Notes
 
 - PVCs are in "Pending" state due to `WaitForFirstConsumer` binding mode - this is expected
-- Cluster has significantly more resources than the 12GB requirement (24GB+ per node)
+- Cluster has significantly more resources than the 12Gi requirement (24Gi+ per node)
 - All port mappings are configured and ready for batch processing services
 - RBAC is configured for Spark Operator deployment in Task 2
 - Storage classes are optimized for batch processing workloads
