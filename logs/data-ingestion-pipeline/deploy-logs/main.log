@@ -1,51 +1,51 @@
-[2025-09-28 23:29:12] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
-[2025-09-28 23:29:12] Deployment: Deleting existing cluster if needed
-[2025-09-28 23:29:14] Deployment: Creating cluster using kind-config.yaml
-[2025-09-28 23:29:38] Deployment: Checking if metrics-server is available...
-[2025-09-28 23:29:38] Deployment: ⚠️   Metrics-server is not available
-[2025-09-28 23:29:38] Deployment: Installing metrics-server...
-[2025-09-28 23:29:39] Deployment: Metrics-server installation initiated
-[2025-09-28 23:29:39] Deployment: Waiting for metrics-server to be ready...
-[2025-09-28 23:30:14] Deployment: Metrics-server is ready
-[2025-09-28 23:30:14] Deployment: Waiting for metrics to be available...
-[2025-09-28 23:30:24] Deployment: ✅ Metrics are now available
-[2025-09-28 23:30:24] Deployment: Starting background resource monitoring
-[2025-09-28 23:30:24] Deployment: Applying 01-namespace.yaml
-[2025-09-28 23:30:24] Deployment: Applying 02-service-accounts.yaml
-[2025-09-28 23:30:25] Deployment: Applying 03-network-policies.yaml
-[2025-09-28 23:30:25] Deployment: Applying 04-secrets.yaml
-[2025-09-28 23:30:25] Deployment: Applying storage-classes.yaml
-[2025-09-28 23:30:25] Deployment: Applying data-services-pvcs.yaml
-[2025-09-28 23:30:26] Deployment: Applying task4-postgresql-statefulset.yaml
-[2025-09-28 23:30:26] Deployment: kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=300s 2>&1
-[2025-09-28 23:31:00] Deployment: ✅ pod -l app=postgresql,component=database is ready
-[2025-09-28 23:31:00] Deployment: Applying task5-kafka-kraft-3brokers.yaml
-[2025-09-28 23:31:00] Deployment: kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=300s 2>&1
-[2025-09-28 23:32:04] Deployment: ✅ pod -l app=kafka,component=streaming is ready
-[2025-09-28 23:32:04] Deployment: Applying task5-kafka-topics-job.yaml
-[2025-09-28 23:32:04] Deployment: kubectl wait --for=condition=complete job/create-kafka-topics -n data-ingestion --timeout=120s 2>&1
-[2025-09-28 23:32:58] Deployment: ✅ job/create-kafka-topics is complete
-[2025-09-28 23:32:58] Deployment: Applying task6-schema-registry.yaml
-[2025-09-28 23:32:58] Deployment: kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=300s 2>&1
-[2025-09-28 23:34:39] Deployment: ✅ pod -l app=schema-registry,component=schema-management is ready
-[2025-09-28 23:34:39] Deployment: Applying task7-kafka-connect-deployment.yaml
-[2025-09-28 23:34:40] Deployment: kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s 2>&1
-[2025-09-28 23:36:30] Deployment: ✅ pod -l app=kafka-connect,component=worker is ready
-[2025-09-28 23:36:30] Deployment: Deploying Connector config postgres-cdc-connector
-[2025-09-28 23:36:31] Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-connector ===
-[2025-09-28 23:36:31] Deploy Connector: Validating prerequisites...
-[2025-09-28 23:36:31] Deploy Connector: ✅  Prerequisites validated
-[2025-09-28 23:36:31] Deploy Connector: Checking Kafka Connect service status...
+[2025-10-01 11:15:03] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
+[2025-10-01 11:15:03] Deployment: Deleting existing cluster if needed
+[2025-10-01 11:15:09] Deployment: Creating cluster using kind-config.yaml
+[2025-10-01 11:15:33] Deployment: Checking if metrics-server is available...
+[2025-10-01 11:15:33] Deployment: ⚠️   Metrics-server is not available
+[2025-10-01 11:15:33] Deployment: Installing metrics-server...
+[2025-10-01 11:15:34] Deployment: Metrics-server installation initiated
+[2025-10-01 11:15:34] Deployment: Waiting for metrics-server to be ready...
+[2025-10-01 11:16:09] Deployment: Metrics-server is ready
+[2025-10-01 11:16:09] Deployment: Waiting for metrics to be available...
+[2025-10-01 11:16:19] Deployment: ✅ Metrics are now available
+[2025-10-01 11:16:19] Deployment: Starting background resource monitoring
+[2025-10-01 11:16:19] Deployment: Applying 01-namespace.yaml
+[2025-10-01 11:16:19] Deployment: Applying 02-service-accounts.yaml
+[2025-10-01 11:16:20] Deployment: Applying 03-network-policies.yaml
+[2025-10-01 11:16:20] Deployment: Applying 04-secrets.yaml
+[2025-10-01 11:16:20] Deployment: Applying storage-classes.yaml
+[2025-10-01 11:16:20] Deployment: Applying data-services-pvcs.yaml
+[2025-10-01 11:16:21] Deployment: Applying task4-postgresql-statefulset.yaml
+[2025-10-01 11:16:21] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=300s 2>&1
+[2025-10-01 11:16:56] Deployment: ✅ pod -l app=postgresql,component=database is ready
+[2025-10-01 11:16:56] Deployment: Applying task5-kafka-kraft-3brokers.yaml
+[2025-10-01 11:16:56] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=300s 2>&1
+[2025-10-01 11:18:01] Deployment: ✅ pod -l app=kafka,component=streaming is ready
+[2025-10-01 11:18:02] Deployment: Applying task5-kafka-topics-job.yaml
+[2025-10-01 11:18:02] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=complete job/create-kafka-topics -n data-ingestion --timeout=120s 2>&1
+[2025-10-01 11:18:54] Deployment: ✅ job/create-kafka-topics is complete
+[2025-10-01 11:18:54] Deployment: Applying task6-schema-registry.yaml
+[2025-10-01 11:18:54] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=300s 2>&1
+[2025-10-01 11:20:36] Deployment: ✅ pod -l app=schema-registry,component=schema-management is ready
+[2025-10-01 11:20:36] Deployment: Applying task7-kafka-connect-deployment.yaml
+[2025-10-01 11:20:36] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s 2>&1
+[2025-10-01 11:22:26] Deployment: ✅ pod -l app=kafka-connect,component=worker is ready
+[2025-10-01 11:22:27] Deployment: Deploying Connector config postgres-cdc-connector
+[2025-10-01 11:22:27] Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-connector ===
+[2025-10-01 11:22:27] Deploy Connector: Validating prerequisites...
+[2025-10-01 11:22:27] Deploy Connector: ✅  Prerequisites validated
+[2025-10-01 11:22:27] Deploy Connector: Checking Kafka Connect service status...
 NAME                             READY   STATUS    RESTARTS   AGE
-kafka-connect-5487669d97-cmjgr   1/1     Running   0          111s
-[2025-09-28 23:36:31] Deploy Connector: Waiting for Kafka Connect to be ready...
-pod/kafka-connect-5487669d97-cmjgr condition met
-[2025-09-28 23:36:31] Deploy Connector: ✅  Kafka Connect is ready
-[2025-09-28 23:36:31] Deploy Connector: Checking if connector already exists...
-[2025-09-28 23:36:31] Deploy Connector: ✅  No existing connector found
-[2025-09-28 23:36:32] Deploy Connector: Deploying connector...
-[2025-09-28 23:36:32] Deploy Connector: ✅  Connector deployed successfully
-[2025-09-28 23:36:32] Deploy Connector: Checking connector status...
+kafka-connect-5487669d97-jc87c   1/1     Running   0          111s
+[2025-10-01 11:22:27] Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-5487669d97-jc87c condition met
+[2025-10-01 11:22:27] Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-01 11:22:27] Deploy Connector: Checking if connector already exists...
+[2025-10-01 11:22:28] Deploy Connector: ✅  No existing connector found
+[2025-10-01 11:22:28] Deploy Connector: Deploying connector...
+[2025-10-01 11:22:28] Deploy Connector: ✅  Connector deployed successfully
+[2025-10-01 11:22:28] Deploy Connector: Checking connector status...
 {
   "name": "postgres-cdc-connector",
   "connector": {
@@ -61,27 +61,27 @@ pod/kafka-connect-5487669d97-cmjgr condition met
   ],
   "type": "source"
 }
-[2025-09-28 23:36:37] Deploy Connector: ✅  Connector is in RUNNING state
-[2025-09-28 23:36:38] Deploy Connector: Listing all connectors...
+[2025-10-01 11:22:34] Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-01 11:22:34] Deploy Connector: Listing all connectors...
 [
   "postgres-cdc-connector"
 ]
-[2025-09-28 23:36:38] Deploy Connector: ✅  Connector Deployment completed successfully
-[2025-09-28 23:36:38] Deployment: Deploying Connector config s3-sink-connector
-[2025-09-28 23:36:38] Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-connector ===
-[2025-09-28 23:36:38] Deploy Connector: Validating prerequisites...
-[2025-09-28 23:36:38] Deploy Connector: ✅  Prerequisites validated
-[2025-09-28 23:36:38] Deploy Connector: Checking Kafka Connect service status...
+[2025-10-01 11:22:34] Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-01 11:22:34] Deployment: Deploying Connector config s3-sink-connector
+[2025-10-01 11:22:34] Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-connector ===
+[2025-10-01 11:22:34] Deploy Connector: Validating prerequisites...
+[2025-10-01 11:22:34] Deploy Connector: ✅  Prerequisites validated
+[2025-10-01 11:22:34] Deploy Connector: Checking Kafka Connect service status...
 NAME                             READY   STATUS    RESTARTS   AGE
-kafka-connect-5487669d97-cmjgr   1/1     Running   0          118s
-[2025-09-28 23:36:38] Deploy Connector: Waiting for Kafka Connect to be ready...
-pod/kafka-connect-5487669d97-cmjgr condition met
-[2025-09-28 23:36:38] Deploy Connector: ✅  Kafka Connect is ready
-[2025-09-28 23:36:38] Deploy Connector: Checking if connector already exists...
-[2025-09-28 23:36:39] Deploy Connector: ✅  No existing connector found
-[2025-09-28 23:36:39] Deploy Connector: Deploying connector...
-[2025-09-28 23:36:40] Deploy Connector: ✅  Connector deployed successfully
-[2025-09-28 23:36:40] Deploy Connector: Checking connector status...
+kafka-connect-5487669d97-jc87c   1/1     Running   0          118s
+[2025-10-01 11:22:34] Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-5487669d97-jc87c condition met
+[2025-10-01 11:22:34] Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-01 11:22:35] Deploy Connector: Checking if connector already exists...
+[2025-10-01 11:22:35] Deploy Connector: ✅  No existing connector found
+[2025-10-01 11:22:35] Deploy Connector: Deploying connector...
+[2025-10-01 11:22:35] Deploy Connector: ✅  Connector deployed successfully
+[2025-10-01 11:22:35] Deploy Connector: Checking connector status...
 {
   "name": "s3-sink-connector",
   "connector": {
@@ -212,18 +212,18 @@ pod/kafka-connect-5487669d97-cmjgr condition met
   ],
   "type": "sink"
 }
-[2025-09-28 23:36:45] Deploy Connector: ✅  Connector is in RUNNING state
-[2025-09-28 23:36:45] Deploy Connector: Listing all connectors...
+[2025-10-01 11:22:41] Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-01 11:22:41] Deploy Connector: Listing all connectors...
 [
   "s3-sink-connector",
   "postgres-cdc-connector"
 ]
-[2025-09-28 23:36:45] Deploy Connector: ✅  Connector Deployment completed successfully
-[2025-09-28 23:36:45] Deployment: Sleeping 1 min before inserting Sample Data
-[2025-09-28 23:37:45] Deployment: Inserting Sample Data into PostgreSQL
-[2025-09-28 23:37:47] Deployment: Sleeping 2 mins after inserting Sample Data
-[2025-09-28 23:39:47] Deployment: Executing Data Generator - performance benchmark...
-[2025-09-28 23:42:54] Deployment: ✅ Data Generator completed successfully
-[2025-09-28 23:42:54] Deployment: Sleeping 2 mins after running Data Generator
-[2025-09-28 23:44:54] Deployment: Stopping background resource monitoring
-[2025-09-28 23:44:54] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========
+[2025-10-01 11:22:41] Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-01 11:22:41] Deployment: Sleeping 1 min before inserting Sample Data
+[2025-10-01 11:23:41] Deployment: Inserting Sample Data into PostgreSQL
+[2025-10-01 11:23:43] Deployment: Sleeping 2 mins after inserting Sample Data
+[2025-10-01 11:25:43] Deployment: Executing Data Generator - performance benchmark...
+[2025-10-01 11:28:50] Deployment: ✅ Data Generator completed successfully
+[2025-10-01 11:28:50] Deployment: Sleeping 2 mins after running Data Generator
+[2025-10-01 11:30:50] Deployment: Stopping background resource monitoring
+[2025-10-01 11:30:50] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========

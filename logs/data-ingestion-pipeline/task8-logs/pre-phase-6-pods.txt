@@ -1,8 +1,8 @@
 NAME                              READY   STATUS      RESTARTS   AGE
-create-kafka-topics-pllts         0/1     Completed   0          177m
-kafka-0                           1/1     Running     0          178m
-kafka-1                           1/1     Running     0          178m
-kafka-2                           1/1     Running     0          178m
-kafka-connect-5487669d97-cmjgr    1/1     Running     0          174m
-postgresql-0                      1/1     Running     0          178m
-schema-registry-7996d6869-x95zw   1/1     Running     0          176m
+create-kafka-topics-mbp27         0/1     Completed   0          22m
+kafka-0                           1/1     Running     0          23m
+kafka-1                           1/1     Running     0          23m
+kafka-2                           1/1     Running     0          23m
+kafka-connect-5487669d97-jc87c    1/1     Running     0          19m
+postgresql-0                      1/1     Running     0          24m
+schema-registry-7996d6869-2bhff   1/1     Running     0          21m

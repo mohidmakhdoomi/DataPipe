@@ -1,69 +1,817 @@
-[2025-09-29 02:40:33] Task 10 Validate: === Starting Task 10: Validating S3 Sink Connector and Archival ===
-[2025-09-29 02:40:33] Task 10 Validate: Discovering pod names...
-[2025-09-29 02:40:33] Task 10 Validate: Using pods:
-[2025-09-29 02:40:33] Task 10 Validate:   Kafka Connect S3: kafka-connect-5487669d97-gkh6g
-[2025-09-29 02:40:33] Task 10 Validate:   PostgreSQL: postgresql-0
-[2025-09-29 02:40:33] Task 10 Validate:   Kafka: kafka-0
-[2025-09-29 02:40:33] Task 10 Validate: Starting background resource monitoring
-[2025-09-29 02:40:33] Task 10 Validate: Checking S3 Sink connector status...
-[2025-09-29 02:40:34] Task 10 Validate: Connector state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task count: 24
-[2025-09-29 02:40:34] Task 10 Validate: ✅ S3 Sink connector and tasks are RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 0 state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 1 state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 2 state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 3 state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 4 state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 5 state: RUNNING
-[2025-09-29 02:40:34] Task 10 Validate: Task 6 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 7 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 8 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 9 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 10 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 11 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 12 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 13 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 14 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 15 state: RUNNING
-[2025-09-29 02:40:35] Task 10 Validate: Task 16 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 17 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 18 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 19 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 20 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 21 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 22 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Task 23 state: RUNNING
-[2025-09-29 02:40:36] Task 10 Validate: Checking S3 bucket accessibility...
-[2025-09-29 02:40:38] Task 10 Validate: ✅ S3 bucket is accessible
-[2025-09-29 02:40:38] Task 10 Validate: Testing data flow to S3...
-[2025-09-29 02:40:38] Task 10 Validate: Inserting test record with email: task10-s3-validation-1759128038@example.com
+[2025-10-01 11:50:39] Task 10 Validate: === Starting Task 10: Validating S3 Sink Connector and Archival ===
+[2025-10-01 11:50:39] Task 10 Validate: Discovering pod names...
+[2025-10-01 11:50:40] Task 10 Validate: Using pods:
+[2025-10-01 11:50:40] Task 10 Validate:   Kafka Connect S3: kafka-connect-5487669d97-gtm5c
+[2025-10-01 11:50:40] Task 10 Validate:   PostgreSQL: postgresql-0
+[2025-10-01 11:50:40] Task 10 Validate:   Kafka: kafka-0
+[2025-10-01 11:50:40] Task 10 Validate: Starting background resource monitoring
+[2025-10-01 11:50:40] Task 10 Validate: Checking S3 Sink connector status...
+[2025-10-01 11:50:40] Task 10 Validate: Connector state: RUNNING
+[2025-10-01 11:50:40] Task 10 Validate: Task count: 24
+[2025-10-01 11:50:40] Task 10 Validate: ✅ S3 Sink connector and tasks are RUNNING
+[2025-10-01 11:50:40] Task 10 Validate: Task 0 state: RUNNING
+[2025-10-01 11:50:40] Task 10 Validate: Task 1 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 2 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 3 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 4 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 5 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 6 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 7 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 8 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 9 state: RUNNING
+[2025-10-01 11:50:41] Task 10 Validate: Task 10 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 11 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 12 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 13 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 14 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 15 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 16 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 17 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 18 state: RUNNING
+[2025-10-01 11:50:42] Task 10 Validate: Task 19 state: RUNNING
+[2025-10-01 11:50:43] Task 10 Validate: Task 20 state: RUNNING
+[2025-10-01 11:50:43] Task 10 Validate: Task 21 state: RUNNING
+[2025-10-01 11:50:43] Task 10 Validate: Task 22 state: RUNNING
+[2025-10-01 11:50:43] Task 10 Validate: Task 23 state: RUNNING
+[2025-10-01 11:50:43] Task 10 Validate: Checking S3 bucket accessibility...
+[2025-10-01 11:50:44] Task 10 Validate: ✅ S3 bucket is accessible
+[2025-10-01 11:50:44] Task 10 Validate: Testing data flow to S3...
+[2025-10-01 11:50:44] Task 10 Validate: Inserting test record with email: task10-s3-validation-1759333844@example.com
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
    id   
 --------
- 746046
+ 746206
 (1 row)
 
 INSERT 0 1
-[2025-09-29 02:40:39] Task 10 Validate: ✅ Test record inserted successfully
-[2025-09-29 02:40:39] Task 10 Validate: Waiting 120 seconds for CDC and S3 processing...
-[2025-09-29 02:42:39] Task 10 Validate: Checking for data in S3...
-[2025-09-29 02:42:39] Task 10 Validate: Checking S3 path: /topics/postgres.public.users/year=2025/month=09/day=29/hour=06/
-[2025-09-29 02:42:40] Task 10 Validate: ✅ Parquet files found in S3
-2025-09-29 02:35:44       3429 postgres.public.users+2+0000123845.snappy.parquet
-2025-09-29 02:37:09       3562 postgres.public.users+2+0000123846.snappy.parquet
-2025-09-29 02:37:53       3393 postgres.public.users+2+0000123848.snappy.parquet
-2025-09-29 02:40:20       3745 postgres.public.users+2+0000123849.snappy.parquet
-2025-09-29 02:39:57       4095 postgres.public.users+4+0000125176.snappy.parquet
-2025-09-29 02:40:20       4074 postgres.public.users+4+0000125178.snappy.parquet
-[2025-09-29 02:42:42] Task 10 Validate: Validating Parquet file structure...
-[2025-09-29 02:42:43] Task 10 Validate: Found Parquet file: postgres.public.users+2+0000123845.snappy.parquet
-[2025-09-29 02:42:43] Task 10 Validate: Parquet file location: /topics/postgres.public.users/year=2025/month=09/day=29/hour=06/postgres.public.users+2+0000123845.snappy.parquet
-[2025-09-29 02:42:45] Task 10 Validate: ✅ Parquet file has valid size: 3429 bytes
-[2025-09-29 02:42:45] Task 10 Validate: Validating time-based partitioning structure...
-[2025-09-29 02:42:46] Task 10 Validate: ✅ Time-based partitioning structure found:
+[2025-10-01 11:50:45] Task 10 Validate: ✅ Test record inserted successfully
+[2025-10-01 11:50:45] Task 10 Validate: Waiting 120 seconds for CDC and S3 processing...
+[2025-10-01 11:52:45] Task 10 Validate: Checking for data in S3...
+[2025-10-01 11:52:45] Task 10 Validate: Checking S3 path: topics/postgres.public.users/year=2025/month=10/day=01/hour=15/
+[2025-10-01 11:52:47] Task 10 Validate: ✅ Parquet files found in S3
+2025-10-01 11:23:55      29744 postgres.public.users+0+0000000000.snappy.parquet
+2025-10-01 11:25:54      17632 postgres.public.users+0+0000001000.snappy.parquet
+2025-10-01 11:25:55      24154 postgres.public.users+0+0000001551.snappy.parquet
+2025-10-01 11:25:57      24174 postgres.public.users+0+0000002551.snappy.parquet
+2025-10-01 11:25:58      23692 postgres.public.users+0+0000003551.snappy.parquet
+2025-10-01 11:26:00      23659 postgres.public.users+0+0000004551.snappy.parquet
+2025-10-01 11:26:01      23428 postgres.public.users+0+0000005551.snappy.parquet
+2025-10-01 11:26:02      23279 postgres.public.users+0+0000006551.snappy.parquet
+2025-10-01 11:26:04      23483 postgres.public.users+0+0000007551.snappy.parquet
+2025-10-01 11:26:06      23285 postgres.public.users+0+0000008551.snappy.parquet
+2025-10-01 11:26:07      23401 postgres.public.users+0+0000009551.snappy.parquet
+2025-10-01 11:26:09      23274 postgres.public.users+0+0000010551.snappy.parquet
+2025-10-01 11:26:10      23385 postgres.public.users+0+0000011551.snappy.parquet
+2025-10-01 11:26:12      23392 postgres.public.users+0+0000012551.snappy.parquet
+2025-10-01 11:26:13      23287 postgres.public.users+0+0000013551.snappy.parquet
+2025-10-01 11:26:14      23200 postgres.public.users+0+0000014551.snappy.parquet
+2025-10-01 11:26:16      23411 postgres.public.users+0+0000015551.snappy.parquet
+2025-10-01 11:26:17      23392 postgres.public.users+0+0000016551.snappy.parquet
+2025-10-01 11:26:19      23204 postgres.public.users+0+0000017551.snappy.parquet
+2025-10-01 11:26:20      23353 postgres.public.users+0+0000018551.snappy.parquet
+2025-10-01 11:26:22      23162 postgres.public.users+0+0000019551.snappy.parquet
+2025-10-01 11:26:24      23373 postgres.public.users+0+0000020551.snappy.parquet
+2025-10-01 11:26:25      23162 postgres.public.users+0+0000021551.snappy.parquet
+2025-10-01 11:26:26      23031 postgres.public.users+0+0000022551.snappy.parquet
+2025-10-01 11:26:28      23207 postgres.public.users+0+0000023551.snappy.parquet
+2025-10-01 11:26:29      23052 postgres.public.users+0+0000024551.snappy.parquet
+2025-10-01 11:26:30      23292 postgres.public.users+0+0000025551.snappy.parquet
+2025-10-01 11:26:32      23174 postgres.public.users+0+0000026551.snappy.parquet
+2025-10-01 11:26:33      23408 postgres.public.users+0+0000027551.snappy.parquet
+2025-10-01 11:26:34      23314 postgres.public.users+0+0000028551.snappy.parquet
+2025-10-01 11:26:37      23284 postgres.public.users+0+0000029551.snappy.parquet
+2025-10-01 11:26:38      23198 postgres.public.users+0+0000030551.snappy.parquet
+2025-10-01 11:26:39      23282 postgres.public.users+0+0000031551.snappy.parquet
+2025-10-01 11:26:41      23426 postgres.public.users+0+0000032551.snappy.parquet
+2025-10-01 11:26:42      23457 postgres.public.users+0+0000033551.snappy.parquet
+2025-10-01 11:26:44      23540 postgres.public.users+0+0000034551.snappy.parquet
+2025-10-01 11:26:45      23165 postgres.public.users+0+0000035551.snappy.parquet
+2025-10-01 11:26:47      23232 postgres.public.users+0+0000036551.snappy.parquet
+2025-10-01 11:26:48      22944 postgres.public.users+0+0000037551.snappy.parquet
+2025-10-01 11:26:50      23340 postgres.public.users+0+0000038551.snappy.parquet
+2025-10-01 11:26:51      23160 postgres.public.users+0+0000039551.snappy.parquet
+2025-10-01 11:26:52      23078 postgres.public.users+0+0000040551.snappy.parquet
+2025-10-01 11:26:54      23234 postgres.public.users+0+0000041551.snappy.parquet
+2025-10-01 11:26:56      23141 postgres.public.users+0+0000042551.snappy.parquet
+2025-10-01 11:26:57      23129 postgres.public.users+0+0000043551.snappy.parquet
+2025-10-01 11:26:58      23110 postgres.public.users+0+0000044551.snappy.parquet
+2025-10-01 11:26:59      23273 postgres.public.users+0+0000045551.snappy.parquet
+2025-10-01 11:27:02      23084 postgres.public.users+0+0000046551.snappy.parquet
+2025-10-01 11:27:03      22896 postgres.public.users+0+0000047551.snappy.parquet
+2025-10-01 11:27:04      23050 postgres.public.users+0+0000048551.snappy.parquet
+2025-10-01 11:27:05      23113 postgres.public.users+0+0000049551.snappy.parquet
+2025-10-01 11:27:07      23302 postgres.public.users+0+0000050551.snappy.parquet
+2025-10-01 11:27:09      23187 postgres.public.users+0+0000051551.snappy.parquet
+2025-10-01 11:27:10      23208 postgres.public.users+0+0000052551.snappy.parquet
+2025-10-01 11:27:12      23114 postgres.public.users+0+0000053551.snappy.parquet
+2025-10-01 11:27:13      23117 postgres.public.users+0+0000054551.snappy.parquet
+2025-10-01 11:27:15      22885 postgres.public.users+0+0000055551.snappy.parquet
+2025-10-01 11:27:16      23183 postgres.public.users+0+0000056551.snappy.parquet
+2025-10-01 11:27:18      23139 postgres.public.users+0+0000057551.snappy.parquet
+2025-10-01 11:27:19      23112 postgres.public.users+0+0000058551.snappy.parquet
+2025-10-01 11:27:20      23178 postgres.public.users+0+0000059551.snappy.parquet
+2025-10-01 11:27:22      23176 postgres.public.users+0+0000060551.snappy.parquet
+2025-10-01 11:27:24      23140 postgres.public.users+0+0000061551.snappy.parquet
+2025-10-01 11:27:25      23218 postgres.public.users+0+0000062551.snappy.parquet
+2025-10-01 11:27:26      23290 postgres.public.users+0+0000063551.snappy.parquet
+2025-10-01 11:27:28      23282 postgres.public.users+0+0000064551.snappy.parquet
+2025-10-01 11:27:30      23189 postgres.public.users+0+0000065551.snappy.parquet
+2025-10-01 11:27:31      23074 postgres.public.users+0+0000066551.snappy.parquet
+2025-10-01 11:27:32      23163 postgres.public.users+0+0000067551.snappy.parquet
+2025-10-01 11:27:33      23043 postgres.public.users+0+0000068551.snappy.parquet
+2025-10-01 11:27:35      22981 postgres.public.users+0+0000069551.snappy.parquet
+2025-10-01 11:27:37      23159 postgres.public.users+0+0000070551.snappy.parquet
+2025-10-01 11:27:38      23214 postgres.public.users+0+0000071551.snappy.parquet
+2025-10-01 11:27:39      23029 postgres.public.users+0+0000072551.snappy.parquet
+2025-10-01 11:27:41      23150 postgres.public.users+0+0000073551.snappy.parquet
+2025-10-01 11:27:42      23063 postgres.public.users+0+0000074551.snappy.parquet
+2025-10-01 11:27:44      23292 postgres.public.users+0+0000075551.snappy.parquet
+2025-10-01 11:27:46      23161 postgres.public.users+0+0000076551.snappy.parquet
+2025-10-01 11:27:47      23138 postgres.public.users+0+0000077551.snappy.parquet
+2025-10-01 11:27:48      23197 postgres.public.users+0+0000078551.snappy.parquet
+2025-10-01 11:27:49      22933 postgres.public.users+0+0000079551.snappy.parquet
+2025-10-01 11:27:52      23158 postgres.public.users+0+0000080551.snappy.parquet
+2025-10-01 11:27:53      23289 postgres.public.users+0+0000081551.snappy.parquet
+2025-10-01 11:27:54      23114 postgres.public.users+0+0000082551.snappy.parquet
+2025-10-01 11:27:56      23322 postgres.public.users+0+0000083551.snappy.parquet
+2025-10-01 11:27:57      23035 postgres.public.users+0+0000084551.snappy.parquet
+2025-10-01 11:27:59      23205 postgres.public.users+0+0000085551.snappy.parquet
+2025-10-01 11:28:00      23107 postgres.public.users+0+0000086551.snappy.parquet
+2025-10-01 11:28:02      23061 postgres.public.users+0+0000087551.snappy.parquet
+2025-10-01 11:28:03      22885 postgres.public.users+0+0000088551.snappy.parquet
+2025-10-01 11:28:04      23080 postgres.public.users+0+0000089551.snappy.parquet
+2025-10-01 11:28:06      23427 postgres.public.users+0+0000090551.snappy.parquet
+2025-10-01 11:28:07      23086 postgres.public.users+0+0000091551.snappy.parquet
+2025-10-01 11:28:09      23161 postgres.public.users+0+0000092551.snappy.parquet
+2025-10-01 11:28:10      23039 postgres.public.users+0+0000093551.snappy.parquet
+2025-10-01 11:28:11      23243 postgres.public.users+0+0000094551.snappy.parquet
+2025-10-01 11:28:14      23000 postgres.public.users+0+0000095551.snappy.parquet
+2025-10-01 11:28:15      23009 postgres.public.users+0+0000096551.snappy.parquet
+2025-10-01 11:28:16      23100 postgres.public.users+0+0000097551.snappy.parquet
+2025-10-01 11:28:17      23199 postgres.public.users+0+0000098551.snappy.parquet
+2025-10-01 11:28:19      22997 postgres.public.users+0+0000099551.snappy.parquet
+2025-10-01 11:28:21      23113 postgres.public.users+0+0000100551.snappy.parquet
+2025-10-01 11:28:22      23052 postgres.public.users+0+0000101551.snappy.parquet
+2025-10-01 11:28:23      23089 postgres.public.users+0+0000102551.snappy.parquet
+2025-10-01 11:28:25      23153 postgres.public.users+0+0000103551.snappy.parquet
+2025-10-01 11:28:26      22892 postgres.public.users+0+0000104551.snappy.parquet
+2025-10-01 11:28:27      23061 postgres.public.users+0+0000105551.snappy.parquet
+2025-10-01 11:28:30      23150 postgres.public.users+0+0000106551.snappy.parquet
+2025-10-01 11:28:31      22954 postgres.public.users+0+0000107551.snappy.parquet
+2025-10-01 11:28:32      22971 postgres.public.users+0+0000108551.snappy.parquet
+2025-10-01 11:28:33      23167 postgres.public.users+0+0000109551.snappy.parquet
+2025-10-01 11:28:35      23067 postgres.public.users+0+0000110551.snappy.parquet
+2025-10-01 11:28:36      23226 postgres.public.users+0+0000111551.snappy.parquet
+2025-10-01 11:28:38      23138 postgres.public.users+0+0000112551.snappy.parquet
+2025-10-01 11:28:40      23324 postgres.public.users+0+0000113551.snappy.parquet
+2025-10-01 11:28:41      23382 postgres.public.users+0+0000114551.snappy.parquet
+2025-10-01 11:28:42      22987 postgres.public.users+0+0000115551.snappy.parquet
+2025-10-01 11:28:44      23263 postgres.public.users+0+0000116551.snappy.parquet
+2025-10-01 11:28:46      23066 postgres.public.users+0+0000117551.snappy.parquet
+2025-10-01 11:28:47      22961 postgres.public.users+0+0000118551.snappy.parquet
+2025-10-01 11:28:48      23068 postgres.public.users+0+0000119551.snappy.parquet
+2025-10-01 11:28:50      23198 postgres.public.users+0+0000120551.snappy.parquet
+2025-10-01 11:28:51      22977 postgres.public.users+0+0000121551.snappy.parquet
+2025-10-01 11:28:52      23072 postgres.public.users+0+0000122551.snappy.parquet
+2025-10-01 11:49:04      19116 postgres.public.users+0+0000123551.snappy.parquet
+2025-10-01 11:50:10       4095 postgres.public.users+0+0000124341.snappy.parquet
+2025-10-01 11:50:33       4074 postgres.public.users+0+0000124343.snappy.parquet
+2025-10-01 11:23:55      29835 postgres.public.users+1+0000000000.snappy.parquet
+2025-10-01 11:25:54      16978 postgres.public.users+1+0000001000.snappy.parquet
+2025-10-01 11:25:55      24253 postgres.public.users+1+0000001527.snappy.parquet
+2025-10-01 11:25:57      23925 postgres.public.users+1+0000002527.snappy.parquet
+2025-10-01 11:25:58      23482 postgres.public.users+1+0000003527.snappy.parquet
+2025-10-01 11:26:00      23645 postgres.public.users+1+0000004527.snappy.parquet
+2025-10-01 11:26:01      23439 postgres.public.users+1+0000005527.snappy.parquet
+2025-10-01 11:26:02      23373 postgres.public.users+1+0000006527.snappy.parquet
+2025-10-01 11:26:04      23092 postgres.public.users+1+0000007527.snappy.parquet
+2025-10-01 11:26:05      23186 postgres.public.users+1+0000008527.snappy.parquet
+2025-10-01 11:26:07      23375 postgres.public.users+1+0000009527.snappy.parquet
+2025-10-01 11:26:08      23438 postgres.public.users+1+0000010527.snappy.parquet
+2025-10-01 11:26:10      23616 postgres.public.users+1+0000011527.snappy.parquet
+2025-10-01 11:26:11      23172 postgres.public.users+1+0000012527.snappy.parquet
+2025-10-01 11:26:13      23325 postgres.public.users+1+0000013527.snappy.parquet
+2025-10-01 11:26:14      23341 postgres.public.users+1+0000014527.snappy.parquet
+2025-10-01 11:26:16      23178 postgres.public.users+1+0000015527.snappy.parquet
+2025-10-01 11:26:17      23431 postgres.public.users+1+0000016527.snappy.parquet
+2025-10-01 11:26:19      23003 postgres.public.users+1+0000017527.snappy.parquet
+2025-10-01 11:26:20      23138 postgres.public.users+1+0000018527.snappy.parquet
+2025-10-01 11:26:21      23316 postgres.public.users+1+0000019527.snappy.parquet
+2025-10-01 11:26:23      23065 postgres.public.users+1+0000020527.snappy.parquet
+2025-10-01 11:26:24      23269 postgres.public.users+1+0000021527.snappy.parquet
+2025-10-01 11:26:26      23298 postgres.public.users+1+0000022527.snappy.parquet
+2025-10-01 11:26:27      23288 postgres.public.users+1+0000023527.snappy.parquet
+2025-10-01 11:26:29      23301 postgres.public.users+1+0000024527.snappy.parquet
+2025-10-01 11:26:30      23371 postgres.public.users+1+0000025527.snappy.parquet
+2025-10-01 11:26:31      23216 postgres.public.users+1+0000026527.snappy.parquet
+2025-10-01 11:26:33      23199 postgres.public.users+1+0000027527.snappy.parquet
+2025-10-01 11:26:34      23156 postgres.public.users+1+0000028527.snappy.parquet
+2025-10-01 11:26:36      23347 postgres.public.users+1+0000029527.snappy.parquet
+2025-10-01 11:26:38      22974 postgres.public.users+1+0000030527.snappy.parquet
+2025-10-01 11:26:39      23282 postgres.public.users+1+0000031527.snappy.parquet
+2025-10-01 11:26:41      23335 postgres.public.users+1+0000032527.snappy.parquet
+2025-10-01 11:26:42      23463 postgres.public.users+1+0000033527.snappy.parquet
+2025-10-01 11:26:43      23150 postgres.public.users+1+0000034527.snappy.parquet
+2025-10-01 11:26:45      23263 postgres.public.users+1+0000035527.snappy.parquet
+2025-10-01 11:26:46      22986 postgres.public.users+1+0000036527.snappy.parquet
+2025-10-01 11:26:47      22961 postgres.public.users+1+0000037527.snappy.parquet
+2025-10-01 11:26:49      23095 postgres.public.users+1+0000038527.snappy.parquet
+2025-10-01 11:26:51      23194 postgres.public.users+1+0000039527.snappy.parquet
+2025-10-01 11:26:52      23359 postgres.public.users+1+0000040527.snappy.parquet
+2025-10-01 11:26:53      23478 postgres.public.users+1+0000041527.snappy.parquet
+2025-10-01 11:26:55      23168 postgres.public.users+1+0000042527.snappy.parquet
+2025-10-01 11:26:56      23181 postgres.public.users+1+0000043527.snappy.parquet
+2025-10-01 11:26:58      23046 postgres.public.users+1+0000044527.snappy.parquet
+2025-10-01 11:26:59      23143 postgres.public.users+1+0000045527.snappy.parquet
+2025-10-01 11:27:01      23216 postgres.public.users+1+0000046527.snappy.parquet
+2025-10-01 11:27:02      23148 postgres.public.users+1+0000047527.snappy.parquet
+2025-10-01 11:27:04      23191 postgres.public.users+1+0000048527.snappy.parquet
+2025-10-01 11:27:05      23309 postgres.public.users+1+0000049527.snappy.parquet
+2025-10-01 11:27:06      23217 postgres.public.users+1+0000050527.snappy.parquet
+2025-10-01 11:27:08      22997 postgres.public.users+1+0000051527.snappy.parquet
+2025-10-01 11:27:10      23067 postgres.public.users+1+0000052527.snappy.parquet
+2025-10-01 11:27:11      23177 postgres.public.users+1+0000053527.snappy.parquet
+2025-10-01 11:27:12      23205 postgres.public.users+1+0000054527.snappy.parquet
+2025-10-01 11:27:13      23362 postgres.public.users+1+0000055527.snappy.parquet
+2025-10-01 11:27:16      23215 postgres.public.users+1+0000056527.snappy.parquet
+2025-10-01 11:27:17      23235 postgres.public.users+1+0000057527.snappy.parquet
+2025-10-01 11:27:18      22974 postgres.public.users+1+0000058527.snappy.parquet
+2025-10-01 11:27:19      22939 postgres.public.users+1+0000059527.snappy.parquet
+2025-10-01 11:27:21      23150 postgres.public.users+1+0000060527.snappy.parquet
+2025-10-01 11:27:23      23347 postgres.public.users+1+0000061527.snappy.parquet
+2025-10-01 11:27:24      22954 postgres.public.users+1+0000062527.snappy.parquet
+2025-10-01 11:27:26      23148 postgres.public.users+1+0000063527.snappy.parquet
+2025-10-01 11:27:27      23202 postgres.public.users+1+0000064527.snappy.parquet
+2025-10-01 11:27:28      23186 postgres.public.users+1+0000065527.snappy.parquet
+2025-10-01 11:27:30      23087 postgres.public.users+1+0000066527.snappy.parquet
+2025-10-01 11:27:31      23068 postgres.public.users+1+0000067527.snappy.parquet
+2025-10-01 11:27:33      23084 postgres.public.users+1+0000068527.snappy.parquet
+2025-10-01 11:27:34      23460 postgres.public.users+1+0000069527.snappy.parquet
+2025-10-01 11:27:36      23070 postgres.public.users+1+0000070527.snappy.parquet
+2025-10-01 11:27:38      23159 postgres.public.users+1+0000071527.snappy.parquet
+2025-10-01 11:27:39      23322 postgres.public.users+1+0000072527.snappy.parquet
+2025-10-01 11:27:40      23032 postgres.public.users+1+0000073527.snappy.parquet
+2025-10-01 11:27:42      23038 postgres.public.users+1+0000074527.snappy.parquet
+2025-10-01 11:27:44      22859 postgres.public.users+1+0000075527.snappy.parquet
+2025-10-01 11:27:45      23063 postgres.public.users+1+0000076527.snappy.parquet
+2025-10-01 11:27:46      22995 postgres.public.users+1+0000077527.snappy.parquet
+2025-10-01 11:27:47      23020 postgres.public.users+1+0000078527.snappy.parquet
+2025-10-01 11:27:49      23076 postgres.public.users+1+0000079527.snappy.parquet
+2025-10-01 11:27:51      23084 postgres.public.users+1+0000080527.snappy.parquet
+2025-10-01 11:27:52      23225 postgres.public.users+1+0000081527.snappy.parquet
+2025-10-01 11:27:53      23105 postgres.public.users+1+0000082527.snappy.parquet
+2025-10-01 11:27:55      23110 postgres.public.users+1+0000083527.snappy.parquet
+2025-10-01 11:27:56      22955 postgres.public.users+1+0000084527.snappy.parquet
+2025-10-01 11:27:57      23100 postgres.public.users+1+0000085527.snappy.parquet
+2025-10-01 11:28:00      23279 postgres.public.users+1+0000086527.snappy.parquet
+2025-10-01 11:28:01      23098 postgres.public.users+1+0000087527.snappy.parquet
+2025-10-01 11:28:02      23205 postgres.public.users+1+0000088527.snappy.parquet
+2025-10-01 11:28:03      23329 postgres.public.users+1+0000089527.snappy.parquet
+2025-10-01 11:28:06      23281 postgres.public.users+1+0000090527.snappy.parquet
+2025-10-01 11:28:07      23314 postgres.public.users+1+0000091527.snappy.parquet
+2025-10-01 11:28:08      23083 postgres.public.users+1+0000092527.snappy.parquet
+2025-10-01 11:28:10      23169 postgres.public.users+1+0000093527.snappy.parquet
+2025-10-01 11:28:11      22941 postgres.public.users+1+0000094527.snappy.parquet
+2025-10-01 11:28:12      23109 postgres.public.users+1+0000095527.snappy.parquet
+2025-10-01 11:28:14      23263 postgres.public.users+1+0000096527.snappy.parquet
+2025-10-01 11:28:16      23120 postgres.public.users+1+0000097527.snappy.parquet
+2025-10-01 11:28:17      23241 postgres.public.users+1+0000098527.snappy.parquet
+2025-10-01 11:28:18      22876 postgres.public.users+1+0000099527.snappy.parquet
+2025-10-01 11:28:19      22988 postgres.public.users+1+0000100527.snappy.parquet
+2025-10-01 11:28:22      23154 postgres.public.users+1+0000101527.snappy.parquet
+2025-10-01 11:28:23      23255 postgres.public.users+1+0000102527.snappy.parquet
+2025-10-01 11:28:24      23325 postgres.public.users+1+0000103527.snappy.parquet
+2025-10-01 11:28:26      23027 postgres.public.users+1+0000104527.snappy.parquet
+2025-10-01 11:28:27      23152 postgres.public.users+1+0000105527.snappy.parquet
+2025-10-01 11:28:29      23067 postgres.public.users+1+0000106527.snappy.parquet
+2025-10-01 11:28:30      23038 postgres.public.users+1+0000107527.snappy.parquet
+2025-10-01 11:28:32      23155 postgres.public.users+1+0000108527.snappy.parquet
+2025-10-01 11:28:33      23207 postgres.public.users+1+0000109527.snappy.parquet
+2025-10-01 11:28:34      23175 postgres.public.users+1+0000110527.snappy.parquet
+2025-10-01 11:28:36      23020 postgres.public.users+1+0000111527.snappy.parquet
+2025-10-01 11:28:38      23087 postgres.public.users+1+0000112527.snappy.parquet
+2025-10-01 11:28:39      23196 postgres.public.users+1+0000113527.snappy.parquet
+2025-10-01 11:28:41      22960 postgres.public.users+1+0000114527.snappy.parquet
+2025-10-01 11:28:42      23215 postgres.public.users+1+0000115527.snappy.parquet
+2025-10-01 11:28:43      23096 postgres.public.users+1+0000116527.snappy.parquet
+2025-10-01 11:28:44      23029 postgres.public.users+1+0000117527.snappy.parquet
+2025-10-01 11:28:47      23032 postgres.public.users+1+0000118527.snappy.parquet
+2025-10-01 11:28:48      23029 postgres.public.users+1+0000119527.snappy.parquet
+2025-10-01 11:28:49      23222 postgres.public.users+1+0000120527.snappy.parquet
+2025-10-01 11:28:51      23136 postgres.public.users+1+0000121527.snappy.parquet
+2025-10-01 11:28:52      23124 postgres.public.users+1+0000122527.snappy.parquet
+2025-10-01 11:28:54      23072 postgres.public.users+1+0000123527.snappy.parquet
+2025-10-01 11:23:55      29780 postgres.public.users+2+0000000000.snappy.parquet
+2025-10-01 11:25:54      15133 postgres.public.users+2+0000001000.snappy.parquet
+2025-10-01 11:25:55      24155 postgres.public.users+2+0000001452.snappy.parquet
+2025-10-01 11:25:57      24256 postgres.public.users+2+0000002452.snappy.parquet
+2025-10-01 11:25:58      23879 postgres.public.users+2+0000003452.snappy.parquet
+2025-10-01 11:26:00      23744 postgres.public.users+2+0000004452.snappy.parquet
+2025-10-01 11:26:01      23200 postgres.public.users+2+0000005452.snappy.parquet
+2025-10-01 11:26:03      23433 postgres.public.users+2+0000006452.snappy.parquet
+2025-10-01 11:26:04      23362 postgres.public.users+2+0000007452.snappy.parquet
+2025-10-01 11:26:05      23213 postgres.public.users+2+0000008452.snappy.parquet
+2025-10-01 11:26:07      23261 postgres.public.users+2+0000009452.snappy.parquet
+2025-10-01 11:26:09      23771 postgres.public.users+2+0000010452.snappy.parquet
+2025-10-01 11:26:10      23516 postgres.public.users+2+0000011452.snappy.parquet
+2025-10-01 11:26:12      23515 postgres.public.users+2+0000012452.snappy.parquet
+2025-10-01 11:26:13      23313 postgres.public.users+2+0000013452.snappy.parquet
+2025-10-01 11:26:14      23299 postgres.public.users+2+0000014452.snappy.parquet
+2025-10-01 11:26:16      23245 postgres.public.users+2+0000015452.snappy.parquet
+2025-10-01 11:26:17      23476 postgres.public.users+2+0000016452.snappy.parquet
+2025-10-01 11:26:19      23295 postgres.public.users+2+0000017452.snappy.parquet
+2025-10-01 11:26:20      23238 postgres.public.users+2+0000018452.snappy.parquet
+2025-10-01 11:26:21      23486 postgres.public.users+2+0000019452.snappy.parquet
+2025-10-01 11:26:24      22962 postgres.public.users+2+0000020452.snappy.parquet
+2025-10-01 11:26:25      23332 postgres.public.users+2+0000021452.snappy.parquet
+2025-10-01 11:26:26      23138 postgres.public.users+2+0000022452.snappy.parquet
+2025-10-01 11:26:28      23200 postgres.public.users+2+0000023452.snappy.parquet
+2025-10-01 11:26:29      23342 postgres.public.users+2+0000024452.snappy.parquet
+2025-10-01 11:26:30      23323 postgres.public.users+2+0000025452.snappy.parquet
+2025-10-01 11:26:32      23269 postgres.public.users+2+0000026452.snappy.parquet
+2025-10-01 11:26:34      23281 postgres.public.users+2+0000027452.snappy.parquet
+2025-10-01 11:26:35      23479 postgres.public.users+2+0000028452.snappy.parquet
+2025-10-01 11:26:37      23340 postgres.public.users+2+0000029452.snappy.parquet
+2025-10-01 11:26:38      23222 postgres.public.users+2+0000030452.snappy.parquet
+2025-10-01 11:26:39      23220 postgres.public.users+2+0000031452.snappy.parquet
+2025-10-01 11:26:41      23524 postgres.public.users+2+0000032452.snappy.parquet
+2025-10-01 11:26:42      23361 postgres.public.users+2+0000033452.snappy.parquet
+2025-10-01 11:26:44      23151 postgres.public.users+2+0000034452.snappy.parquet
+2025-10-01 11:26:45      23135 postgres.public.users+2+0000035452.snappy.parquet
+2025-10-01 11:26:47      23348 postgres.public.users+2+0000036452.snappy.parquet
+2025-10-01 11:26:48      23098 postgres.public.users+2+0000037452.snappy.parquet
+2025-10-01 11:26:50      23167 postgres.public.users+2+0000038452.snappy.parquet
+2025-10-01 11:26:51      23248 postgres.public.users+2+0000039452.snappy.parquet
+2025-10-01 11:26:52      23300 postgres.public.users+2+0000040452.snappy.parquet
+2025-10-01 11:26:54      23195 postgres.public.users+2+0000041452.snappy.parquet
+2025-10-01 11:26:56      23393 postgres.public.users+2+0000042452.snappy.parquet
+2025-10-01 11:26:57      23339 postgres.public.users+2+0000043452.snappy.parquet
+2025-10-01 11:26:58      23176 postgres.public.users+2+0000044452.snappy.parquet
+2025-10-01 11:27:00      23182 postgres.public.users+2+0000045452.snappy.parquet
+2025-10-01 11:27:02      23255 postgres.public.users+2+0000046452.snappy.parquet
+2025-10-01 11:27:03      23238 postgres.public.users+2+0000047452.snappy.parquet
+2025-10-01 11:27:04      23213 postgres.public.users+2+0000048452.snappy.parquet
+2025-10-01 11:27:06      23118 postgres.public.users+2+0000049452.snappy.parquet
+2025-10-01 11:27:07      22975 postgres.public.users+2+0000050452.snappy.parquet
+2025-10-01 11:27:09      23343 postgres.public.users+2+0000051452.snappy.parquet
+2025-10-01 11:27:10      23144 postgres.public.users+2+0000052452.snappy.parquet
+2025-10-01 11:27:12      23157 postgres.public.users+2+0000053452.snappy.parquet
+2025-10-01 11:27:13      22960 postgres.public.users+2+0000054452.snappy.parquet
+2025-10-01 11:27:15      23106 postgres.public.users+2+0000055452.snappy.parquet
+2025-10-01 11:27:16      23182 postgres.public.users+2+0000056452.snappy.parquet
+2025-10-01 11:27:18      23244 postgres.public.users+2+0000057452.snappy.parquet
+2025-10-01 11:27:19      23348 postgres.public.users+2+0000058452.snappy.parquet
+2025-10-01 11:27:20      23028 postgres.public.users+2+0000059452.snappy.parquet
+2025-10-01 11:27:22      23055 postgres.public.users+2+0000060452.snappy.parquet
+2025-10-01 11:27:24      22998 postgres.public.users+2+0000061452.snappy.parquet
+2025-10-01 11:27:25      23280 postgres.public.users+2+0000062452.snappy.parquet
+2025-10-01 11:27:26      23156 postgres.public.users+2+0000063452.snappy.parquet
+2025-10-01 11:27:28      23083 postgres.public.users+2+0000064452.snappy.parquet
+2025-10-01 11:27:30      23236 postgres.public.users+2+0000065452.snappy.parquet
+2025-10-01 11:27:31      23060 postgres.public.users+2+0000066452.snappy.parquet
+2025-10-01 11:27:32      23054 postgres.public.users+2+0000067452.snappy.parquet
+2025-10-01 11:27:33      22970 postgres.public.users+2+0000068452.snappy.parquet
+2025-10-01 11:27:35      23238 postgres.public.users+2+0000069452.snappy.parquet
+2025-10-01 11:27:37      23041 postgres.public.users+2+0000070452.snappy.parquet
+2025-10-01 11:27:38      23172 postgres.public.users+2+0000071452.snappy.parquet
+2025-10-01 11:27:39      23280 postgres.public.users+2+0000072452.snappy.parquet
+2025-10-01 11:27:41      23232 postgres.public.users+2+0000073452.snappy.parquet
+2025-10-01 11:27:42      23233 postgres.public.users+2+0000074452.snappy.parquet
+2025-10-01 11:27:44      23196 postgres.public.users+2+0000075452.snappy.parquet
+2025-10-01 11:27:46      23172 postgres.public.users+2+0000076452.snappy.parquet
+2025-10-01 11:27:47      23166 postgres.public.users+2+0000077452.snappy.parquet
+2025-10-01 11:27:48      23256 postgres.public.users+2+0000078452.snappy.parquet
+2025-10-01 11:27:49      23189 postgres.public.users+2+0000079452.snappy.parquet
+2025-10-01 11:27:52      23224 postgres.public.users+2+0000080452.snappy.parquet
+2025-10-01 11:27:53      23139 postgres.public.users+2+0000081452.snappy.parquet
+2025-10-01 11:27:54      23131 postgres.public.users+2+0000082452.snappy.parquet
+2025-10-01 11:27:56      23072 postgres.public.users+2+0000083452.snappy.parquet
+2025-10-01 11:27:57      22919 postgres.public.users+2+0000084452.snappy.parquet
+2025-10-01 11:27:59      23070 postgres.public.users+2+0000085452.snappy.parquet
+2025-10-01 11:28:00      23043 postgres.public.users+2+0000086452.snappy.parquet
+2025-10-01 11:28:02      23178 postgres.public.users+2+0000087452.snappy.parquet
+2025-10-01 11:28:03      23266 postgres.public.users+2+0000088452.snappy.parquet
+2025-10-01 11:28:04      23194 postgres.public.users+2+0000089452.snappy.parquet
+2025-10-01 11:28:06      23385 postgres.public.users+2+0000090452.snappy.parquet
+2025-10-01 11:28:08      23138 postgres.public.users+2+0000091452.snappy.parquet
+2025-10-01 11:28:09      22959 postgres.public.users+2+0000092452.snappy.parquet
+2025-10-01 11:28:10      23066 postgres.public.users+2+0000093452.snappy.parquet
+2025-10-01 11:28:11      23166 postgres.public.users+2+0000094452.snappy.parquet
+2025-10-01 11:28:14      23326 postgres.public.users+2+0000095452.snappy.parquet
+2025-10-01 11:28:15      23166 postgres.public.users+2+0000096452.snappy.parquet
+2025-10-01 11:28:16      23001 postgres.public.users+2+0000097452.snappy.parquet
+2025-10-01 11:28:18      23040 postgres.public.users+2+0000098452.snappy.parquet
+2025-10-01 11:28:19      23047 postgres.public.users+2+0000099452.snappy.parquet
+2025-10-01 11:28:21      23132 postgres.public.users+2+0000100452.snappy.parquet
+2025-10-01 11:28:22      23224 postgres.public.users+2+0000101452.snappy.parquet
+2025-10-01 11:28:24      23010 postgres.public.users+2+0000102452.snappy.parquet
+2025-10-01 11:28:25      22873 postgres.public.users+2+0000103452.snappy.parquet
+2025-10-01 11:28:26      23149 postgres.public.users+2+0000104452.snappy.parquet
+2025-10-01 11:28:27      23094 postgres.public.users+2+0000105452.snappy.parquet
+2025-10-01 11:28:30      23182 postgres.public.users+2+0000106452.snappy.parquet
+2025-10-01 11:28:31      23139 postgres.public.users+2+0000107452.snappy.parquet
+2025-10-01 11:28:32      23177 postgres.public.users+2+0000108452.snappy.parquet
+2025-10-01 11:28:34      23166 postgres.public.users+2+0000109452.snappy.parquet
+2025-10-01 11:28:35      23022 postgres.public.users+2+0000110452.snappy.parquet
+2025-10-01 11:28:36      23336 postgres.public.users+2+0000111452.snappy.parquet
+2025-10-01 11:28:39      23216 postgres.public.users+2+0000112452.snappy.parquet
+2025-10-01 11:28:40      23032 postgres.public.users+2+0000113452.snappy.parquet
+2025-10-01 11:28:41      23265 postgres.public.users+2+0000114452.snappy.parquet
+2025-10-01 11:28:43      23259 postgres.public.users+2+0000115452.snappy.parquet
+2025-10-01 11:28:44      23152 postgres.public.users+2+0000116452.snappy.parquet
+2025-10-01 11:28:46      23092 postgres.public.users+2+0000117452.snappy.parquet
+2025-10-01 11:28:47      23200 postgres.public.users+2+0000118452.snappy.parquet
+2025-10-01 11:28:49      23294 postgres.public.users+2+0000119452.snappy.parquet
+2025-10-01 11:28:50      23166 postgres.public.users+2+0000120452.snappy.parquet
+2025-10-01 11:28:51      23215 postgres.public.users+2+0000121452.snappy.parquet
+2025-10-01 11:28:53      23115 postgres.public.users+2+0000122452.snappy.parquet
+2025-10-01 11:48:25      12190 postgres.public.users+2+0000123452.snappy.parquet
+2025-10-01 11:50:33       3746 postgres.public.users+2+0000123877.snappy.parquet
+2025-10-01 11:23:55      29900 postgres.public.users+3+0000000000.snappy.parquet
+2025-10-01 11:25:54      16915 postgres.public.users+3+0000001000.snappy.parquet
+2025-10-01 11:25:55      23957 postgres.public.users+3+0000001523.snappy.parquet
+2025-10-01 11:25:57      23959 postgres.public.users+3+0000002523.snappy.parquet
+2025-10-01 11:25:58      23616 postgres.public.users+3+0000003523.snappy.parquet
+2025-10-01 11:25:59      23555 postgres.public.users+3+0000004523.snappy.parquet
+2025-10-01 11:26:01      23749 postgres.public.users+3+0000005523.snappy.parquet
+2025-10-01 11:26:02      23413 postgres.public.users+3+0000006523.snappy.parquet
+2025-10-01 11:26:04      23279 postgres.public.users+3+0000007523.snappy.parquet
+2025-10-01 11:26:05      23296 postgres.public.users+3+0000008523.snappy.parquet
+2025-10-01 11:26:07      23377 postgres.public.users+3+0000009523.snappy.parquet
+2025-10-01 11:26:08      23290 postgres.public.users+3+0000010523.snappy.parquet
+2025-10-01 11:26:10      23546 postgres.public.users+3+0000011523.snappy.parquet
+2025-10-01 11:26:11      23453 postgres.public.users+3+0000012523.snappy.parquet
+2025-10-01 11:26:13      23443 postgres.public.users+3+0000013523.snappy.parquet
+2025-10-01 11:26:14      23304 postgres.public.users+3+0000014523.snappy.parquet
+2025-10-01 11:26:16      23168 postgres.public.users+3+0000015523.snappy.parquet
+2025-10-01 11:26:17      23606 postgres.public.users+3+0000016523.snappy.parquet
+2025-10-01 11:26:19      23502 postgres.public.users+3+0000017523.snappy.parquet
+2025-10-01 11:26:20      23299 postgres.public.users+3+0000018523.snappy.parquet
+2025-10-01 11:26:21      23105 postgres.public.users+3+0000019523.snappy.parquet
+2025-10-01 11:26:23      23246 postgres.public.users+3+0000020523.snappy.parquet
+2025-10-01 11:26:25      23362 postgres.public.users+3+0000021523.snappy.parquet
+2025-10-01 11:26:26      23307 postgres.public.users+3+0000022523.snappy.parquet
+2025-10-01 11:26:28      23185 postgres.public.users+3+0000023523.snappy.parquet
+2025-10-01 11:26:29      23217 postgres.public.users+3+0000024523.snappy.parquet
+2025-10-01 11:26:30      23233 postgres.public.users+3+0000025523.snappy.parquet
+2025-10-01 11:26:31      23398 postgres.public.users+3+0000026523.snappy.parquet
+2025-10-01 11:26:33      23212 postgres.public.users+3+0000027523.snappy.parquet
+2025-10-01 11:26:34      23394 postgres.public.users+3+0000028523.snappy.parquet
+2025-10-01 11:26:37      23189 postgres.public.users+3+0000029523.snappy.parquet
+2025-10-01 11:26:38      23163 postgres.public.users+3+0000030523.snappy.parquet
+2025-10-01 11:26:39      23467 postgres.public.users+3+0000031523.snappy.parquet
+2025-10-01 11:26:41      23359 postgres.public.users+3+0000032523.snappy.parquet
+2025-10-01 11:26:42      23371 postgres.public.users+3+0000033523.snappy.parquet
+2025-10-01 11:26:44      23093 postgres.public.users+3+0000034523.snappy.parquet
+2025-10-01 11:26:45      23425 postgres.public.users+3+0000035523.snappy.parquet
+2025-10-01 11:26:47      23214 postgres.public.users+3+0000036523.snappy.parquet
+2025-10-01 11:26:48      23086 postgres.public.users+3+0000037523.snappy.parquet
+2025-10-01 11:26:50      23260 postgres.public.users+3+0000038523.snappy.parquet
+2025-10-01 11:26:51      23258 postgres.public.users+3+0000039523.snappy.parquet
+2025-10-01 11:26:52      23068 postgres.public.users+3+0000040523.snappy.parquet
+2025-10-01 11:26:54      23290 postgres.public.users+3+0000041523.snappy.parquet
+2025-10-01 11:26:55      23127 postgres.public.users+3+0000042523.snappy.parquet
+2025-10-01 11:26:57      23189 postgres.public.users+3+0000043523.snappy.parquet
+2025-10-01 11:26:58      23038 postgres.public.users+3+0000044523.snappy.parquet
+2025-10-01 11:26:59      23169 postgres.public.users+3+0000045523.snappy.parquet
+2025-10-01 11:27:01      22985 postgres.public.users+3+0000046523.snappy.parquet
+2025-10-01 11:27:03      23020 postgres.public.users+3+0000047523.snappy.parquet
+2025-10-01 11:27:04      23032 postgres.public.users+3+0000048523.snappy.parquet
+2025-10-01 11:27:05      23096 postgres.public.users+3+0000049523.snappy.parquet
+2025-10-01 11:27:06      23075 postgres.public.users+3+0000050523.snappy.parquet
+2025-10-01 11:27:09      23265 postgres.public.users+3+0000051523.snappy.parquet
+2025-10-01 11:27:10      23252 postgres.public.users+3+0000052523.snappy.parquet
+2025-10-01 11:27:11      23028 postgres.public.users+3+0000053523.snappy.parquet
+2025-10-01 11:27:12      23004 postgres.public.users+3+0000054523.snappy.parquet
+2025-10-01 11:27:14      23171 postgres.public.users+3+0000055523.snappy.parquet
+2025-10-01 11:27:16      22961 postgres.public.users+3+0000056523.snappy.parquet
+2025-10-01 11:27:17      23057 postgres.public.users+3+0000057523.snappy.parquet
+2025-10-01 11:27:18      22927 postgres.public.users+3+0000058523.snappy.parquet
+2025-10-01 11:27:20      23175 postgres.public.users+3+0000059523.snappy.parquet
+2025-10-01 11:27:21      23110 postgres.public.users+3+0000060523.snappy.parquet
+2025-10-01 11:27:23      23164 postgres.public.users+3+0000061523.snappy.parquet
+2025-10-01 11:27:24      23189 postgres.public.users+3+0000062523.snappy.parquet
+2025-10-01 11:27:26      23031 postgres.public.users+3+0000063523.snappy.parquet
+2025-10-01 11:27:27      23140 postgres.public.users+3+0000064523.snappy.parquet
+2025-10-01 11:27:29      23256 postgres.public.users+3+0000065523.snappy.parquet
+2025-10-01 11:27:31      23145 postgres.public.users+3+0000066523.snappy.parquet
+2025-10-01 11:27:32      23337 postgres.public.users+3+0000067523.snappy.parquet
+2025-10-01 11:27:33      23114 postgres.public.users+3+0000068523.snappy.parquet
+2025-10-01 11:27:34      23339 postgres.public.users+3+0000069523.snappy.parquet
+2025-10-01 11:27:36      22934 postgres.public.users+3+0000070523.snappy.parquet
+2025-10-01 11:27:38      22951 postgres.public.users+3+0000071523.snappy.parquet
+2025-10-01 11:27:39      23336 postgres.public.users+3+0000072523.snappy.parquet
+2025-10-01 11:27:40      23158 postgres.public.users+3+0000073523.snappy.parquet
+2025-10-01 11:27:42      22983 postgres.public.users+3+0000074523.snappy.parquet
+2025-10-01 11:27:44      23329 postgres.public.users+3+0000075523.snappy.parquet
+2025-10-01 11:27:45      23173 postgres.public.users+3+0000076523.snappy.parquet
+2025-10-01 11:27:46      23335 postgres.public.users+3+0000077523.snappy.parquet
+2025-10-01 11:27:48      23095 postgres.public.users+3+0000078523.snappy.parquet
+2025-10-01 11:27:49      23044 postgres.public.users+3+0000079523.snappy.parquet
+2025-10-01 11:27:51      23270 postgres.public.users+3+0000080523.snappy.parquet
+2025-10-01 11:27:53      23177 postgres.public.users+3+0000081523.snappy.parquet
+2025-10-01 11:27:54      23124 postgres.public.users+3+0000082523.snappy.parquet
+2025-10-01 11:27:55      23034 postgres.public.users+3+0000083523.snappy.parquet
+2025-10-01 11:27:56      23359 postgres.public.users+3+0000084523.snappy.parquet
+2025-10-01 11:27:58      23061 postgres.public.users+3+0000085523.snappy.parquet
+2025-10-01 11:28:00      23344 postgres.public.users+3+0000086523.snappy.parquet
+2025-10-01 11:28:01      23009 postgres.public.users+3+0000087523.snappy.parquet
+2025-10-01 11:28:02      23217 postgres.public.users+3+0000088523.snappy.parquet
+2025-10-01 11:28:04      23129 postgres.public.users+3+0000089523.snappy.parquet
+2025-10-01 11:28:06      23322 postgres.public.users+3+0000090523.snappy.parquet
+2025-10-01 11:28:07      23105 postgres.public.users+3+0000091523.snappy.parquet
+2025-10-01 11:28:09      23019 postgres.public.users+3+0000092523.snappy.parquet
+2025-10-01 11:28:10      23031 postgres.public.users+3+0000093523.snappy.parquet
+2025-10-01 11:28:11      23185 postgres.public.users+3+0000094523.snappy.parquet
+2025-10-01 11:28:13      23160 postgres.public.users+3+0000095523.snappy.parquet
+2025-10-01 11:28:15      23290 postgres.public.users+3+0000096523.snappy.parquet
+2025-10-01 11:28:16      23208 postgres.public.users+3+0000097523.snappy.parquet
+2025-10-01 11:28:17      23244 postgres.public.users+3+0000098523.snappy.parquet
+2025-10-01 11:28:19      23204 postgres.public.users+3+0000099523.snappy.parquet
+2025-10-01 11:28:21      23192 postgres.public.users+3+0000100523.snappy.parquet
+2025-10-01 11:28:22      23232 postgres.public.users+3+0000101523.snappy.parquet
+2025-10-01 11:28:23      22967 postgres.public.users+3+0000102523.snappy.parquet
+2025-10-01 11:28:25      23079 postgres.public.users+3+0000103523.snappy.parquet
+2025-10-01 11:28:26      23106 postgres.public.users+3+0000104523.snappy.parquet
+2025-10-01 11:28:27      23030 postgres.public.users+3+0000105523.snappy.parquet
+2025-10-01 11:28:30      23143 postgres.public.users+3+0000106523.snappy.parquet
+2025-10-01 11:28:31      23070 postgres.public.users+3+0000107523.snappy.parquet
+2025-10-01 11:28:32      23226 postgres.public.users+3+0000108523.snappy.parquet
+2025-10-01 11:28:33      23094 postgres.public.users+3+0000109523.snappy.parquet
+2025-10-01 11:28:35      23062 postgres.public.users+3+0000110523.snappy.parquet
+2025-10-01 11:28:36      23110 postgres.public.users+3+0000111523.snappy.parquet
+2025-10-01 11:28:38      23125 postgres.public.users+3+0000112523.snappy.parquet
+2025-10-01 11:28:40      23039 postgres.public.users+3+0000113523.snappy.parquet
+2025-10-01 11:28:41      22929 postgres.public.users+3+0000114523.snappy.parquet
+2025-10-01 11:28:42      22967 postgres.public.users+3+0000115523.snappy.parquet
+2025-10-01 11:28:43      23094 postgres.public.users+3+0000116523.snappy.parquet
+2025-10-01 11:28:45      23043 postgres.public.users+3+0000117523.snappy.parquet
+2025-10-01 11:28:47      23172 postgres.public.users+3+0000118523.snappy.parquet
+2025-10-01 11:28:48      22988 postgres.public.users+3+0000119523.snappy.parquet
+2025-10-01 11:28:49      23306 postgres.public.users+3+0000120523.snappy.parquet
+2025-10-01 11:28:51      23277 postgres.public.users+3+0000121523.snappy.parquet
+2025-10-01 11:28:52      23083 postgres.public.users+3+0000122523.snappy.parquet
+2025-10-01 11:33:56      19762 postgres.public.users+3+0000123523.snappy.parquet
+2025-10-01 11:23:55      29927 postgres.public.users+4+0000000000.snappy.parquet
+2025-10-01 11:25:54      15035 postgres.public.users+4+0000001000.snappy.parquet
+2025-10-01 11:25:55      24117 postgres.public.users+4+0000001449.snappy.parquet
+2025-10-01 11:25:57      24080 postgres.public.users+4+0000002449.snappy.parquet
+2025-10-01 11:25:58      23633 postgres.public.users+4+0000003449.snappy.parquet
+2025-10-01 11:26:00      23636 postgres.public.users+4+0000004449.snappy.parquet
+2025-10-01 11:26:01      23294 postgres.public.users+4+0000005449.snappy.parquet
+2025-10-01 11:26:02      23188 postgres.public.users+4+0000006449.snappy.parquet
+2025-10-01 11:26:04      23324 postgres.public.users+4+0000007449.snappy.parquet
+2025-10-01 11:26:05      23190 postgres.public.users+4+0000008449.snappy.parquet
+2025-10-01 11:26:07      23224 postgres.public.users+4+0000009449.snappy.parquet
+2025-10-01 11:26:08      23308 postgres.public.users+4+0000010449.snappy.parquet
+2025-10-01 11:26:10      23389 postgres.public.users+4+0000011449.snappy.parquet
+2025-10-01 11:26:11      23466 postgres.public.users+4+0000012449.snappy.parquet
+2025-10-01 11:26:13      23467 postgres.public.users+4+0000013449.snappy.parquet
+2025-10-01 11:26:14      23359 postgres.public.users+4+0000014449.snappy.parquet
+2025-10-01 11:26:16      23195 postgres.public.users+4+0000015449.snappy.parquet
+2025-10-01 11:26:17      23450 postgres.public.users+4+0000016449.snappy.parquet
+2025-10-01 11:26:19      23233 postgres.public.users+4+0000017449.snappy.parquet
+2025-10-01 11:26:20      23194 postgres.public.users+4+0000018449.snappy.parquet
+2025-10-01 11:26:21      23202 postgres.public.users+4+0000019449.snappy.parquet
+2025-10-01 11:26:23      23286 postgres.public.users+4+0000020449.snappy.parquet
+2025-10-01 11:26:24      23029 postgres.public.users+4+0000021449.snappy.parquet
+2025-10-01 11:26:26      23148 postgres.public.users+4+0000022449.snappy.parquet
+2025-10-01 11:26:27      23385 postgres.public.users+4+0000023449.snappy.parquet
+2025-10-01 11:26:29      23036 postgres.public.users+4+0000024449.snappy.parquet
+2025-10-01 11:26:30      23117 postgres.public.users+4+0000025449.snappy.parquet
+2025-10-01 11:26:31      23374 postgres.public.users+4+0000026449.snappy.parquet
+2025-10-01 11:26:33      23319 postgres.public.users+4+0000027449.snappy.parquet
+2025-10-01 11:26:34      23266 postgres.public.users+4+0000028449.snappy.parquet
+2025-10-01 11:26:36      23283 postgres.public.users+4+0000029449.snappy.parquet
+2025-10-01 11:26:38      23020 postgres.public.users+4+0000030449.snappy.parquet
+2025-10-01 11:26:39      23330 postgres.public.users+4+0000031449.snappy.parquet
+2025-10-01 11:26:41      23413 postgres.public.users+4+0000032449.snappy.parquet
+2025-10-01 11:26:42      23549 postgres.public.users+4+0000033449.snappy.parquet
+2025-10-01 11:26:44      23169 postgres.public.users+4+0000034449.snappy.parquet
+2025-10-01 11:26:45      23178 postgres.public.users+4+0000035449.snappy.parquet
+2025-10-01 11:26:46      23221 postgres.public.users+4+0000036449.snappy.parquet
+2025-10-01 11:26:47      23260 postgres.public.users+4+0000037449.snappy.parquet
+2025-10-01 11:26:50      23158 postgres.public.users+4+0000038449.snappy.parquet
+2025-10-01 11:26:51      23028 postgres.public.users+4+0000039449.snappy.parquet
+2025-10-01 11:26:52      23076 postgres.public.users+4+0000040449.snappy.parquet
+2025-10-01 11:26:53      23309 postgres.public.users+4+0000041449.snappy.parquet
+2025-10-01 11:26:55      22913 postgres.public.users+4+0000042449.snappy.parquet
+2025-10-01 11:26:56      22958 postgres.public.users+4+0000043449.snappy.parquet
+2025-10-01 11:26:58      23167 postgres.public.users+4+0000044449.snappy.parquet
+2025-10-01 11:26:59      23095 postgres.public.users+4+0000045449.snappy.parquet
+2025-10-01 11:27:01      23350 postgres.public.users+4+0000046449.snappy.parquet
+2025-10-01 11:27:02      22977 postgres.public.users+4+0000047449.snappy.parquet
+2025-10-01 11:27:04      23043 postgres.public.users+4+0000048449.snappy.parquet
+2025-10-01 11:27:05      22955 postgres.public.users+4+0000049449.snappy.parquet
+2025-10-01 11:27:06      23159 postgres.public.users+4+0000050449.snappy.parquet
+2025-10-01 11:27:08      23140 postgres.public.users+4+0000051449.snappy.parquet
+2025-10-01 11:27:10      23236 postgres.public.users+4+0000052449.snappy.parquet
+2025-10-01 11:27:11      23043 postgres.public.users+4+0000053449.snappy.parquet
+2025-10-01 11:27:12      23211 postgres.public.users+4+0000054449.snappy.parquet
+2025-10-01 11:27:13      23081 postgres.public.users+4+0000055449.snappy.parquet
+2025-10-01 11:27:16      23122 postgres.public.users+4+0000056449.snappy.parquet
+2025-10-01 11:27:17      23014 postgres.public.users+4+0000057449.snappy.parquet
+2025-10-01 11:27:18      22981 postgres.public.users+4+0000058449.snappy.parquet
+2025-10-01 11:27:19      22987 postgres.public.users+4+0000059449.snappy.parquet
+2025-10-01 11:27:21      23195 postgres.public.users+4+0000060449.snappy.parquet
+2025-10-01 11:27:23      23035 postgres.public.users+4+0000061449.snappy.parquet
+2025-10-01 11:27:24      23288 postgres.public.users+4+0000062449.snappy.parquet
+2025-10-01 11:27:25      23032 postgres.public.users+4+0000063449.snappy.parquet
+2025-10-01 11:27:27      23013 postgres.public.users+4+0000064449.snappy.parquet
+2025-10-01 11:27:28      22960 postgres.public.users+4+0000065449.snappy.parquet
+2025-10-01 11:27:30      22901 postgres.public.users+4+0000066449.snappy.parquet
+2025-10-01 11:27:31      23186 postgres.public.users+4+0000067449.snappy.parquet
+2025-10-01 11:27:32      23062 postgres.public.users+4+0000068449.snappy.parquet
+2025-10-01 11:27:34      23231 postgres.public.users+4+0000069449.snappy.parquet
+2025-10-01 11:27:35      23032 postgres.public.users+4+0000070449.snappy.parquet
+2025-10-01 11:27:37      23249 postgres.public.users+4+0000071449.snappy.parquet
+2025-10-01 11:27:38      22995 postgres.public.users+4+0000072449.snappy.parquet
+2025-10-01 11:27:40      23247 postgres.public.users+4+0000073449.snappy.parquet
+2025-10-01 11:27:41      23276 postgres.public.users+4+0000074449.snappy.parquet
+2025-10-01 11:27:42      23063 postgres.public.users+4+0000075449.snappy.parquet
+2025-10-01 11:27:45      23221 postgres.public.users+4+0000076449.snappy.parquet
+2025-10-01 11:27:46      23225 postgres.public.users+4+0000077449.snappy.parquet
+2025-10-01 11:27:47      22966 postgres.public.users+4+0000078449.snappy.parquet
+2025-10-01 11:27:48      23024 postgres.public.users+4+0000079449.snappy.parquet
+2025-10-01 11:27:51      23386 postgres.public.users+4+0000080449.snappy.parquet
+2025-10-01 11:27:52      22990 postgres.public.users+4+0000081449.snappy.parquet
+2025-10-01 11:27:53      22998 postgres.public.users+4+0000082449.snappy.parquet
+2025-10-01 11:27:54      23071 postgres.public.users+4+0000083449.snappy.parquet
+2025-10-01 11:27:56      23205 postgres.public.users+4+0000084449.snappy.parquet
+2025-10-01 11:27:57      23047 postgres.public.users+4+0000085449.snappy.parquet
+2025-10-01 11:27:59      23221 postgres.public.users+4+0000086449.snappy.parquet
+2025-10-01 11:28:01      23155 postgres.public.users+4+0000087449.snappy.parquet
+2025-10-01 11:28:02      22985 postgres.public.users+4+0000088449.snappy.parquet
+2025-10-01 11:28:03      22975 postgres.public.users+4+0000089449.snappy.parquet
+2025-10-01 11:28:04      23187 postgres.public.users+4+0000090449.snappy.parquet
+2025-10-01 11:28:06      23264 postgres.public.users+4+0000091449.snappy.parquet
+2025-10-01 11:28:08      23052 postgres.public.users+4+0000092449.snappy.parquet
+2025-10-01 11:28:09      23098 postgres.public.users+4+0000093449.snappy.parquet
+2025-10-01 11:28:10      23066 postgres.public.users+4+0000094449.snappy.parquet
+2025-10-01 11:28:12      23156 postgres.public.users+4+0000095449.snappy.parquet
+2025-10-01 11:28:14      23340 postgres.public.users+4+0000096449.snappy.parquet
+2025-10-01 11:28:15      23091 postgres.public.users+4+0000097449.snappy.parquet
+2025-10-01 11:28:16      23014 postgres.public.users+4+0000098449.snappy.parquet
+2025-10-01 11:28:18      23142 postgres.public.users+4+0000099449.snappy.parquet
+2025-10-01 11:28:19      23180 postgres.public.users+4+0000100449.snappy.parquet
+2025-10-01 11:28:21      23179 postgres.public.users+4+0000101449.snappy.parquet
+2025-10-01 11:28:22      22806 postgres.public.users+4+0000102449.snappy.parquet
+2025-10-01 11:28:24      23193 postgres.public.users+4+0000103449.snappy.parquet
+2025-10-01 11:28:25      23212 postgres.public.users+4+0000104449.snappy.parquet
+2025-10-01 11:28:26      23194 postgres.public.users+4+0000105449.snappy.parquet
+2025-10-01 11:28:27      23051 postgres.public.users+4+0000106449.snappy.parquet
+2025-10-01 11:28:30      23202 postgres.public.users+4+0000107449.snappy.parquet
+2025-10-01 11:28:31      23178 postgres.public.users+4+0000108449.snappy.parquet
+2025-10-01 11:28:32      23173 postgres.public.users+4+0000109449.snappy.parquet
+2025-10-01 11:28:34      23067 postgres.public.users+4+0000110449.snappy.parquet
+2025-10-01 11:28:35      23204 postgres.public.users+4+0000111449.snappy.parquet
+2025-10-01 11:28:36      23060 postgres.public.users+4+0000112449.snappy.parquet
+2025-10-01 11:28:39      23143 postgres.public.users+4+0000113449.snappy.parquet
+2025-10-01 11:28:40      23066 postgres.public.users+4+0000114449.snappy.parquet
+2025-10-01 11:28:41      23001 postgres.public.users+4+0000115449.snappy.parquet
+2025-10-01 11:28:42      22985 postgres.public.users+4+0000116449.snappy.parquet
+2025-10-01 11:28:44      23129 postgres.public.users+4+0000117449.snappy.parquet
+2025-10-01 11:28:46      23041 postgres.public.users+4+0000118449.snappy.parquet
+2025-10-01 11:28:47      23269 postgres.public.users+4+0000119449.snappy.parquet
+2025-10-01 11:28:48      23047 postgres.public.users+4+0000120449.snappy.parquet
+2025-10-01 11:28:50      23004 postgres.public.users+4+0000121449.snappy.parquet
+2025-10-01 11:28:51      22989 postgres.public.users+4+0000122449.snappy.parquet
+2025-10-01 11:28:52      22877 postgres.public.users+4+0000123449.snappy.parquet
+2025-10-01 11:46:16      18344 postgres.public.users+4+0000124449.snappy.parquet
+2025-10-01 11:47:41       3562 postgres.public.users+4+0000125195.snappy.parquet
+2025-10-01 11:23:55      29824 postgres.public.users+5+0000000000.snappy.parquet
+2025-10-01 11:25:54      16233 postgres.public.users+5+0000001000.snappy.parquet
+2025-10-01 11:25:55      24522 postgres.public.users+5+0000001498.snappy.parquet
+2025-10-01 11:25:57      24012 postgres.public.users+5+0000002498.snappy.parquet
+2025-10-01 11:25:58      23630 postgres.public.users+5+0000003498.snappy.parquet
+2025-10-01 11:26:00      23722 postgres.public.users+5+0000004498.snappy.parquet
+2025-10-01 11:26:01      23384 postgres.public.users+5+0000005498.snappy.parquet
+2025-10-01 11:26:02      23278 postgres.public.users+5+0000006498.snappy.parquet
+2025-10-01 11:26:04      23379 postgres.public.users+5+0000007498.snappy.parquet
+2025-10-01 11:26:05      23279 postgres.public.users+5+0000008498.snappy.parquet
+2025-10-01 11:26:07      23305 postgres.public.users+5+0000009498.snappy.parquet
+2025-10-01 11:26:08      23404 postgres.public.users+5+0000010498.snappy.parquet
+2025-10-01 11:26:10      23393 postgres.public.users+5+0000011498.snappy.parquet
+2025-10-01 11:26:11      23382 postgres.public.users+5+0000012498.snappy.parquet
+2025-10-01 11:26:13      23569 postgres.public.users+5+0000013498.snappy.parquet
+2025-10-01 11:26:14      23205 postgres.public.users+5+0000014498.snappy.parquet
+2025-10-01 11:26:16      23258 postgres.public.users+5+0000015498.snappy.parquet
+2025-10-01 11:26:17      23447 postgres.public.users+5+0000016498.snappy.parquet
+2025-10-01 11:26:19      23265 postgres.public.users+5+0000017498.snappy.parquet
+2025-10-01 11:26:20      23306 postgres.public.users+5+0000018498.snappy.parquet
+2025-10-01 11:26:22      23095 postgres.public.users+5+0000019498.snappy.parquet
+2025-10-01 11:26:23      23259 postgres.public.users+5+0000020498.snappy.parquet
+2025-10-01 11:26:25      23154 postgres.public.users+5+0000021498.snappy.parquet
+2025-10-01 11:26:26      23103 postgres.public.users+5+0000022498.snappy.parquet
+2025-10-01 11:26:28      23115 postgres.public.users+5+0000023498.snappy.parquet
+2025-10-01 11:26:29      23120 postgres.public.users+5+0000024498.snappy.parquet
+2025-10-01 11:26:30      23125 postgres.public.users+5+0000025498.snappy.parquet
+2025-10-01 11:26:31      23356 postgres.public.users+5+0000026498.snappy.parquet
+2025-10-01 11:26:33      23416 postgres.public.users+5+0000027498.snappy.parquet
+2025-10-01 11:26:34      23395 postgres.public.users+5+0000028498.snappy.parquet
+2025-10-01 11:26:37      23143 postgres.public.users+5+0000029498.snappy.parquet
+2025-10-01 11:26:38      23325 postgres.public.users+5+0000030498.snappy.parquet
+2025-10-01 11:26:39      23346 postgres.public.users+5+0000031498.snappy.parquet
+2025-10-01 11:26:41      23248 postgres.public.users+5+0000032498.snappy.parquet
+2025-10-01 11:26:42      23445 postgres.public.users+5+0000033498.snappy.parquet
+2025-10-01 11:26:43      23240 postgres.public.users+5+0000034498.snappy.parquet
+2025-10-01 11:26:45      23215 postgres.public.users+5+0000035498.snappy.parquet
+2025-10-01 11:26:46      23288 postgres.public.users+5+0000036498.snappy.parquet
+2025-10-01 11:26:48      23152 postgres.public.users+5+0000037498.snappy.parquet
+2025-10-01 11:26:50      23128 postgres.public.users+5+0000038498.snappy.parquet
+2025-10-01 11:26:51      23274 postgres.public.users+5+0000039498.snappy.parquet
+2025-10-01 11:26:52      23158 postgres.public.users+5+0000040498.snappy.parquet
+2025-10-01 11:26:54      23371 postgres.public.users+5+0000041498.snappy.parquet
+2025-10-01 11:26:56      23289 postgres.public.users+5+0000042498.snappy.parquet
+2025-10-01 11:26:57      22985 postgres.public.users+5+0000043498.snappy.parquet
+2025-10-01 11:26:58      23091 postgres.public.users+5+0000044498.snappy.parquet
+2025-10-01 11:26:59      23206 postgres.public.users+5+0000045498.snappy.parquet
+2025-10-01 11:27:02      23088 postgres.public.users+5+0000046498.snappy.parquet
+2025-10-01 11:27:03      23282 postgres.public.users+5+0000047498.snappy.parquet
+2025-10-01 11:27:04      22896 postgres.public.users+5+0000048498.snappy.parquet
+2025-10-01 11:27:05      23107 postgres.public.users+5+0000049498.snappy.parquet
+2025-10-01 11:27:07      23120 postgres.public.users+5+0000050498.snappy.parquet
+2025-10-01 11:27:09      23197 postgres.public.users+5+0000051498.snappy.parquet
+2025-10-01 11:27:10      23290 postgres.public.users+5+0000052498.snappy.parquet
+2025-10-01 11:27:11      23013 postgres.public.users+5+0000053498.snappy.parquet
+2025-10-01 11:27:13      23085 postgres.public.users+5+0000054498.snappy.parquet
+2025-10-01 11:27:15      23261 postgres.public.users+5+0000055498.snappy.parquet
+2025-10-01 11:27:16      23184 postgres.public.users+5+0000056498.snappy.parquet
+2025-10-01 11:27:17      23063 postgres.public.users+5+0000057498.snappy.parquet
+2025-10-01 11:27:19      23226 postgres.public.users+5+0000058498.snappy.parquet
+2025-10-01 11:27:20      23327 postgres.public.users+5+0000059498.snappy.parquet
+2025-10-01 11:27:22      23331 postgres.public.users+5+0000060498.snappy.parquet
+2025-10-01 11:27:24      23028 postgres.public.users+5+0000061498.snappy.parquet
+2025-10-01 11:27:25      23149 postgres.public.users+5+0000062498.snappy.parquet
+2025-10-01 11:27:26      23362 postgres.public.users+5+0000063498.snappy.parquet
+2025-10-01 11:27:28      23319 postgres.public.users+5+0000064498.snappy.parquet
+2025-10-01 11:27:30      23178 postgres.public.users+5+0000065498.snappy.parquet
+2025-10-01 11:27:31      23282 postgres.public.users+5+0000066498.snappy.parquet
+2025-10-01 11:27:32      23256 postgres.public.users+5+0000067498.snappy.parquet
+2025-10-01 11:27:34      23103 postgres.public.users+5+0000068498.snappy.parquet
+2025-10-01 11:27:35      23113 postgres.public.users+5+0000069498.snappy.parquet
+2025-10-01 11:27:37      23139 postgres.public.users+5+0000070498.snappy.parquet
+2025-10-01 11:27:38      23035 postgres.public.users+5+0000071498.snappy.parquet
+2025-10-01 11:27:40      23262 postgres.public.users+5+0000072498.snappy.parquet
+2025-10-01 11:27:41      23148 postgres.public.users+5+0000073498.snappy.parquet
+2025-10-01 11:27:42      23184 postgres.public.users+5+0000074498.snappy.parquet
+2025-10-01 11:27:44      23045 postgres.public.users+5+0000075498.snappy.parquet
+2025-10-01 11:27:46      23057 postgres.public.users+5+0000076498.snappy.parquet
+2025-10-01 11:27:47      23347 postgres.public.users+5+0000077498.snappy.parquet
+2025-10-01 11:27:48      23074 postgres.public.users+5+0000078498.snappy.parquet
+2025-10-01 11:27:50      23216 postgres.public.users+5+0000079498.snappy.parquet
+2025-10-01 11:27:52      23056 postgres.public.users+5+0000080498.snappy.parquet
+2025-10-01 11:27:53      23042 postgres.public.users+5+0000081498.snappy.parquet
+2025-10-01 11:27:54      23114 postgres.public.users+5+0000082498.snappy.parquet
+2025-10-01 11:27:55      22930 postgres.public.users+5+0000083498.snappy.parquet
+2025-10-01 11:27:57      23077 postgres.public.users+5+0000084498.snappy.parquet
+2025-10-01 11:27:59      23193 postgres.public.users+5+0000085498.snappy.parquet
+2025-10-01 11:28:00      23088 postgres.public.users+5+0000086498.snappy.parquet
+2025-10-01 11:28:02      23388 postgres.public.users+5+0000087498.snappy.parquet
+2025-10-01 11:28:03      22932 postgres.public.users+5+0000088498.snappy.parquet
+2025-10-01 11:28:04      23087 postgres.public.users+5+0000089498.snappy.parquet
+2025-10-01 11:28:06      23270 postgres.public.users+5+0000090498.snappy.parquet
+2025-10-01 11:28:08      22982 postgres.public.users+5+0000091498.snappy.parquet
+2025-10-01 11:28:09      23153 postgres.public.users+5+0000092498.snappy.parquet
+2025-10-01 11:28:10      23214 postgres.public.users+5+0000093498.snappy.parquet
+2025-10-01 11:28:12      23330 postgres.public.users+5+0000094498.snappy.parquet
+2025-10-01 11:28:14      22975 postgres.public.users+5+0000095498.snappy.parquet
+2025-10-01 11:28:15      23195 postgres.public.users+5+0000096498.snappy.parquet
+2025-10-01 11:28:16      23113 postgres.public.users+5+0000097498.snappy.parquet
+2025-10-01 11:28:18      22989 postgres.public.users+5+0000098498.snappy.parquet
+2025-10-01 11:28:19      23153 postgres.public.users+5+0000099498.snappy.parquet
+2025-10-01 11:28:21      23103 postgres.public.users+5+0000100498.snappy.parquet
+2025-10-01 11:28:22      23087 postgres.public.users+5+0000101498.snappy.parquet
+2025-10-01 11:28:24      23126 postgres.public.users+5+0000102498.snappy.parquet
+2025-10-01 11:28:25      23158 postgres.public.users+5+0000103498.snappy.parquet
+2025-10-01 11:28:26      23123 postgres.public.users+5+0000104498.snappy.parquet
+2025-10-01 11:28:28      23111 postgres.public.users+5+0000105498.snappy.parquet
+2025-10-01 11:28:30      23166 postgres.public.users+5+0000106498.snappy.parquet
+2025-10-01 11:28:31      23090 postgres.public.users+5+0000107498.snappy.parquet
+2025-10-01 11:28:32      22928 postgres.public.users+5+0000108498.snappy.parquet
+2025-10-01 11:28:34      23087 postgres.public.users+5+0000109498.snappy.parquet
+2025-10-01 11:28:35      23180 postgres.public.users+5+0000110498.snappy.parquet
+2025-10-01 11:28:36      23076 postgres.public.users+5+0000111498.snappy.parquet
+2025-10-01 11:28:39      23045 postgres.public.users+5+0000112498.snappy.parquet
+2025-10-01 11:28:40      23065 postgres.public.users+5+0000113498.snappy.parquet
+2025-10-01 11:28:41      23241 postgres.public.users+5+0000114498.snappy.parquet
+2025-10-01 11:28:43      23248 postgres.public.users+5+0000115498.snappy.parquet
+2025-10-01 11:28:44      22984 postgres.public.users+5+0000116498.snappy.parquet
+2025-10-01 11:28:46      23222 postgres.public.users+5+0000117498.snappy.parquet
+2025-10-01 11:28:48      23226 postgres.public.users+5+0000118498.snappy.parquet
+2025-10-01 11:28:49      23114 postgres.public.users+5+0000119498.snappy.parquet
+2025-10-01 11:28:50      23099 postgres.public.users+5+0000120498.snappy.parquet
+2025-10-01 11:28:51      23050 postgres.public.users+5+0000121498.snappy.parquet
+2025-10-01 11:28:53      23408 postgres.public.users+5+0000122498.snappy.parquet
+[2025-10-01 11:52:47] Task 10 Validate: Validating Parquet file structure...
+[2025-10-01 11:52:48] Task 10 Validate: Found Parquet file: postgres.public.users+0+0000000000.snappy.parquet
+[2025-10-01 11:52:48] Task 10 Validate: Parquet file location: /topics/postgres.public.users/year=2025/month=10/day=01/hour=15/postgres.public.users+0+0000000000.snappy.parquet
+[2025-10-01 11:52:50] Task 10 Validate: ✅ Parquet file has valid size: 29744 bytes
+[2025-10-01 11:52:50] Task 10 Validate: Validating time-based partitioning structure...
+[2025-10-01 11:52:51] Task 10 Validate: ✅ Time-based partitioning structure found:
                            PRE year=2025/
-[2025-09-29 02:42:46] Task 10 Validate: Checking connector metrics and performance...
-[2025-09-29 02:42:46] Task 10 Validate: Connector metrics:
+[2025-10-01 11:52:51] Task 10 Validate: Checking connector metrics and performance...
+[2025-10-01 11:52:51] Task 10 Validate: Connector metrics:
 {
   "name": "s3-sink-connector",
   "connector": {
@@ -194,28 +942,28 @@ INSERT 0 1
   ],
   "type": "sink"
 }
-[2025-09-29 02:42:46] Task 10 Validate: ✅ No failed tasks found
-[2025-09-29 02:42:47] Task 10 Validate: Checking dead letter queue for errors...
-[2025-09-29 02:42:50] Task 10 Validate: DLQ message count: 0
-[2025-09-29 02:42:50] Task 10 Validate: ✅ No messages in dead letter queue
-[2025-09-29 02:42:50] Task 10 Validate: Checking resource usage...
-kafka-0                           19m   486Mi   
-kafka-1                           19m   486Mi   
-kafka-2                           23m   422Mi   
-kafka-connect-5487669d97-gkh6g    40m   693Mi   
-postgresql-0                      8m    56Mi    
-schema-registry-7996d6869-8bqg7   8m    243Mi   
-[2025-09-29 02:42:51] Task 10 Validate: ✅ Resource usage information retrieved
-[2025-09-29 02:42:51] Task 10 Validate: === S3 Archival Validation Complete ===
-[2025-09-29 02:42:51] Task 10 Validate: 
-[2025-09-29 02:42:51] Task 10 Validate: Summary:
-[2025-09-29 02:42:51] Task 10 Validate: - S3 Sink connector status: ✅ PASSED
-[2025-09-29 02:42:51] Task 10 Validate: - S3 bucket accessibility: Validated
-[2025-09-29 02:42:51] Task 10 Validate: - Data flow to S3: Tested
-[2025-09-29 02:42:51] Task 10 Validate: - Parquet file structure: Validated
-[2025-09-29 02:42:51] Task 10 Validate: - Time-based partitioning: Verified
-[2025-09-29 02:42:51] Task 10 Validate: - Error handling (DLQ): Checked
-[2025-09-29 02:42:51] Task 10 Validate: 
-[2025-09-29 02:42:51] Task 10 Validate: ✅ All validation tests passed - Task 10 is complete!
-[2025-09-29 02:42:51] Task 10 Validate: ✅ S3 archival is operational with Parquet format and time-based partitioning
-[2025-09-29 02:42:51] Task 10 Validate: Stopping background resource monitoring
+[2025-10-01 11:52:52] Task 10 Validate: ✅ No failed tasks found
+[2025-10-01 11:52:52] Task 10 Validate: Checking dead letter queue for errors...
+[2025-10-01 11:52:55] Task 10 Validate: DLQ message count: 0
+[2025-10-01 11:52:55] Task 10 Validate: ✅ No messages in dead letter queue
+[2025-10-01 11:52:55] Task 10 Validate: Checking resource usage...
+kafka-0                           23m   499Mi   
+kafka-1                           24m   483Mi   
+kafka-2                           26m   434Mi   
+kafka-connect-5487669d97-gtm5c    40m   751Mi   
+postgresql-0                      6m    56Mi    
+schema-registry-7996d6869-mn9bj   8m    257Mi   
+[2025-10-01 11:52:56] Task 10 Validate: ✅ Resource usage information retrieved
+[2025-10-01 11:52:56] Task 10 Validate: === S3 Archival Validation Complete ===
+[2025-10-01 11:52:56] Task 10 Validate: 
+[2025-10-01 11:52:56] Task 10 Validate: Summary:
+[2025-10-01 11:52:56] Task 10 Validate: - S3 Sink connector status: ✅ PASSED
+[2025-10-01 11:52:56] Task 10 Validate: - S3 bucket accessibility: Validated
+[2025-10-01 11:52:56] Task 10 Validate: - Data flow to S3: Tested
+[2025-10-01 11:52:56] Task 10 Validate: - Parquet file structure: Validated
+[2025-10-01 11:52:56] Task 10 Validate: - Time-based partitioning: Verified
+[2025-10-01 11:52:56] Task 10 Validate: - Error handling (DLQ): Checked
+[2025-10-01 11:52:56] Task 10 Validate: 
+[2025-10-01 11:52:56] Task 10 Validate: ✅ All validation tests passed - Task 10 is complete!
+[2025-10-01 11:52:56] Task 10 Validate: ✅ S3 archival is operational with Parquet format and time-based partitioning
+[2025-10-01 11:52:56] Task 10 Validate: Stopping background resource monitoring
