@@ -5,6 +5,8 @@
 
 set -e
 
+readonly NAMESPACE="batch-analytics"
+
 echo "🚀 Setting up Batch Analytics Layer Kind cluster..."
 
 # Check if Kind is installed
@@ -14,9 +16,9 @@ if ! command -v kind &> /dev/null; then
     exit 1
 fi
 
-# Check if kubectl --context "kind-$NAMESPACE" is installed
-if ! command -v kubectl --context "kind-$NAMESPACE" &> /dev/null; then
-    echo "❌ kubectl --context "kind-$NAMESPACE" is not installed. Please install kubectl --context "kind-$NAMESPACE" first."
+# Check if kubectl is installed
+if ! command -v kubectl &> /dev/null; then
+    echo "❌ kubectl is not installed. Please install kubectl first."
     exit 1
 fi
 
@@ -85,6 +87,6 @@ echo "  2. Configure AWS S3 access (Task 3)"
 echo "  3. Set up Snowflake connection (Task 4)"
 echo ""
 echo "🔧 Useful Commands:"
-echo "  kubectl --context "kind-$NAMESPACE" get all -n batch-analytics"
-echo "  kubectl --context "kind-$NAMESPACE" logs -n batch-analytics <pod-name>"
+echo "  kubectl --context \"kind-$NAMESPACE\" get all -n batch-analytics"
+echo "  kubectl --context \"kind-$NAMESPACE\" logs -n batch-analytics <pod-name>"
 echo "  kind delete cluster --name batch-analytics"

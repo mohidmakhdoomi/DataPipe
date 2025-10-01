@@ -5,6 +5,8 @@
 
 set -e
 
+readonly NAMESPACE="batch-analytics"
+
 echo "🔍 Verifying Batch Analytics Layer cluster configuration..."
 
 # Check if cluster exists and is accessible
