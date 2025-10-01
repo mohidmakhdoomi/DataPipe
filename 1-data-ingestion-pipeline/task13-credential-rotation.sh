@@ -14,14 +14,21 @@
 
 set -euo pipefail
 
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Configuration
-NAMESPACE="data-ingestion"
-POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
-KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
-SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
-LOG_FILE="/tmp/task13-rotation-$(date +%Y%m%d-%H%M%S).log"
+readonly NAMESPACE="data-ingestion"
+readonly POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
+readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
+readonly SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
+readonly LOG_FILE="${LOG_DIR}/task13-rotation-$(date +%Y%m%d-%H%M%S).log"
 readonly SCHEMA_AUTH_USER="admin"
 SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.admin-password' | base64 -d)
+
+# Ensure log directory exists
+mkdir -p "${LOG_DIR}"
 
 # Colors for output
 RED='\033[0;31m'

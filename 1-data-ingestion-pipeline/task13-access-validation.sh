@@ -13,6 +13,9 @@
 
 set -uo pipefail
 
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Configuration
 NAMESPACE="data-ingestion"
 POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
