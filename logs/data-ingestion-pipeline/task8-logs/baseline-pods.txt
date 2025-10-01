@@ -1,8 +1,8 @@
 NAME                              READY   STATUS      RESTARTS   AGE   IP           NODE                     NOMINATED NODE   READINESS GATES
-create-kafka-topics-mbp27         0/1     Completed   0          22m   10.244.1.7   data-ingestion-worker2   <none>           <none>
-kafka-0                           1/1     Running     0          23m   10.244.1.5   data-ingestion-worker2   <none>           <none>
-kafka-1                           1/1     Running     0          23m   10.244.1.6   data-ingestion-worker2   <none>           <none>
-kafka-2                           1/1     Running     0          23m   10.244.2.5   data-ingestion-worker    <none>           <none>
-kafka-connect-5487669d97-jc87c    1/1     Running     0          19m   10.244.1.9   data-ingestion-worker2   <none>           <none>
-postgresql-0                      1/1     Running     0          24m   10.244.2.3   data-ingestion-worker    <none>           <none>
-schema-registry-7996d6869-2bhff   1/1     Running     0          21m   10.244.1.8   data-ingestion-worker2   <none>           <none>
+create-kafka-topics-p9ptm         0/1     Completed   0          22m   10.244.2.7   data-ingestion-worker2   <none>           <none>
+kafka-0                           1/1     Running     0          23m   10.244.2.5   data-ingestion-worker2   <none>           <none>
+kafka-1                           1/1     Running     0          23m   10.244.2.6   data-ingestion-worker2   <none>           <none>
+kafka-2                           1/1     Running     0          23m   10.244.1.5   data-ingestion-worker    <none>           <none>
+kafka-connect-5487669d97-mkmlp    1/1     Running     0          19m   10.244.2.9   data-ingestion-worker2   <none>           <none>
+postgresql-0                      1/1     Running     0          24m   10.244.1.3   data-ingestion-worker    <none>           <none>
+schema-registry-7996d6869-88ww7   1/1     Running     0          21m   10.244.2.8   data-ingestion-worker2   <none>           <none>
