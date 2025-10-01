@@ -1,0 +1,18 @@
+[2025-10-01 13:32:47] Batch Deployment: ========== Starting Batch Analytics Pipeline deployment ==========
+[2025-10-01 13:32:47] Batch Deployment: Deleting existing cluster if needed
+[2025-10-01 13:32:50] Batch Deployment: Creating cluster using batch-kind-config.yaml
+[2025-10-01 13:33:15] Batch Deployment: Checking if metrics-server is available...
+[2025-10-01 13:33:15] Batch Deployment: ⚠️   Metrics-server is not available
+[2025-10-01 13:33:15] Batch Deployment: Installing metrics-server...
+[2025-10-01 13:33:16] Batch Deployment: Metrics-server installation initiated
+[2025-10-01 13:33:16] Batch Deployment: Waiting for metrics-server to be ready...
+[2025-10-01 13:33:51] Batch Deployment: Metrics-server is ready
+[2025-10-01 13:33:51] Batch Deployment: Waiting for metrics to be available...
+[2025-10-01 13:34:01] Batch Deployment: ✅ Metrics are now available
+[2025-10-01 13:34:01] Batch Deployment: Starting background resource monitoring
+[2025-10-01 13:34:01] Batch Deployment: Applying batch-01-namespace.yaml
+[2025-10-01 13:34:01] Batch Deployment: Applying batch-02-service-accounts.yaml
+[2025-10-01 13:34:02] Batch Deployment: Applying batch-storage-classes.yaml
+[2025-10-01 13:34:02] Batch Deployment: Applying batch-pvcs.yaml
+[2025-10-01 13:34:02] Batch Deployment: Stopping background resource monitoring
+[2025-10-01 13:34:02] Batch Deployment: ========== SUCCESS - Batch Analytics Pipeline deployment completed ==========
