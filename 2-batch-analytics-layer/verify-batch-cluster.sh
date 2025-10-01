@@ -11,8 +11,8 @@ echo "🔍 Verifying Batch Analytics Layer cluster configuration..."
 
 # Check if cluster exists and is accessible
 echo "1️⃣  Checking cluster connectivity..."
-if ! kubectl --context "kind-$NAMESPACE" cluster-info --context kind-batch-analytics &> /dev/null; then
-    echo "❌ Cluster 'batch-analytics' is not accessible"
+if ! kubectl cluster-info --context "kind-$NAMESPACE" &> /dev/null; then
+    echo "❌ Cluster '$NAMESPACE' is not accessible"
     exit 1
 fi
 echo "✅ Cluster is accessible"
@@ -38,15 +38,15 @@ echo "✅ Node roles configured correctly (1 control-plane, 2 workers)"
 
 # Check namespace
 echo "3️⃣  Verifying namespace configuration..."
-if ! kubectl --context "kind-$NAMESPACE" get namespace batch-analytics &> /dev/null; then
-    echo "❌ Namespace 'batch-analytics' not found"
+if ! kubectl --context "kind-$NAMESPACE" get namespace "$NAMESPACE" &> /dev/null; then
+    echo "❌ Namespace '$NAMESPACE' not found"
     exit 1
 fi
-echo "✅ Namespace 'batch-analytics' exists"
+echo "✅ Namespace '$NAMESPACE' exists"
 
 # Check resource quota
 echo "4️⃣  Verifying resource quotas..."
-MEMORY_QUOTA=$(kubectl --context "kind-$NAMESPACE" get resourcequota batch-analytics-quota -n batch-analytics -o jsonpath='{.spec.hard.requests\.memory}')
+MEMORY_QUOTA=$(kubectl --context "kind-$NAMESPACE" get resourcequota batch-analytics-quota -n "$NAMESPACE" -o jsonpath='{.spec.hard.requests\.memory}')
 if [ "$MEMORY_QUOTA" != "12Gi" ]; then
     echo "❌ Expected memory quota 12Gi, found $MEMORY_QUOTA"
     exit 1
@@ -57,7 +57,7 @@ echo "✅ Resource quota configured correctly (12Gi memory)"
 echo "5️⃣  Verifying service accounts..."
 REQUIRED_SA=("spark-operator-sa" "spark-driver-sa" "spark-executor-sa" "dbt-runner-sa")
 for sa in "${REQUIRED_SA[@]}"; do
-    if ! kubectl --context "kind-$NAMESPACE" get serviceaccount "$sa" -n batch-analytics &> /dev/null; then
+    if ! kubectl --context "kind-$NAMESPACE" get serviceaccount "$sa" -n "$NAMESPACE" &> /dev/null; then
         echo "❌ Service account '$sa' not found"
         exit 1
     fi
@@ -92,13 +92,13 @@ echo "✅ Storage classes configured correctly"
 echo "8️⃣  Verifying persistent volume claims..."
 REQUIRED_PVC=("spark-history-pvc" "spark-checkpoints-pvc" "dbt-artifacts-pvc")
 for pvc in "${REQUIRED_PVC[@]}"; do
-    PVC_STATUS=$(kubectl --context "kind-$NAMESPACE" get pvc "$pvc" -n batch-analytics -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
+    PVC_STATUS=$(kubectl --context "kind-$NAMESPACE" get pvc "$pvc" -n "$NAMESPACE" -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
     if [ "$PVC_STATUS" == "NotFound" ]; then
         echo "❌ PVC '$pvc' not found"
         exit 1
     elif [ "$PVC_STATUS" == "Pending" ]; then
         # Check if it's pending due to WaitForFirstConsumer
-        BINDING_MODE=$(kubectl --context "kind-$NAMESPACE" get pvc "$pvc" -n batch-analytics -o jsonpath='{.spec.volumeMode}' 2>/dev/null || echo "")
+        BINDING_MODE=$(kubectl --context "kind-$NAMESPACE" get pvc "$pvc" -n "$NAMESPACE" -o jsonpath='{.spec.volumeMode}' 2>/dev/null || echo "")
         echo "⏳ PVC '$pvc' is pending (WaitForFirstConsumer - will bind when pod is scheduled)"
     elif [ "$PVC_STATUS" == "Bound" ]; then
         echo "✅ PVC '$pvc' is bound"
@@ -124,7 +124,7 @@ fi
 echo "🔟 Resource Summary:"
 echo "   Nodes: $NODE_COUNT (1 control-plane, 2 workers)"
 echo "   Memory Quota: $MEMORY_QUOTA"
-echo "   Storage: $(kubectl --context "kind-$NAMESPACE" get pvc -n batch-analytics --no-headers | wc -l) PVCs bound"
+echo "   Storage: $(kubectl --context "kind-$NAMESPACE" get pvc -n "$NAMESPACE" --no-headers | wc -l) PVCs bound"
 echo "   Service Accounts: ${#REQUIRED_SA[@]} configured"
 
 echo ""
@@ -132,7 +132,7 @@ echo "🎉 Batch Analytics Layer cluster verification complete!"
 echo "✅ Cluster is ready for Spark Operator deployment (Task 2)"
 echo ""
 echo "📊 Quick Status Check:"
-kubectl --context "kind-$NAMESPACE" get all -n batch-analytics
+kubectl --context "kind-$NAMESPACE" get all -n "$NAMESPACE"
 echo ""
 echo "💾 Storage Status:"
-kubectl --context "kind-$NAMESPACE" get pvc -n batch-analytics
+kubectl --context "kind-$NAMESPACE" get pvc -n "$NAMESPACE"

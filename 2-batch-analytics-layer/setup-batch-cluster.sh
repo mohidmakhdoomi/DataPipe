@@ -24,7 +24,7 @@ fi
 
 # Delete existing cluster if it exists
 echo "🧹 Cleaning up existing cluster (if any)..."
-kind delete cluster --name batch-analytics 2>/dev/null || true
+kind delete cluster --name "$NAMESPACE" 2>/dev/null || true
 
 # Create the Kind cluster
 echo "🏗️  Creating Kind cluster for batch analytics..."
@@ -32,7 +32,7 @@ kind create cluster --config batch-kind-config.yaml --wait 300s
 
 # Verify cluster is ready
 echo "🔍 Verifying cluster status..."
-kubectl --context "kind-$NAMESPACE" cluster-info --context kind-batch-analytics
+kubectl cluster-info --context "kind-$NAMESPACE"
 
 # Check node status and resources
 echo "📊 Checking node status and resources..."
@@ -51,27 +51,27 @@ kubectl --context "kind-$NAMESPACE" apply -f batch-pvcs.yaml
 
 # Wait for PVCs to be bound
 echo "⏳ Waiting for PVCs to be ready..."
-kubectl --context "kind-$NAMESPACE" wait --for=condition=Bound pvc/spark-history-pvc -n batch-analytics --timeout=60s
-kubectl --context "kind-$NAMESPACE" wait --for=condition=Bound pvc/spark-checkpoints-pvc -n batch-analytics --timeout=60s
-kubectl --context "kind-$NAMESPACE" wait --for=condition=Bound pvc/dbt-artifacts-pvc -n batch-analytics --timeout=60s
+kubectl --context "kind-$NAMESPACE" wait --for=condition=Bound pvc/spark-history-pvc -n "$NAMESPACE" --timeout=60s
+kubectl --context "kind-$NAMESPACE" wait --for=condition=Bound pvc/spark-checkpoints-pvc -n "$NAMESPACE" --timeout=60s
+kubectl --context "kind-$NAMESPACE" wait --for=condition=Bound pvc/dbt-artifacts-pvc -n "$NAMESPACE" --timeout=60s
 
 # Verify resource quotas
 echo "📋 Verifying resource quotas..."
-kubectl --context "kind-$NAMESPACE" get resourcequota -n batch-analytics
-kubectl --context "kind-$NAMESPACE" describe resourcequota batch-analytics-quota -n batch-analytics
+kubectl --context "kind-$NAMESPACE" get resourcequota -n "$NAMESPACE"
+kubectl --context "kind-$NAMESPACE" describe resourcequota batch-analytics-quota -n "$NAMESPACE"
 
 # Check storage classes and PVCs
 echo "💿 Checking storage configuration..."
 kubectl --context "kind-$NAMESPACE" get storageclass
-kubectl --context "kind-$NAMESPACE" get pvc -n batch-analytics
+kubectl --context "kind-$NAMESPACE" get pvc -n "$NAMESPACE"
 
 # Display cluster information
 echo ""
 echo "✅ Batch Analytics Layer cluster setup complete!"
 echo ""
 echo "📊 Cluster Information:"
-echo "  Cluster Name: batch-analytics"
-echo "  Namespace: batch-analytics"
+echo "  Cluster Name: $NAMESPACE"
+echo "  Namespace: $NAMESPACE"
 echo "  Resource Allocation: 12GB RAM, 6-8 CPU"
 echo ""
 echo "🔗 Port Mappings:"
@@ -87,6 +87,6 @@ echo "  2. Configure AWS S3 access (Task 3)"
 echo "  3. Set up Snowflake connection (Task 4)"
 echo ""
 echo "🔧 Useful Commands:"
-echo "  kubectl --context \"kind-$NAMESPACE\" get all -n batch-analytics"
-echo "  kubectl --context \"kind-$NAMESPACE\" logs -n batch-analytics <pod-name>"
-echo "  kind delete cluster --name batch-analytics"
+echo "  kubectl --context \"kind-$NAMESPACE\" get all -n \"$NAMESPACE\""
+echo "  kubectl --context \"kind-$NAMESPACE\" logs -n \"$NAMESPACE\" <pod-name>"
+echo "  kind delete cluster --name $NAMESPACE"
