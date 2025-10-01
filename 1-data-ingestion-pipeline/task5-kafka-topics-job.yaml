@@ -95,10 +95,10 @@ spec:
             --config min.insync.replicas=2
           
           # Create Dead Letter Queue topics
-          echo "Creating connect-dlq topic..."
+          echo "Creating dlq topics..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create --if-not-exists \
-            --topic connect-dlq \
+            --topic connect-dlq-users \
             --partitions 3 \
             --replication-factor 3 \
             --config retention.ms=604800000 \
@@ -106,10 +106,9 @@ spec:
             --config cleanup.policy=delete \
             --config min.insync.replicas=2
           
-          echo "Creating s3-sink-dlq topic..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create --if-not-exists \
-            --topic s3-sink-dlq \
+            --topic s3-sink-dlq-users \
             --partitions 3 \
             --replication-factor 3 \
             --config retention.ms=604800000 \
@@ -117,10 +116,103 @@ spec:
             --config cleanup.policy=delete \
             --config min.insync.replicas=2
 
-          echo "Creating __debezium-heartbeat.postgres topic..."
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic connect-dlq-products \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
+          
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic s3-sink-dlq-products \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic connect-dlq-orders \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
+          
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic s3-sink-dlq-orders \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic connect-dlq-order-items \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
+          
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create --if-not-exists \
+            --topic s3-sink-dlq-order-items \
+            --partitions 3 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2
+
+          echo "Creating __debezium-heartbeat topics..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create \
-            --topic __debezium-heartbeat.postgres \
+            --topic __debezium-heartbeat-users.postgres-users \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic __debezium-heartbeat-products.postgres-products \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic __debezium-heartbeat-orders.postgres-orders \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic __debezium-heartbeat-order-items.postgres-order-items \
             --partitions 6 \
             --replication-factor 3 \
             --config retention.ms=604800000 \

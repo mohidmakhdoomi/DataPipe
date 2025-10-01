@@ -29,8 +29,16 @@ readonly CONFIG_FILES=(
 
 readonly CONN_DEPLOY_SCRIPT="task9-deploy-connector.sh"
 readonly CONN_CONFIGS=(
-    "postgres-cdc-connector:task9-debezium-connector-config.json"
-    "s3-sink-connector:task10-s3-sink-connector-config.json"
+    "postgres-cdc-users-connector:connectors/users-debezium-connector.json"
+    "postgres-cdc-products-connector:connectors/products-debezium-connector.json"
+    "postgres-cdc-orders-connector:connectors/orders-debezium-connector.json"
+    "postgres-cdc-order-items-connector:connectors/order-items-debezium-connector.json"
+    "s3-sink-users-connector:connectors/users-s3-sink-connector.json"
+    "s3-sink-products-connector:connectors/products-s3-sink-connector.json"
+    "s3-sink-orders-connector:connectors/orders-s3-sink-connector.json"
+    "s3-sink-order-items-connector:connectors/order-items-s3-sink-connector.json"
+    # "postgres-cdc-connector:task9-debezium-connector-config.json"
+    # "s3-sink-connector:task10-s3-sink-connector-config.json"
 )
 
 readonly SAMPLE_DB_FILE="sample_data_postgres.sql"
@@ -151,18 +159,18 @@ main() {
     log "Sleeping 2 mins after inserting Sample Data"
     sleep 120
 
-    export LOG_DIR="${LOG_DIR}"
+    # export LOG_DIR="${LOG_DIR}"
 
-    log "Executing Data Generator - performance benchmark..."
-    if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 180; then
-        log "✅ Data Generator completed successfully"
-    else
-        log "❌ : Data Generator failed"
-        exit_one
-    fi
+    # log "Executing Data Generator - performance benchmark..."
+    # if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 180; then
+    #     log "✅ Data Generator completed successfully"
+    # else
+    #     log "❌ : Data Generator failed"
+    #     exit_onegit 
+    # fi
 
-    log "Sleeping 2 mins after running Data Generator"
-    sleep 120
+    # log "Sleeping 2 mins after running Data Generator"
+    # sleep 120
 
     stop_monitoring
 

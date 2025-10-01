@@ -1,9 +1,9 @@
 {
-  "name": "s3-sink-connector",
+  "name": "s3-sink-orders-connector",
   "config": {
     "connector.class": "io.confluent.connect.s3.S3SinkConnector",
-    "tasks.max": "24",
-    "topics.regex": "postgres\\.public\\..*",
+    "tasks.max": "6",
+    "topics": "postgres.public.orders",
     "s3.bucket.name": "${env:S3_BUCKET_NAME}",
     "s3.region": "${env:AWS_DEFAULT_REGION}",
     "s3.part.size": "5242880",
@@ -33,7 +33,7 @@
     "errors.tolerance": "all",
     "errors.log.enable": "true",
     "errors.log.include.messages": "true",
-    "errors.deadletterqueue.topic.name": "s3-sink-dlq",
+    "errors.deadletterqueue.topic.name": "s3-sink-dlq-orders",
     "errors.deadletterqueue.topic.replication.factor": "3",
     "errors.deadletterqueue.context.headers.enable": "true",
     "errors.retry.timeout": "0",
