@@ -10,8 +10,11 @@ log() {
 # Check if metrics-server is available
 check_metrics_server() {
     log "Checking if metrics-server is available..."
-    
-    if kubectl top nodes >/dev/null 2>&1; then
+
+    kubectl --context "kind-$NAMESPACE" top nodes >/dev/null 2>&1
+    local metrics_status=$?
+
+    if [[ $metrics_status -eq 0 ]]; then
         log "✅ Metrics-server is available"
         return 0
     else
@@ -21,12 +24,15 @@ check_metrics_server() {
 }
 
 delete_old_metric_server() {
+    kubectl --context "kind-$NAMESPACE" get deploy metrics-server -n kube-system >/dev/null 2>&1
+    local metrics_status=$?
+
     # Check if metrics-server is already being installed
-    if kubectl get deploy metrics-server -n kube-system >/dev/null 2>&1; then
+    if [[ $metrics_status -eq 0 ]]; then
         log "Clearing existing metrics-server deployment..."
-        kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null 2>&1
-        kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml >/dev/null 2>&1
-        kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability-1.21+.yaml >/dev/null 2>&1
+        kubectl --context "kind-$NAMESPACE" delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null 2>&1
+        kubectl --context "kind-$NAMESPACE" delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml >/dev/null 2>&1
+        kubectl --context "kind-$NAMESPACE" delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability-1.21+.yaml >/dev/null 2>&1
         log "✅ - existing metrics-server deployment removed"
     fi
 }
@@ -46,19 +52,22 @@ install_metrics_server() {
     curl -L -o ${METRICS_FILE} "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/${METRICS_FILE}" >/dev/null 2>&1
     sed -i "s/        - --metric-resolution=15s/        - --metric-resolution=15s\r\n        - --kubelet-insecure-tls/g" ${METRICS_FILE} >/dev/null 2>&1
     
-    if kubectl apply -f ${METRICS_FILE} >/dev/null 2>&1; then
+    kubectl --context "kind-$NAMESPACE" apply -f ${METRICS_FILE} >/dev/null 2>&1
+    local apply_status=$?
+
+    if [[ $apply_status -eq 0 ]]; then
         log "Metrics-server installation initiated"
 
         # Wait for metrics-server to be ready
         log "Waiting for metrics-server to be ready..."
-        local status=$(kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=60s 2>&1)
+        local status=$(kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=60s 2>&1)
         if [[ -n "$status" ]] && echo "$status" | grep "pod/metrics-server" | grep -q "condition met"; then
             log "Metrics-server is ready"
             
             # Wait for metrics to be available
             local wait_count=0
             while [[ $wait_count -lt 12 ]]; do  # Wait up to 2 minutes
-                if kubectl top nodes >/dev/null 2>&1; then
+                if kubectl --context "kind-$NAMESPACE" top nodes >/dev/null 2>&1; then
                     log "✅ Metrics are now available"
                     rm -f ${METRICS_FILE} >/dev/null 2>&1
                     return 0

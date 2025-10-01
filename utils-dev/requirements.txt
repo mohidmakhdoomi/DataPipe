@@ -1,0 +1,5 @@
+# Requirements for S3 Parquet Query Tool
+pandas>=2.0.0
+pyarrow>=10.0.0
+boto3>=1.26.0
+botocore>=1.29.0

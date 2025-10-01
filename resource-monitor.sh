@@ -1,9 +1,8 @@
 #!/bin/bash
-# Task 8 Resource Monitor - Background monitoring script
-# Based on Gemini's technical guidance for accurate resource measurement
+# Resource Monitor - Background monitoring script
 
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/logs/resource-logs"
-readonly NAMESPACE="data-ingestion"
+readonly NAMESPACE="$1"
+readonly LOG_DIR="$2"
 readonly CRITICAL_THRESHOLD=3584  # 3.5Gi in Mi
 readonly WARNING_THRESHOLD=3276   # 3.2Gi in Mi
 
@@ -15,7 +14,7 @@ log() {
 
 while true; do
     # Get memory usage from all pods in namespace
-    resource_data=$(kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null || echo "")
+    resource_data=$(kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null || echo "")
     
     if [[ -n "$resource_data" ]]; then
         # Calculate total memory usage
@@ -46,10 +45,10 @@ while true; do
         fi
         
         # Check for OOMKilled events
-        oom_events=$(kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling --no-headers 2>/dev/null | wc -l)
+        oom_events=$(kubectl --context "kind-$NAMESPACE" get events -n ${NAMESPACE} --field-selector reason=OOMKilling --no-headers 2>/dev/null | wc -l)
         if [[ $oom_events -gt 0 ]]; then
             log "CRITICAL: $oom_events OOMKilled events detected!"
-            kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling >> "${LOG_DIR}/oom-events.log"
+            kubectl --context "kind-$NAMESPACE" get events -n ${NAMESPACE} --field-selector reason=OOMKilling >> "${LOG_DIR}/oom-events.log"
         fi
     else
         log "⚠️   Unable to retrieve pod metrics"
