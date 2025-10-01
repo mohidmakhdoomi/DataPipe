@@ -138,7 +138,7 @@ test_s3_data_flow() {
             log "✅ Parquet files found in S3"
             
             # List the files
-            echo "$aws_out" | tee -a "${LOG_DIR}/validate.log"
+            echo "$aws_out" | head -20 | tee -a "${LOG_DIR}/validate.log"
             
             return 0
         else
