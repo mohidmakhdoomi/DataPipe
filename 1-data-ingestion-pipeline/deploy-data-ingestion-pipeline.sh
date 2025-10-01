@@ -98,27 +98,27 @@ main() {
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
         log "Applying ${current_file}"
-        if ! kubectl apply -f ${SCRIPT_DIR}/${current_file} >/dev/null 2>&1; then
+        if ! kubectl --context "kind-$NAMESPACE" apply -f ${SCRIPT_DIR}/${current_file} >/dev/null 2>&1; then
             log "❌ : Failed to apply ${current_file}"
             exit_one
         fi
 
         if [[ -n "$status_to_check" ]]; then
-            local command_to_wait="kubectl wait --for=condition=${status_to_check} ${waiting_identifier} -n ${NAMESPACE} --timeout=${timeout_in_seconds}s 2>&1"
+            local command_to_wait="kubectl --context \"kind-$NAMESPACE\" wait --for=condition=${status_to_check} ${waiting_identifier} -n ${NAMESPACE} --timeout=${timeout_in_seconds}s 2>&1"
             log "$command_to_wait"
             local status=$(eval "$command_to_wait")
             if [[ -n "$status" ]] && [[ $(echo "$status" | grep "condition met" | wc -l) -eq $number_of_items ]]; then
                 log "✅ ${waiting_identifier} is ${status_to_check}"
             else
                 log "❌ : ${waiting_identifier} failed to become ${status_to_check} in ${timeout_in_seconds}s"
-                kubectl get all -n ${NAMESPACE} -o wide >> "${LOG_DIR}/main.log"
+                kubectl --context "kind-$NAMESPACE" get all -n ${NAMESPACE} -o wide >> "${LOG_DIR}/main.log"
                 exit_one
             fi
         fi
     done
     
     # Verify prerequisites
-    if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
+    if ! kubectl --context "kind-$NAMESPACE" get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Namespace ${NAMESPACE} not found"
         exit_one
     fi
@@ -139,11 +139,11 @@ main() {
 
     # Insert Sample Data into PostgreSQL
     log "Inserting Sample Data into PostgreSQL"
-    if ! kubectl cp -n ${NAMESPACE} -c postgresql ${SAMPLE_DB_FILE} postgresql-0:/tmp/${SAMPLE_DB_FILE} >/dev/null 2>&1; then
+    if ! kubectl --context "kind-$NAMESPACE" cp -n ${NAMESPACE} -c postgresql ${SAMPLE_DB_FILE} postgresql-0:/tmp/${SAMPLE_DB_FILE} >/dev/null 2>&1; then
         log "❌ : Failed to copy sample data .sql file into PostgreSQL pod"
         exit_one
     fi
-    if ! kubectl exec -n ${NAMESPACE} pod/postgresql-0 -- sh -c "psql -U ${DB_USER} -d ${DB_NAME} -a -f /tmp/${SAMPLE_DB_FILE}" >/dev/null 2>&1; then
+    if ! kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} pod/postgresql-0 -- sh -c "psql -U ${DB_USER} -d ${DB_NAME} -a -f /tmp/${SAMPLE_DB_FILE}" >/dev/null 2>&1; then
         log "❌ : Failed to insert sample data into PostgreSQL"
         exit_one
     fi

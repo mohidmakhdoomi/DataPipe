@@ -39,9 +39,9 @@ exit_one() {
 get_pod_names() {
     log "Discovering pod names..."
     
-    local connect_s3_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-    local postgres_pod=$(kubectl get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-    local kafka_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local connect_s3_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local postgres_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local kafka_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     
     if [[ -z "$connect_s3_pod" || -z "$postgres_pod" || -z "$kafka_pod" ]]; then
         log "❌ Failed to discover all required pods"
@@ -65,7 +65,7 @@ get_pod_names() {
 check_connector_status() {
     log "Checking S3 Sink connector status..."
     
-    local status_output=$(kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
+    local status_output=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status 2>/dev/null)
     
     if [[ -n "$status_output" ]]; then
@@ -117,7 +117,7 @@ test_s3_data_flow() {
     local test_email="task10-s3-validation-$(date +%s)@example.com"
     log "Inserting test record with email: $test_email"
     
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'S3Test', 'Validation') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Test record inserted successfully"
@@ -215,7 +215,7 @@ check_connector_metrics() {
     log "Checking connector metrics and performance..."
     
     # Get connector metrics
-    local metrics=$(kubectl exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
+    local metrics=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${CONNECT_S3_POD} -- \
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status 2>/dev/null)
     
     if [[ -n "$metrics" ]]; then
@@ -243,7 +243,7 @@ check_dlq() {
     log "Checking dead letter queue for errors..."
     
     # Check if DLQ topic has any messages
-    local dlq_messages=$(kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+    local dlq_messages=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
         kafka-run-class kafka.tools.GetOffsetShell \
         --broker-list localhost:9092 \
         --topic s3-sink-dlq --time -1 2>/dev/null | \
@@ -259,7 +259,7 @@ check_dlq() {
         
         # Sample a few DLQ messages for analysis
         log "Sampling DLQ messages..."
-        kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+        kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
             kafka-console-consumer --bootstrap-server localhost:9092 \
             --topic s3-sink-dlq --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_DIR}/validate.log"
         
@@ -271,7 +271,7 @@ check_dlq() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
         log "✅ Resource usage information retrieved"
         return 0
     else

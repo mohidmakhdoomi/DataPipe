@@ -16,7 +16,7 @@ log() {
 }
 
 start_avro_consumer() {
-    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
@@ -31,7 +31,7 @@ start_avro_consumer() {
 deploy_cdc_connector() {
     log "Checking for existing Debezium PostgreSQL CDC connector..."
     
-    local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    local status=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status \
         2>/dev/null)
     
@@ -46,7 +46,7 @@ deploy_cdc_connector() {
     local connector_config=$(cat "${CONFIG_FILE}")
     
     # Deploy connector via REST API
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
        curl -X POST http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors \
        -H "Content-Type: application/json" \
        -d "$connector_config" >/dev/null 2>&1; then
@@ -67,7 +67,7 @@ wait_for_connector() {
     log "Waiting for CDC connector to be in RUNNING state..."
     
     while [[ $elapsed -lt $max_wait ]]; do
-        local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+        local status=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
                       curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status \
                       2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
@@ -98,7 +98,7 @@ test_cdc_flow() {
 
     start_avro_consumer
     
-    if kubectl exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -c \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'Task8', 'Validation');" >/dev/null 2>&1; then
         log "✅ Test record inserted successfully"
     else
@@ -121,7 +121,7 @@ test_cdc_flow() {
         log "⚠️  CDC message not found in initial check, trying alternative approach..."
         
         # Check topic exists and has messages
-        local topic_info=$(kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
+        local topic_info=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
                           --broker-list localhost:9092 --topic postgres.public.users --time -1 2>/dev/null || echo "")
         
         if [[ -n "$topic_info" ]]; then
@@ -142,7 +142,7 @@ test_schema_registry() {
     log "Testing schema registration..."    
     
     # Check if schemas are registered
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
        curl --fail -u "${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS}" http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects 2>/dev/null | grep -q "postgres"; then
         log "✅ CDC schemas registered in Schema Registry"
         return 0
@@ -155,7 +155,7 @@ test_schema_registry() {
 main() {
     log "=== Starting Phase 3: End-to-End CDC Pipeline Testing ==="
 
-    local schema_registry_pod=$(kubectl get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local schema_registry_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     export SCHEMA_REGISTRY_POD="$schema_registry_pod"
     
     # Step 1: Deploy CDC connector
@@ -181,7 +181,7 @@ main() {
     
     # Step 5: Verify connector health
     log "Verifying connector health..."
-    local connector_tasks=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    local connector_tasks=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
                            curl -s http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors/${CONNECTOR_NAME}/tasks \
                            2>/dev/null | grep -o '"task":[0-9]\+' | wc -l)
     

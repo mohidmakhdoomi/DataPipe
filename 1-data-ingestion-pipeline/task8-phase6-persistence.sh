@@ -16,12 +16,12 @@ record_baseline() {
     log "Recording baseline state..."
     
     # PostgreSQL data count
-    local pg_count=$(kubectl exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | tr -d ' ' || echo "0")
+    local pg_count=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | tr -d ' ' || echo "0")
     echo "$pg_count" > "${LOG_DIR}/baseline-users-count.txt"
     log "Baseline PostgreSQL users count: $pg_count"
     
     # Kafka topic offsets
-    kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
+    kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
         --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
         > "${LOG_DIR}/baseline-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/baseline-kafka-offsets.txt"
     
@@ -29,7 +29,7 @@ record_baseline() {
     log "Baseline Kafka offsets recorded: $offset_count entries"
     
     # Record current pod states
-    kubectl get pods -n ${NAMESPACE} -o wide > "${LOG_DIR}/baseline-pods.txt"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide > "${LOG_DIR}/baseline-pods.txt"
     log "Baseline pod states recorded"
 }
 
@@ -38,17 +38,17 @@ force_pod_restarts() {
     log "Forcing pod restarts to test persistence..."
     
     # Get current pod names
-    local pg_pod=$(kubectl get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    local kafka_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[2].metadata.name}' 2>/dev/null || echo "kafka-2")
-    local connect_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    local schema_pod=$(kubectl get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+    local pg_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+    local kafka_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[2].metadata.name}' 2>/dev/null || echo "kafka-2")
+    local connect_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+    local schema_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
        
     local deleted_pods=()
 
     if [[ -n "$connect_pod" ]]; then
-        kubectl scale deploy kafka-connect -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
+        kubectl --context "kind-$NAMESPACE" scale deploy kafka-connect -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for Kafka Connect to terminate..."
-        if kubectl wait --for=delete pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+        if kubectl --context "kind-$NAMESPACE" wait --for=delete pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
             log "✅ Kafka Connect scaled to replicas=0"
             deleted_pods+=("$connect_pod")
         else
@@ -57,9 +57,9 @@ force_pod_restarts() {
     fi
 
     if [[ -n "$schema_pod" ]]; then
-        kubectl scale deploy schema-registry -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
+        kubectl --context "kind-$NAMESPACE" scale deploy schema-registry -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for Schema Registry to terminate..."
-        if kubectl wait --for=delete pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+        if kubectl --context "kind-$NAMESPACE" wait --for=delete pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
             log "✅ Schema Registry scaled to replicas=0"
             deleted_pods+=("$schema_pod")
         else
@@ -68,9 +68,9 @@ force_pod_restarts() {
     fi
 
     if [[ -n "$kafka_pod" ]]; then
-        kubectl scale sts kafka -n ${NAMESPACE} --replicas=2 >/dev/null 2>&1 &
+        kubectl --context "kind-$NAMESPACE" scale sts kafka -n ${NAMESPACE} --replicas=2 >/dev/null 2>&1 &
         log "Waiting for Kafka to terminate..."
-        if kubectl wait --for=jsonpath='{.status.readyReplicas}'=2 sts kafka -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+        if kubectl --context "kind-$NAMESPACE" wait --for=jsonpath='{.status.readyReplicas}'=2 sts kafka -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
             log "✅ Kafka scaled to replicas=2"
             deleted_pods+=("$kafka_pod")
         else
@@ -79,9 +79,9 @@ force_pod_restarts() {
     fi
 
     if [[ -n "$pg_pod" ]]; then
-        kubectl scale sts postgresql -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
+        kubectl --context "kind-$NAMESPACE" scale sts postgresql -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for PostgreSQL to terminate..."
-        if kubectl wait --for=delete pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+        if kubectl --context "kind-$NAMESPACE" wait --for=delete pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
             log "✅ PostgreSQL scaled to replicas=0"
             deleted_pods+=("$pg_pod")
         else
@@ -101,9 +101,9 @@ wait_for_restart() {
     
     # Wait for PostgreSQL
     log "Scaling PostgreSQL to replicas=1"
-    kubectl scale sts postgresql -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale sts postgresql -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
     log "Waiting for PostgreSQL to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ PostgreSQL pod restarted and ready"
     else
         log "⚠️  PostgreSQL pod restart timeout (may still be starting)"
@@ -111,9 +111,9 @@ wait_for_restart() {
     
     # Wait for Kafka
     log "Scaling Kafka to replicas=3"
-    kubectl scale sts kafka -n ${NAMESPACE} --replicas=3 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale sts kafka -n ${NAMESPACE} --replicas=3 >/dev/null 2>&1 &
     log "Waiting for Kafka to be ready..."
-    local status=$(kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n ${NAMESPACE} --timeout=300s 2>&1)
+    local status=$(kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka,component=streaming -n ${NAMESPACE} --timeout=300s 2>&1)
     if [[ -n "$status" ]] && [[ $(echo "$status" | grep "condition met" | wc -l) -eq 3 ]]; then
         log "✅ Kafka pod restarted and ready"
     else
@@ -122,9 +122,9 @@ wait_for_restart() {
     
     # Wait for Schema Registry
     log "Scaling Schema Registry to replicas=1"
-    kubectl scale deploy schema-registry -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale deploy schema-registry -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
     log "Waiting for Schema Registry to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Schema Registry pod restarted and ready"
     else
         log "⚠️  Schema Registry pod restart timeout (may still be starting)"
@@ -132,9 +132,9 @@ wait_for_restart() {
 
     # Wait for Kafka Connect
     log "Scaling Kafka Connect to replicas=1"
-    kubectl scale deploy kafka-connect -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale deploy kafka-connect -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
     log "Waiting for Kafka Connect to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Kafka Connect pod restarted and ready"
     else
         log "⚠️  Kafka Connect pod restart timeout (may still be starting)"
@@ -153,7 +153,7 @@ verify_persistence() {
     
     # Check PostgreSQL data
     log "Checking PostgreSQL data persistence..."
-    local pg_count_after=$(kubectl exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | tr -d ' ' || echo "0")
+    local pg_count_after=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | tr -d ' ' || echo "0")
     local pg_count_before=$(cat "${LOG_DIR}/baseline-users-count.txt" 2>/dev/null || echo "0")
     
     echo "$pg_count_after" > "${LOG_DIR}/after-restart-users-count.txt"
@@ -167,7 +167,7 @@ verify_persistence() {
     
     # Check Kafka data (offsets should be preserved)
     log "Checking Kafka data persistence..."
-    kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
+    kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
         --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
         > "${LOG_DIR}/after-restart-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/after-restart-kafka-offsets.txt"
     
@@ -183,7 +183,7 @@ verify_persistence() {
     local connectivity_ok=true
     
     # Test PostgreSQL connectivity
-    if kubectl exec -n ${NAMESPACE} postgresql-0 -- pg_isready -U postgres -d ecommerce >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- pg_isready -U postgres -d ecommerce >/dev/null 2>&1; then
         log "✅ PostgreSQL connectivity restored"
     else
         log "❌ PostgreSQL connectivity failed"
@@ -192,7 +192,7 @@ verify_persistence() {
     fi
     
     # Test Kafka connectivity
-    if kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1; then
         log "✅ Kafka connectivity restored"
     else
         log "❌ Kafka connectivity failed"
@@ -213,7 +213,7 @@ test_cdc_recovery() {
     local elapsed=0
     
     while [[ $elapsed -lt $max_wait ]]; do
-        local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+        local status=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
                       curl -s http://localhost:8083/connectors/postgres-cdc-connector/status \
                       2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
@@ -256,7 +256,7 @@ main() {
     
     # Step 6: Final health check
     log "Performing final health check..."
-    local unhealthy_pods=$(kubectl get pods -n ${NAMESPACE} --no-headers | grep -v "Running\|Completed" | wc -l)
+    local unhealthy_pods=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} --no-headers | grep -v "Running\|Completed" | wc -l)
     
     if [[ $unhealthy_pods -eq 0 ]]; then
         log "✅ All pods healthy after restart"

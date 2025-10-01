@@ -27,7 +27,7 @@ monitor_resources() {
     
     while [[ $(date +%s) -lt $end_time ]]; do
         local current_time=$(date +%s)
-        local pod_data=$(kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null || echo "")
+        local pod_data=$(kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null || echo "")
         
         if [[ -n "$pod_data" ]]; then
             local total_memory=0
@@ -42,7 +42,7 @@ monitor_resources() {
                     fi
 
                     # Get memory limit
-                    local limit=$(kubectl get pod "$pod" -n ${NAMESPACE} -o jsonpath='{.spec.containers[0].resources.limits.memory}' 2>/dev/null | sed 's/Mi//' || echo "0")
+                    local limit=$(kubectl --context "kind-$NAMESPACE" get pod "$pod" -n ${NAMESPACE} -o jsonpath='{.spec.containers[0].resources.limits.memory}' 2>/dev/null | sed 's/Mi//' || echo "0")
                     if [[ $limit == *Gi ]]; then
                         limit=`echo "${limit%??} 1024" | awk '{print $1*$2}'`
                     fi
@@ -105,14 +105,14 @@ monitor_resources() {
 check_oom_events() {
     log "Checking for OOMKilled events..."
     
-    local oom_count=$(kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling --no-headers 2>/dev/null | wc -l)
+    local oom_count=$(kubectl --context "kind-$NAMESPACE" get events -n ${NAMESPACE} --field-selector reason=OOMKilling --no-headers 2>/dev/null | wc -l)
     
     if [[ $oom_count -eq 0 ]]; then
         log "✅ No OOMKilled events detected"
         return 0
     else
         log "❌ $oom_count OOMKilled event(s) detected"
-        kubectl get events -n ${NAMESPACE} --field-selector reason=OOMKilling >> "${LOG_DIR}/oom-events.log"
+        kubectl --context "kind-$NAMESPACE" get events -n ${NAMESPACE} --field-selector reason=OOMKilling >> "${LOG_DIR}/oom-events.log"
         return 1
     fi
 }
@@ -122,10 +122,10 @@ verify_resource_limits() {
     log "Verifying resource limits are properly configured..."
     
     local pods_without_limits=0
-    local pod_list=$(kubectl get pods -n ${NAMESPACE} -o jsonpath='{.items[*].metadata.name}')
+    local pod_list=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o jsonpath='{.items[*].metadata.name}')
     
     for pod in $pod_list; do
-        local memory_limit=$(kubectl get pod "$pod" -n ${NAMESPACE} -o jsonpath='{.spec.containers[0].resources.limits.memory}' 2>/dev/null || echo "")
+        local memory_limit=$(kubectl --context "kind-$NAMESPACE" get pod "$pod" -n ${NAMESPACE} -o jsonpath='{.spec.containers[0].resources.limits.memory}' 2>/dev/null || echo "")
         
         if [[ -z "$memory_limit" ]]; then
             log "⚠️  Pod $pod has no memory limit set"

@@ -41,7 +41,7 @@ exit_one() {
 
 # Memory check function
 check_memory() {
-    local current_mem=$(kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | awk '{sum+=$3+0} END {print sum}' || echo "0")
+    local current_mem=$(kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | awk '{sum+=$3+0} END {print sum}' || echo "0")
     log "Current memory usage: ${current_mem}Mi / 4096Mi $(($current_mem*100/4096))%"
     
     if [[ ${current_mem:-0} -gt ${MAX_MEMORY_MI} ]]; then
@@ -66,7 +66,7 @@ execute_phase() {
     }
     
     # Capture pre-phase state
-    kubectl get pods -n ${NAMESPACE} > "${LOG_DIR}/pre-phase-${phase_num}-pods.txt"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} > "${LOG_DIR}/pre-phase-${phase_num}-pods.txt"
     
     # Execute phase
     local start_time=$(date +%s)
@@ -86,7 +86,7 @@ execute_phase() {
         return 0
     else
         log "❌ : Phase ${phase_num} failed"
-        kubectl describe pods -n ${NAMESPACE} >> "${LOG_DIR}/phase-${phase_num}-failure.log"
+        kubectl --context "kind-$NAMESPACE" describe pods -n ${NAMESPACE} >> "${LOG_DIR}/phase-${phase_num}-failure.log"
         return 1
     fi
 }
@@ -97,7 +97,7 @@ main() {
     log "Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage"
     
     # Verify prerequisites
-    if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
+    if ! kubectl --context "kind-$NAMESPACE" get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Namespace ${NAMESPACE} not found"
         exit 1
     fi

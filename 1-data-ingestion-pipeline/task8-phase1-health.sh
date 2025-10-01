@@ -20,8 +20,8 @@ health_check() {
     log "Checking health of $component..."
     
     for i in $(seq 1 $retries); do
-        if kubectl get pods -n ${NAMESPACE} -l app=$component --no-headers | grep -q "Running"; then
-            local ready_count=$(kubectl get pods -n ${NAMESPACE} -l app=$component --no-headers | grep "Running" | wc -l)
+        if kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=$component --no-headers | grep -q "Running"; then
+            local ready_count=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=$component --no-headers | grep "Running" | wc -l)
             log "✅ $component health check passed - $ready_count pod(s) running"
             return 0
         fi
@@ -30,7 +30,7 @@ health_check() {
     done
     
     log "❌ $component health check failed after $retries attempts"
-    kubectl describe pods -n ${NAMESPACE} -l app=$component >> "${LOG_DIR}/health-failure-$component.log"
+    kubectl --context "kind-$NAMESPACE" describe pods -n ${NAMESPACE} -l app=$component >> "${LOG_DIR}/health-failure-$component.log"
     return 1
 }
 
@@ -40,7 +40,7 @@ wait_for_deployment() {
     local timeout=120
     
     log "Waiting for deployment $deployment to be ready..."
-    if kubectl wait --for=condition=available --timeout=${timeout}s deployment/$deployment -n ${NAMESPACE} 2>/dev/null; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=available --timeout=${timeout}s deployment/$deployment -n ${NAMESPACE} 2>/dev/null; then
         log "✅ Deployment $deployment is ready"
         return 0
     else
@@ -53,14 +53,14 @@ main() {
     log "=== Starting Phase 1: Service Health Validation ==="
     
     # Check namespace exists
-    if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
+    if ! kubectl --context "kind-$NAMESPACE" get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ Namespace ${NAMESPACE} not found"
         return 1
     fi
     
     # Get all pods status
     log "Current pod status:"
-    kubectl get pods -n ${NAMESPACE} -o wide | tee -a "${LOG_DIR}/phase1.log"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide | tee -a "${LOG_DIR}/phase1.log"
     
     # Check individual components
     local components=("postgresql" "kafka" "schema-registry" "kafka-connect")
@@ -74,10 +74,10 @@ main() {
     
     # Check services
     log "Checking service endpoints..."
-    kubectl get svc -n ${NAMESPACE} | tee -a "${LOG_DIR}/phase1.log"
+    kubectl --context "kind-$NAMESPACE" get svc -n ${NAMESPACE} | tee -a "${LOG_DIR}/phase1.log"
     
     # Wait for all deployments to be ready
-    local deployments=$(kubectl get deployments -n ${NAMESPACE} -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
+    local deployments=$(kubectl --context "kind-$NAMESPACE" get deployments -n ${NAMESPACE} -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")
     for deployment in $deployments; do
         if ! wait_for_deployment "$deployment"; then
             failed_components+=("deployment-$deployment")
@@ -93,7 +93,7 @@ main() {
         sleep 120
         
         # Final check
-        local final_unhealthy=$(kubectl get pods -n ${NAMESPACE} --no-headers | grep -v "Running\|Completed" | wc -l)
+        local final_unhealthy=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} --no-headers | grep -v "Running\|Completed" | wc -l)
         if [[ $final_unhealthy -eq 0 ]]; then
             log "✅ All services remain stable - Phase 1 PASSED"
             return 0

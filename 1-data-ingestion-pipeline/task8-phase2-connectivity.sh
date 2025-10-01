@@ -23,7 +23,7 @@ connectivity_check() {
     for i in $(seq 1 $max_attempts); do
         # Use a temporary pod for connectivity testing
         # Test from kafka-connect pod, as it needs to connect to all other services
-        if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- sh -c "nc -z -w 5 $service.$NAMESPACE.svc.cluster.local $port" >/dev/null 2>&1; then
+        if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- sh -c "nc -z -w 5 $service.$NAMESPACE.svc.cluster.local $port" >/dev/null 2>&1; then
             log "✅ Connectivity to $service:$port confirmed"
             return 0
         fi
@@ -42,11 +42,11 @@ test_postgresql() {
     log "Testing PostgreSQL connectivity..."
     
     # Test basic connection
-    if kubectl exec -n ${NAMESPACE} postgresql-0 -- pg_isready -U postgres -d ecommerce >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- pg_isready -U postgres -d ecommerce >/dev/null 2>&1; then
         log "✅ PostgreSQL is ready and accepting connections"
         
         # Test database query
-        if kubectl exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -c "SELECT version();" >/dev/null 2>&1; then
+        if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- psql -U postgres -d ecommerce -c "SELECT version();" >/dev/null 2>&1; then
             log "✅ PostgreSQL query execution successful"
             return 0
         else
@@ -62,7 +62,7 @@ test_postgresql() {
 test_schema_registry() {
     log "Testing Schema Registry connectivity..."
     
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- curl -s http://schema-registry.${NAMESPACE}.svc.cluster.local:8081/subjects >/dev/null 2>&1; then
         log "✅ Schema Registry REST API accessible"
         return 0
     else
@@ -75,12 +75,12 @@ test_kafka() {
     log "Testing Kafka connectivity..."
     
     # Test broker API
-    if kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-broker-api-versions \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-broker-api-versions \
        --bootstrap-server localhost:9092 >/dev/null 2>&1; then
         log "✅ Kafka broker API accessible"
         
         # Test topic listing
-        if kubectl exec -n ${NAMESPACE} kafka-0 -- kafka-topics \
+        if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-topics \
            --bootstrap-server localhost:9092 --list >/dev/null 2>&1; then
             log "✅ Kafka topic listing successful"
             return 0
@@ -98,7 +98,7 @@ test_kafka_connect() {
     log "Testing Kafka Connect connectivity..."
     
     # Test REST API endpoint from within the pod
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- curl -f -s http://localhost:8083/connectors >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- curl -f -s http://localhost:8083/connectors >/dev/null 2>&1; then
         log "✅ Kafka Connect REST API accessible"
         return 0
     else
@@ -139,7 +139,7 @@ main() {
     
     # DNS resolution test
     log "Testing DNS resolution from postgresql-0 pod..."
-    if kubectl exec -n ${NAMESPACE} postgresql-0 -- nslookup kafka.${NAMESPACE}.svc.cluster.local >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} postgresql-0 -- nslookup kafka.${NAMESPACE}.svc.cluster.local >/dev/null 2>&1; then
         log "✅ DNS resolution working"
     else
         log "❌ DNS resolution failed"

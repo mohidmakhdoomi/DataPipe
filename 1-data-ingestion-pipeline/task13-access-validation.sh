@@ -107,14 +107,14 @@ validate_postgresql_permissions() {
     log INFO "Validating PostgreSQL CDC user permissions..."
     
     # Test 1: Basic connectivity
-    if kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -c "SELECT 1;" &> /dev/null; then
+    if kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -c "SELECT 1;" &> /dev/null; then
         record_test_result "PostgreSQL Connectivity" "PASS" "Successfully connected to PostgreSQL"
     else
         record_test_result "PostgreSQL Connectivity" "FAIL" "Cannot connect to PostgreSQL"
     fi
     
     # Test 2: CDC user exists and has replication privileges
-    local current_user=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+    local current_user=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
         SELECT usename FROM pg_stat_replication" | tr -d ' ' || echo "")
 
     if [[ ! -n "$current_user" ]]; then
@@ -122,7 +122,7 @@ validate_postgresql_permissions() {
     fi
 
     local cdc_user_info
-    cdc_user_info=$(kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
+    cdc_user_info=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
         SELECT rolname, rolreplication, rolcanlogin 
         FROM pg_roles 
         WHERE rolname='$current_user' " 2>/dev/null | tr -d ' ' || echo "")
@@ -146,7 +146,7 @@ validate_postgresql_permissions() {
     
     for table in "${tables[@]}"; do
         local has_select
-        has_select=$(kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
+        has_select=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
             SELECT has_table_privilege('$user_name', 'public.$table', 'SELECT');" 2>/dev/null | tr -d ' ' || echo "f")
         
         if [[ "$has_select" != "t" ]]; then
@@ -163,7 +163,7 @@ validate_postgresql_permissions() {
     
     # Test 4: Replication slot exists and is active
     local slot_info
-    slot_info=$(kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
+    slot_info=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
         SELECT slot_name, active, confirmed_flush_lsn IS NOT NULL as has_lsn
         FROM pg_replication_slots 
         WHERE slot_name = 'debezium_slot';" 2>/dev/null | tr -d ' ' || echo "")
@@ -183,7 +183,7 @@ validate_postgresql_permissions() {
     
     # Test 5: WAL level configuration
     local wal_level
-    wal_level=$(kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "SHOW wal_level;" 2>/dev/null | tr -d ' ' || echo "")
+    wal_level=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "SHOW wal_level;" 2>/dev/null | tr -d ' ' || echo "")
     
     if [[ "$wal_level" == "logical" ]]; then
         record_test_result "WAL Level Configuration" "PASS" "WAL level is set to logical"
@@ -193,7 +193,7 @@ validate_postgresql_permissions() {
     
     # Test 6: Max replication slots configuration
     local max_replication_slots
-    max_replication_slots=$(kubectl exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "SHOW max_replication_slots;" 2>/dev/null | tr -d ' ' || echo "0")
+    max_replication_slots=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "SHOW max_replication_slots;" 2>/dev/null | tr -d ' ' || echo "0")
     
     if (( max_replication_slots >= 4 )); then
         record_test_result "Max Replication Slots" "PASS" "Max replication slots: $max_replication_slots"
@@ -209,7 +209,7 @@ validate_kafka_connect_access() {
     log INFO "Validating Kafka Connect access..."
     
     # Test 1: Kafka Connect service connectivity
-    if kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/" &> /dev/null; then
+    if kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/" &> /dev/null; then
         record_test_result "Kafka Connect Connectivity" "PASS" "Successfully connected to Kafka Connect"
     else
         record_test_result "Kafka Connect Connectivity" "FAIL" "Cannot connect to Kafka Connect service"
@@ -217,7 +217,7 @@ validate_kafka_connect_access() {
     
     # Test 2: Kafka Connect version and status
     local connect_info
-    connect_info=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/" | jq -r '.version + "|" + .kafka_cluster_id' 2>/dev/null || echo "|")
+    connect_info=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/" | jq -r '.version + "|" + .kafka_cluster_id' 2>/dev/null || echo "|")
     
     if [[ "$connect_info" != "|" ]]; then
         local version=$(echo "$connect_info" | cut -d'|' -f1)
@@ -229,7 +229,7 @@ validate_kafka_connect_access() {
     
     # Test 3: Connector plugins availability
     local plugins
-    plugins=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connector-plugins" | jq -r '.[].class' 2>/dev/null || echo "")
+    plugins=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connector-plugins" | jq -r '.[].class' 2>/dev/null || echo "")
     
     local required_plugins=("io.debezium.connector.postgresql.PostgresConnector" "io.confluent.connect.s3.S3SinkConnector")
     local plugins_valid=true
@@ -249,7 +249,7 @@ validate_kafka_connect_access() {
     
     # Test 4: Debezium connector status
     local connector_status
-    connector_status=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+    connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     
     if [[ "$connector_status" == "RUNNING" ]]; then
         record_test_result "Debezium Connector Status" "PASS" "Debezium connector is running"
@@ -259,7 +259,7 @@ validate_kafka_connect_access() {
     
     # Test 5: Connector task status
     local task_status
-    task_status=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.tasks[0].state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+    task_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.tasks[0].state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     
     if [[ "$task_status" == "RUNNING" ]]; then
         record_test_result "Connector Task Status" "PASS" "Connector task is running"
@@ -269,7 +269,7 @@ validate_kafka_connect_access() {
     
     # Test 6: Kafka connectivity from Kafka Connect
     local kafka_connectivity
-    kafka_connectivity=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://localhost:8083/connectors/postgres-cdc-connector/config" | jq -r '.["database.hostname"] // "unknown"' 2>/dev/null || echo "unknown")
+    kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://localhost:8083/connectors/postgres-cdc-connector/config" | jq -r '.["database.hostname"] // "unknown"' 2>/dev/null || echo "unknown")
     
     if [[ "$kafka_connectivity" != "unknown" ]]; then
         record_test_result "Kafka Connect to Kafka" "PASS" "Kafka Connect can communicate with Kafka"
@@ -285,7 +285,7 @@ validate_schema_registry_access() {
     log INFO "Validating Schema Registry access..."
     
     # Test 1: Schema Registry connectivity
-    if kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/" &> /dev/null; then
+    if kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/" &> /dev/null; then
         record_test_result "Schema Registry Connectivity" "PASS" "Successfully connected to Schema Registry"
     else
         record_test_result "Schema Registry Connectivity" "FAIL" "Cannot connect to Schema Registry"
@@ -293,7 +293,7 @@ validate_schema_registry_access() {
     
     # Test 2: Schema Registry subjects endpoint
     local subjects
-    subjects=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/subjects" | jq -r 'length' 2>/dev/null || echo "0")
+    subjects=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/subjects" | jq -r 'length' 2>/dev/null || echo "0")
     
     if [[ "$subjects" != "0" ]]; then
         record_test_result "Schema Registry Subjects" "PASS" "Schema Registry has $subjects registered subjects"
@@ -306,13 +306,13 @@ validate_schema_registry_access() {
     local schema_user schema_pass
     
     # Get Schema Registry credentials from secret
-    schema_user=$(kubectl get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
-    schema_pass=$(kubectl get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    schema_user=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    schema_pass=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
     
     if [[ -n "$schema_user" && -n "$schema_pass" ]]; then
-        compatibility=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s -u "$schema_user:$schema_pass" "http://$SCHEMA_REGISTRY_SERVICE/config" | jq -r '.compatibilityLevel // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+        compatibility=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s -u "$schema_user:$schema_pass" "http://$SCHEMA_REGISTRY_SERVICE/config" | jq -r '.compatibilityLevel // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     else
-        compatibility=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/config" | jq -r '.compatibilityLevel // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+        compatibility=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/config" | jq -r '.compatibilityLevel // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     fi
     
     if [[ "$compatibility" == "BACKWARD" ]]; then
@@ -326,11 +326,11 @@ validate_schema_registry_access() {
     local schema_user schema_pass
     
     # Get Schema Registry credentials from secret
-    schema_user=$(kubectl get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
-    schema_pass=$(kubectl get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    schema_user=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    schema_pass=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
     
     if [[ -n "$schema_user" && -n "$schema_pass" ]]; then
-        auth_response=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s -w "%{http_code}" -u "$schema_user:$schema_pass" "http://$SCHEMA_REGISTRY_SERVICE/subjects" -o /dev/null 2>/dev/null || echo "000")
+        auth_response=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s -w "%{http_code}" -u "$schema_user:$schema_pass" "http://$SCHEMA_REGISTRY_SERVICE/subjects" -o /dev/null 2>/dev/null || echo "000")
         
         if [[ "$auth_response" == "200" ]]; then
             record_test_result "Schema Registry Authentication" "PASS" "Schema Registry accessible with authentication"
@@ -341,7 +341,7 @@ validate_schema_registry_access() {
         fi
     else
         # Try without authentication
-        auth_response=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s -w "%{http_code}" "http://$SCHEMA_REGISTRY_SERVICE/subjects" -o /dev/null 2>/dev/null || echo "000")
+        auth_response=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s -w "%{http_code}" "http://$SCHEMA_REGISTRY_SERVICE/subjects" -o /dev/null 2>/dev/null || echo "000")
         
         if [[ "$auth_response" == "200" ]]; then
             record_test_result "Schema Registry Authentication" "PASS" "Schema Registry accessible (no authentication required)"
@@ -355,14 +355,14 @@ validate_schema_registry_access() {
     local schema_user schema_pass
     
     # Get Schema Registry credentials from secret
-    schema_user=$(kubectl get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
-    schema_pass=$(kubectl get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    schema_user=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    schema_pass=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
     
     if [[ -n "$schema_user" && -n "$schema_pass" ]]; then
-        sr_kafka_connectivity=$(kubectl exec -n "$NAMESPACE" deployment/schema-registry -- curl -s -u "$schema_user:$schema_pass" "http://localhost:8081/config" | jq -r '.compatibilityLevel' 2>/dev/null || echo "unknown")
+        sr_kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/schema-registry -- curl -s -u "$schema_user:$schema_pass" "http://localhost:8081/config" | jq -r '.compatibilityLevel' 2>/dev/null || echo "unknown")
     else
         # Try without authentication or check environment variables
-        sr_kafka_connectivity=$(kubectl exec -n "$NAMESPACE" deployment/schema-registry -- printenv SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS 2>/dev/null || echo "unknown")
+        sr_kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/schema-registry -- printenv SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS 2>/dev/null || echo "unknown")
     fi
     
     if [[ "$sr_kafka_connectivity" != "unknown" && "$sr_kafka_connectivity" != "" ]]; then
@@ -380,9 +380,9 @@ validate_s3_access() {
     
     # Test 1: AWS Environment Variables (S3 connector uses AWS Java SDK, not CLI)
     local aws_key_id aws_secret_key aws_region
-    aws_key_id=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- printenv AWS_ACCESS_KEY_ID 2>/dev/null || echo "")
-    aws_secret_key=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- printenv AWS_SECRET_ACCESS_KEY 2>/dev/null || echo "")
-    aws_region=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- printenv AWS_DEFAULT_REGION 2>/dev/null || echo "")
+    aws_key_id=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- printenv AWS_ACCESS_KEY_ID 2>/dev/null || echo "")
+    aws_secret_key=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- printenv AWS_SECRET_ACCESS_KEY 2>/dev/null || echo "")
+    aws_region=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- printenv AWS_DEFAULT_REGION 2>/dev/null || echo "")
     
     if [[ -n "$aws_key_id" && -n "$aws_secret_key" && -n "$aws_region" ]]; then
         record_test_result "AWS Credentials Configuration" "PASS" "AWS credentials environment variables are properly configured"
@@ -396,7 +396,7 @@ validate_s3_access() {
     
     # Test 2: S3 Bucket Configuration
     local s3_bucket
-    s3_bucket=$(kubectl get secret aws-credentials -n "$NAMESPACE" -o jsonpath='{.data.s3-bucket}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
+    s3_bucket=$(kubectl --context "kind-$NAMESPACE" get secret aws-credentials -n "$NAMESPACE" -o jsonpath='{.data.s3-bucket}' 2>/dev/null | base64 -d 2>/dev/null || echo "")
     
     if [[ -n "$s3_bucket" ]]; then
         record_test_result "S3 Bucket Configuration" "PASS" "S3 bucket configured"
@@ -406,7 +406,7 @@ validate_s3_access() {
     
     # Test 3: S3 Connector Plugin Availability
     local s3_plugin_available
-    s3_plugin_available=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connector-plugins" | jq -r '.[] | select(.class == "io.confluent.connect.s3.S3SinkConnector") | .class' 2>/dev/null || echo "")
+    s3_plugin_available=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connector-plugins" | jq -r '.[] | select(.class == "io.confluent.connect.s3.S3SinkConnector") | .class' 2>/dev/null || echo "")
     
     if [[ "$s3_plugin_available" == "io.confluent.connect.s3.S3SinkConnector" ]]; then
         record_test_result "S3 Connector Plugin" "PASS" "S3 Sink connector plugin is available"
@@ -416,7 +416,7 @@ validate_s3_access() {
     
     # Test 4: S3 Sink connector status (if deployed)
     local s3_connector_status
-    s3_connector_status=$(kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/s3-sink-connector/status" | jq -r '.connector.state // "NOT_FOUND"' 2>/dev/null || echo "NOT_FOUND")
+    s3_connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/s3-sink-connector/status" | jq -r '.connector.state // "NOT_FOUND"' 2>/dev/null || echo "NOT_FOUND")
     
     if [[ "$s3_connector_status" == "RUNNING" ]]; then
         record_test_result "S3 Sink Connector Status" "PASS" "S3 Sink connector is running"
@@ -435,7 +435,7 @@ validate_network_connectivity() {
     
     # Test 1: Kafka Connect to PostgreSQL connectivity
     local kc_to_pg
-    kc_to_pg=$(timeout 10 kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- nc -z postgresql 5432 2>/dev/null && echo "SUCCESS" || echo "FAILED")
+    kc_to_pg=$(timeout 10 kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- nc -z postgresql 5432 2>/dev/null && echo "SUCCESS" || echo "FAILED")
     
     if [[ "$kc_to_pg" == "SUCCESS" ]]; then
         record_test_result "Kafka Connect to PostgreSQL" "PASS" "Network connectivity verified"
@@ -445,7 +445,7 @@ validate_network_connectivity() {
     
     # Test 2: Kafka Connect to Kafka connectivity
     local kc_to_kafka
-    kc_to_kafka=$(timeout 5 kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- nc -z kafka-headless 9092 2>/dev/null && echo "SUCCESS" || echo "FAILED")
+    kc_to_kafka=$(timeout 5 kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- nc -z kafka-headless 9092 2>/dev/null && echo "SUCCESS" || echo "FAILED")
     
     if [[ "$kc_to_kafka" == "SUCCESS" ]]; then
         record_test_result "Kafka Connect to Kafka" "PASS" "Network connectivity verified"
@@ -455,7 +455,7 @@ validate_network_connectivity() {
     
     # Test 3: Kafka Connect to Schema Registry connectivity
     local kc_to_sr
-    kc_to_sr=$(timeout 5 kubectl exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- nc -z schema-registry 8081 2>/dev/null && echo "SUCCESS" || echo "FAILED")
+    kc_to_sr=$(timeout 5 kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- nc -z schema-registry 8081 2>/dev/null && echo "SUCCESS" || echo "FAILED")
     
     if [[ "$kc_to_sr" == "SUCCESS" ]]; then
         record_test_result "Kafka Connect to Schema Registry" "PASS" "Network connectivity verified"
@@ -465,7 +465,7 @@ validate_network_connectivity() {
     
     # Test 4: Schema Registry to Kafka connectivity
     local sr_to_kafka
-    sr_to_kafka=$(timeout 5 kubectl exec -n "$NAMESPACE" deployment/schema-registry -- nc -z kafka-headless 9092 2>/dev/null && echo "SUCCESS" || echo "FAILED")
+    sr_to_kafka=$(timeout 5 kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/schema-registry -- nc -z kafka-headless 9092 2>/dev/null && echo "SUCCESS" || echo "FAILED")
     
     if [[ "$sr_to_kafka" == "SUCCESS" ]]; then
         record_test_result "Schema Registry to Kafka" "PASS" "Network connectivity verified"
@@ -485,7 +485,7 @@ validate_kubernetes_rbac() {
     local sa_valid=true
     
     for sa in "${service_accounts[@]}"; do
-        if kubectl get serviceaccount "$sa" -n "$NAMESPACE" &> /dev/null; then
+        if kubectl --context "kind-$NAMESPACE" get serviceaccount "$sa" -n "$NAMESPACE" &> /dev/null; then
             log DEBUG "Service account $sa exists"
         else
             sa_valid=false
@@ -501,7 +501,7 @@ validate_kubernetes_rbac() {
     
     # Test 2: Network policies exist
     local network_policies
-    network_policies=$(kubectl get networkpolicy -n "$NAMESPACE" --no-headers | wc -l)
+    network_policies=$(kubectl --context "kind-$NAMESPACE" get networkpolicy -n "$NAMESPACE" --no-headers | wc -l)
     
     if (( network_policies > 0 )); then
         record_test_result "Network Policies" "PASS" "$network_policies network policies configured"
@@ -514,7 +514,7 @@ validate_kubernetes_rbac() {
     local secrets_valid=true
     
     for secret in "${secrets[@]}"; do
-        if kubectl get secret "$secret" -n "$NAMESPACE" &> /dev/null; then
+        if kubectl --context "kind-$NAMESPACE" get secret "$secret" -n "$NAMESPACE" &> /dev/null; then
             log DEBUG "Secret $secret exists"
         else
             secrets_valid=false

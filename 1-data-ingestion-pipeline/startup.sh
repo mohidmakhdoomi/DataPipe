@@ -23,9 +23,9 @@ scale_up() {
     
     # Wait for PostgreSQL
     log "Scaling PostgreSQL to replicas=1"
-    kubectl scale sts postgresql -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale sts postgresql -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
     log "Waiting for PostgreSQL to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=postgresql,component=database -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ PostgreSQL pod started and ready"
         started_pods+=("PostgreSQL")
     else
@@ -34,9 +34,9 @@ scale_up() {
     
     # Wait for Kafka
     log "Scaling Kafka to replicas=3"
-    kubectl scale sts kafka -n ${NAMESPACE} --replicas=3 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale sts kafka -n ${NAMESPACE} --replicas=3 >/dev/null 2>&1 &
     log "Waiting for Kafka to be ready..."
-    local status=$(kubectl wait --for=condition=ready pod -l app=kafka,component=streaming -n ${NAMESPACE} --timeout=300s 2>&1)
+    local status=$(kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka,component=streaming -n ${NAMESPACE} --timeout=300s 2>&1)
     if [[ -n "$status" ]] && [[ $(echo "$status" | grep "condition met" | wc -l) -eq 3 ]]; then
         log "✅ Kafka pods started and ready"
         started_pods+=("Kafka")
@@ -46,9 +46,9 @@ scale_up() {
     
     # Wait for Schema Registry
     log "Scaling Schema Registry to replicas=1"
-    kubectl scale deploy schema-registry -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale deploy schema-registry -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
     log "Waiting for Schema Registry to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Schema Registry pod started and ready"
         started_pods+=("Schema Registry")
     else
@@ -57,9 +57,9 @@ scale_up() {
 
     # Wait for Kafka Connect
     log "Scaling Kafka Connect to replicas=1"
-    kubectl scale deploy kafka-connect -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
+    kubectl --context "kind-$NAMESPACE" scale deploy kafka-connect -n ${NAMESPACE} --replicas=1 >/dev/null 2>&1 &
     log "Waiting for Kafka Connect to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Kafka Connect pod started and ready"
         started_pods+=("Kafka Connect")
     else

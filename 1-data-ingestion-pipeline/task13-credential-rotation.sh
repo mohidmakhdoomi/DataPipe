@@ -10,7 +10,7 @@
 #
 # Usage: ./task13-credential-rotation.sh [--dry-run] [--component postgresql|kafka-connect|schema-registry|all]
 #
-# Requirements: kubectl, jq, yq, openssl, base64
+# Requirements: kubectl --context "kind-$NAMESPACE", jq, yq, openssl, base64
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
 LOG_FILE="/tmp/task13-rotation-$(date +%Y%m%d-%H%M%S).log"
 readonly SCHEMA_AUTH_USER="admin"
-SCHEMA_AUTH_PASS=$(kubectl get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.admin-password' | base64 -d)
+SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.admin-password' | base64 -d)
 
 # Colors for output
 RED='\033[0;31m'
@@ -51,7 +51,7 @@ DRY_RUN=false
 COMPONENT="all"
 
 start_avro_consumer() {
-    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
@@ -102,13 +102,13 @@ validate_prerequisites() {
     done
     
     # Check Kubernetes connectivity
-    if ! kubectl cluster-info &> /dev/null; then
+    if ! kubectl --context "kind-$NAMESPACE" cluster-info &> /dev/null; then
         log ERROR "Cannot connect to Kubernetes cluster"
         return 1
     fi
     
     # Check namespace exists
-    if ! kubectl get namespace "$NAMESPACE" &> /dev/null; then
+    if ! kubectl --context "kind-$NAMESPACE" get namespace "$NAMESPACE" &> /dev/null; then
         log ERROR "Namespace '$NAMESPACE' does not exist"
         return 1
     fi
@@ -116,7 +116,7 @@ validate_prerequisites() {
     # Check services are running
     local services=("postgresql" "kafka-connect" "schema-registry")
     for service in "${services[@]}"; do
-        if ! kubectl get service "$service" -n "$NAMESPACE" &> /dev/null; then
+        if ! kubectl --context "kind-$NAMESPACE" get service "$service" -n "$NAMESPACE" &> /dev/null; then
             log ERROR "Service '$service' not found in namespace '$NAMESPACE'"
             return 1
         fi
@@ -131,14 +131,14 @@ preflight_checks() {
     log INFO "Running pre-flight checks..."
     
     # Check PostgreSQL connectivity
-    if ! kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "SELECT 1;" &> /dev/null; then
+    if ! kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "SELECT 1;" &> /dev/null; then
         log ERROR "Cannot connect to PostgreSQL"
         return 1
     fi
     
     # Check Kafka Connect status
     local connect_status
-    connect_status=$(kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/" | jq -r '.version // "unknown"' 2>/dev/null || echo "unknown")
+    connect_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/" | jq -r '.version // "unknown"' 2>/dev/null || echo "unknown")
     if [[ "$connect_status" == "unknown" ]]; then
         log ERROR "Cannot connect to Kafka Connect"
         return 1
@@ -146,7 +146,7 @@ preflight_checks() {
     
     # Check for high CDC lag (abort if lag > 30 seconds)
     local cdc_lag
-    cdc_lag=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+    cdc_lag=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
         SELECT EXTRACT(EPOCH FROM (now() - confirmed_flush_lsn::text::timestamp)) 
         FROM pg_replication_slots 
         WHERE slot_name = 'debezium_slot';" 2>/dev/null | tr -d ' ' || echo "999")
@@ -158,9 +158,9 @@ preflight_checks() {
         return 1
     fi
     
-    # Check available memory (skip if kubectl top nodes doesn't return percentage format)
+    # Check available memory (skip if kubectl --context "kind-$NAMESPACE" top nodes doesn't return percentage format)
     local available_memory
-    available_memory=$(kubectl top nodes --no-headers 2>/dev/null | awk '{print $4}' | sed 's/%//' | head -1 2>/dev/null || echo "unknown")
+    available_memory=$(kubectl --context "kind-$NAMESPACE" top nodes --no-headers 2>/dev/null | awk '{print $4}' | sed 's/%//' | head -1 2>/dev/null || echo "unknown")
     if [[ "$available_memory" =~ ^[0-9]+$ ]] && (( available_memory < 20 )); then
         log WARN "Low available memory ($available_memory%). Rotation may cause resource pressure."
     elif [[ "$available_memory" != "unknown" ]]; then
@@ -189,7 +189,7 @@ cleanup_old_postgresql_user() {
     log INFO "Cleaning up old PostgreSQL user: $old_user"
        
     # Drop the old user
-    kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
         DROP USER IF EXISTS $old_user;
     " || {
         log ERROR "Failed to drop old user $old_user"
@@ -204,7 +204,7 @@ cleanup_old_postgresql_user() {
 rotate_postgresql_credentials() {
     log INFO "Starting PostgreSQL CDC user credential rotation..."
     
-    local current_user=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+    local current_user=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
         SELECT usename FROM pg_stat_replication" | tr -d ' ')
     local new_user="debezium_$(date +%Y%m%d_%H%M%S)"
     local new_password
@@ -219,7 +219,7 @@ rotate_postgresql_credentials() {
 
     # Step 1: Create new CDC user with same permissions
     log INFO "Creating new CDC user: $new_user"
-    kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
         CREATE USER $new_user WITH REPLICATION PASSWORD '$new_password' IN ROLE debezium_parent; 
         ALTER ROLE $new_user SET ROLE debezium_parent;
     " || {
@@ -229,7 +229,7 @@ rotate_postgresql_credentials() {
     
     # Step 2: Pause Debezium connector
     log INFO "Pausing Debezium connector..."
-    kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
         log ERROR "Failed to pause Debezium connector"
         return 1
     }
@@ -242,7 +242,7 @@ rotate_postgresql_credentials() {
     # Note: PostgreSQL allows any user with REPLICATION privilege to read from logical replication slots
     # No ownership transfer is needed - the existing slot can be used by the new user
     local replication_check
-    replication_check=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+    replication_check=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
         SELECT rolreplication FROM pg_roles WHERE rolname = '$new_user';" | tr -d ' ')
     
     if [[ "$replication_check" != "t" ]]; then
@@ -254,7 +254,7 @@ rotate_postgresql_credentials() {
     
     # Step 4: Update Kubernetes secret
     log INFO "Updating Kubernetes secret with new credentials..."
-    kubectl patch secret debezium-credentials -n "$NAMESPACE" \
+    kubectl --context "kind-$NAMESPACE" patch secret debezium-credentials -n "$NAMESPACE" \
         --patch="{\"data\":{\"db-username\":\"$(echo -n "$new_user" | base64 -w 0)\",\"db-password\":\"$(echo -n "$new_password" | base64 -w 0)\"}}" || {
         log ERROR "Failed to update Kubernetes secret"
         return 1
@@ -262,13 +262,13 @@ rotate_postgresql_credentials() {
     
     # Step 5: Delete Kafka Connect pod to force restart with new credentials
     log INFO "Deleting Kafka Connect pod to force restart..."
-    kubectl delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
+    kubectl --context "kind-$NAMESPACE" delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
         log ERROR "Failed to delete Kafka Connect pod"
         return 1
     }
     
     # Wait for new pod to be ready
-    kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
+    kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
         log ERROR "Kafka Connect pod did not become ready"
         return 1
     }
@@ -276,7 +276,7 @@ rotate_postgresql_credentials() {
     # Step 6: Resume Debezium connector
     log INFO "Resuming Debezium connector after 20s ..."
     sleep 20
-    kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
         log ERROR "Failed to resume Debezium connector"
         return 1
     }
@@ -286,7 +286,7 @@ rotate_postgresql_credentials() {
     sleep 10
     
     local slot_active
-    slot_active=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+    slot_active=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
         SELECT active FROM pg_replication_slots WHERE slot_name = 'debezium_slot';" | tr -d ' ')
     
     if [[ "$slot_active" != "t" ]]; then
@@ -296,7 +296,7 @@ rotate_postgresql_credentials() {
     
     # Validate new user is connected for replication
     local replication_connection
-    replication_connection=$(kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
+    replication_connection=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
         SELECT usename FROM pg_stat_replication WHERE usename = '$new_user';" | tr -d ' ')
     
     if [[ "$replication_connection" == "$new_user" ]]; then
@@ -307,7 +307,7 @@ rotate_postgresql_credentials() {
     
     # Step 8: Validate CDC is working by checking user in kafka connect log
     log INFO "Validating CDC functionality..."
-    local log_info=$(kubectl logs deploy/kafka-connect -n data-ingestion -c kafka-connect)
+    local log_info=$(kubectl --context "kind-$NAMESPACE" logs deploy/kafka-connect -n data-ingestion -c kafka-connect)
     local log_match=$(echo "$log_info" | grep -o "database.user = $new_user")
 
     if [[ "$log_match" == "database.user = $new_user" ]]; then
@@ -321,7 +321,7 @@ rotate_postgresql_credentials() {
     echo "$current_user" > "/tmp/task13-old-user-$(date +%Y%m%d-%H%M%S).txt"
     log INFO "Old user '$current_user' should be cleaned up after validation period"
     log INFO "To clean up old user after validation, run:"
-    log INFO "kubectl exec -n $NAMESPACE postgresql-0 -- psql -U postgres -d ecommerce -c \"DROP USER IF EXISTS $current_user;\""
+    log INFO "kubectl --context \"kind-$NAMESPACE\" exec -n $NAMESPACE postgresql-0 -- psql -U postgres -d ecommerce -c \"DROP USER IF EXISTS $current_user;\""
     
     log SUCCESS "PostgreSQL CDC user rotation completed successfully"
     return 0
@@ -361,14 +361,14 @@ rotate_schema_registry_credentials() {
     log INFO "Updating Schema Registry credentials in Kubernetes secret..."
     
     # Create new user-info content with updated admin password (properly escaped for JSON)
-    local old_user_info=$(kubectl get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.user-info' | base64 -d)
+    local old_user_info=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.user-info' | base64 -d)
     local new_user_info=$(echo "$old_user_info" | sed "s/admin:.*/admin:$new_admin_password,admin/")
     new_user_info="${new_user_info//$'\n'/\\n}"
     
     export SCHEMA_AUTH_PASS="$new_admin_password"
 
     # Update the schema-registry-auth secret
-    kubectl patch secret schema-registry-auth -n "$NAMESPACE" \
+    kubectl --context "kind-$NAMESPACE" patch secret schema-registry-auth -n "$NAMESPACE" \
         --patch="{\"stringData\":{\"user-info\":\"$new_user_info\",\"admin-password\":\"$new_admin_password\"}}" || {
         log ERROR "Failed to update Schema Registry credentials in Kubernetes secret"
         return 1
@@ -376,26 +376,26 @@ rotate_schema_registry_credentials() {
     
     # Step 2: Delete Schema Registry pod to force restart with new credentials
     log INFO "Deleting Schema Registry pod to force restart..."
-    kubectl delete pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" || {
+    kubectl --context "kind-$NAMESPACE" delete pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" || {
         log ERROR "Failed to delete Schema Registry pod"
         return 1
     }
     
     # Wait for new pod to be ready
-    kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" --timeout=300s || {
+    kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" --timeout=300s || {
         log ERROR "Schema Registry pod did not become ready"
         return 1
     }
     
     # Step 3: Delete Kafka Connect pod to pick up new Schema Registry credentials
     log INFO "Deleting Kafka Connect pod to use new Schema Registry credentials..."
-    kubectl delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
+    kubectl --context "kind-$NAMESPACE" delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
         log ERROR "Failed to delete Kafka Connect pod for Schema Registry credentials"
         return 1
     }
     
     # Wait for new pod to be ready
-    kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
+    kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
         log ERROR "Kafka Connect pod did not become ready for Schema Registry credentials"
         return 1
     }
@@ -409,21 +409,21 @@ validate_end_to_end() {
     log INFO "Running end-to-end validation..."
     
     # Test 1: PostgreSQL connectivity
-    if ! kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "SELECT COUNT(*) FROM users;" &> /dev/null; then
+    if ! kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "SELECT COUNT(*) FROM users;" &> /dev/null; then
         log ERROR "PostgreSQL connectivity test failed"
         return 1
     fi
     
     # Test 2: Kafka Connect status
     local connect_status
-    connect_status=$(kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "unknown"' 2>/dev/null || echo "unknown")
+    connect_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "unknown"' 2>/dev/null || echo "unknown")
     if [[ "$connect_status" != "RUNNING" ]]; then
         log ERROR "Kafka Connect connector is not running (status: $connect_status)"
         return 1
     fi
     
     # Test 3: Schema Registry connectivity
-    if ! kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/subjects" &> /dev/null; then
+    if ! kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$SCHEMA_REGISTRY_SERVICE/subjects" &> /dev/null; then
         log ERROR "Schema Registry connectivity test failed"
         return 1
     fi
@@ -432,13 +432,13 @@ validate_end_to_end() {
     log INFO "Testing end-to-end data flow..."
     local test_email="e2e-test-$(date +%s)@example.com"
 
-    local schema_registry_pod=$(kubectl get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local schema_registry_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     export SCHEMA_REGISTRY_POD="$schema_registry_pod"
 
     start_avro_consumer
     
     # Insert test record
-    kubectl exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c "
         INSERT INTO users (email, first_name, last_name) 
         VALUES ('$test_email', 'E2E', 'Test');
     " || {
@@ -470,7 +470,7 @@ rollback_rotation() {
     
     # Restore previous Kubernetes secrets if backup exists
     log INFO "Pausing Debezium connector..."
-    kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
         log ERROR "Failed to pause Debezium connector"
         return 1
     }
@@ -478,36 +478,36 @@ rollback_rotation() {
     # Wait for connector to pause
     sleep 5
 
-    if kubectl get secret debezium-credentials-backup -n "$NAMESPACE" &> /dev/null; then
+    if kubectl --context "kind-$NAMESPACE" get secret debezium-credentials-backup -n "$NAMESPACE" &> /dev/null; then
         log INFO "Restoring previous debezium credentials from backup..."
-        kubectl delete secret debezium-credentials -n "$NAMESPACE" || true
-        kubectl get secret debezium-credentials-backup -n "$NAMESPACE" -o yaml | \
+        kubectl --context "kind-$NAMESPACE" delete secret debezium-credentials -n "$NAMESPACE" || true
+        kubectl --context "kind-$NAMESPACE" get secret debezium-credentials-backup -n "$NAMESPACE" -o yaml | \
             sed 's/debezium-credentials-backup/debezium-credentials/' | \
-            kubectl apply -f - || {
+            kubectl --context "kind-$NAMESPACE" apply -f - || {
             log ERROR "Failed to restore debezium credentials from backup"
             return 1
         }
     fi
 
-    if kubectl get secret schema-registry-auth-backup -n "$NAMESPACE" &> /dev/null; then
+    if kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth-backup -n "$NAMESPACE" &> /dev/null; then
         log INFO "Restoring previous schema registry credentials from backup..."
-        kubectl delete secret schema-registry-auth -n "$NAMESPACE" || true
-        kubectl get secret schema-registry-auth-backup -n "$NAMESPACE" -o yaml | \
+        kubectl --context "kind-$NAMESPACE" delete secret schema-registry-auth -n "$NAMESPACE" || true
+        kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth-backup -n "$NAMESPACE" -o yaml | \
             sed 's/schema-registry-auth-backup/schema-registry-auth/' | \
-            kubectl apply -f - || {
+            kubectl --context "kind-$NAMESPACE" apply -f - || {
             log ERROR "Failed to restore schema registry credentials from backup"
             return 1
         }
 
         # Delete Schema Registry pod to force restart with restored credentials
         log INFO "Deleting Schema Registry pod to force restart..."
-        kubectl delete pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" || {
+        kubectl --context "kind-$NAMESPACE" delete pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" || {
             log ERROR "Failed to delete Schema Registry pod"
             return 1
         }
         
         # Wait for new pod to be ready
-        kubectl wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" --timeout=300s || {
+        kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n "$NAMESPACE" --timeout=300s || {
             log ERROR "Schema Registry pod did not become ready"
             return 1
         }
@@ -515,20 +515,20 @@ rollback_rotation() {
             
     # Delete Kafka Connect pod to force restart with restored credentials
     log INFO "Deleting Kafka Connect pod to force restart..."
-    kubectl delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
+    kubectl --context "kind-$NAMESPACE" delete pod -l app=kafka-connect,component=worker -n "$NAMESPACE" || {
         log ERROR "Failed to delete Kafka Connect pod"
         return 1
     }
     
     # Wait for new pod to be ready
-    kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
+    kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n "$NAMESPACE" --timeout=300s || {
         log ERROR "Kafka Connect pod did not become ready"
         return 1
     }
     
     log INFO "Resuming Debezium connector after 20s ..."
     sleep 20
-    kubectl exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
         log ERROR "Failed to resume Debezium connector"
         return 1
     }
@@ -558,17 +558,17 @@ main() {
     # Create backup of current secrets
     if [[ "$DRY_RUN" == "false" ]]; then
         log INFO "Creating backup of current credentials..."
-        kubectl delete secret debezium-credentials-backup -n "$NAMESPACE" || true
-        kubectl get secret debezium-credentials -n "$NAMESPACE" -o yaml | \
+        kubectl --context "kind-$NAMESPACE" delete secret debezium-credentials-backup -n "$NAMESPACE" || true
+        kubectl --context "kind-$NAMESPACE" get secret debezium-credentials -n "$NAMESPACE" -o yaml | \
             sed 's/debezium-credentials/debezium-credentials-backup/' | \
-            kubectl apply -f - || {
+            kubectl --context "kind-$NAMESPACE" apply -f - || {
             log WARN "Failed to create debezium credentials backup"
         }
 
-        kubectl delete secret schema-registry-auth-backup -n "$NAMESPACE" || true
-        kubectl get secret schema-registry-auth -n "$NAMESPACE" -o yaml | \
+        kubectl --context "kind-$NAMESPACE" delete secret schema-registry-auth-backup -n "$NAMESPACE" || true
+        kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n "$NAMESPACE" -o yaml | \
             sed 's/schema-registry-auth/schema-registry-auth-backup/' | \
-            kubectl apply -f - || {
+            kubectl --context "kind-$NAMESPACE" apply -f - || {
             log WARN "Failed to create schema registry credentials backup"
         }
     fi

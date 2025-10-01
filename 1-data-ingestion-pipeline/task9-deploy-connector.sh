@@ -30,7 +30,7 @@ validate_prerequisites() {
     fi
     
     # Check namespace exists
-    if ! kubectl get namespace ${NAMESPACE} >/dev/null 2>&1; then
+    if ! kubectl --context "kind-$NAMESPACE" get namespace ${NAMESPACE} >/dev/null 2>&1; then
         log "❌ : Namespace ${NAMESPACE} not found"
         return 1
     fi
@@ -42,10 +42,10 @@ validate_prerequisites() {
 # Wait for Kafka Connect to be ready
 wait_for_kafka_connect() {
     log "Checking Kafka Connect service status..."
-    kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker | tee -a "${LOG_DIR}/connector.log"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker | tee -a "${LOG_DIR}/connector.log"
     
     log "Waiting for Kafka Connect to be ready..."
-    if kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s; then
+    if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s; then
         log "✅  Kafka Connect is ready"
         return 0
     else
@@ -58,14 +58,14 @@ wait_for_kafka_connect() {
 handle_existing_connector() {
     log "Checking if connector already exists..."
 
-    local status=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    local status=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status \
         2>/dev/null)
     
     # Check if connector already exists by trying to get its status
     if [[ -n "$status" ]] && echo "$status" | grep -qv "error_code\":404,\"message\":\"No status found for connector ${CONNECTOR_NAME}\""; then
         log "⚠️    Connector exists. Deleting existing connector..."
-        if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+        if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
            curl -X DELETE http://localhost:8083/connectors/${CONNECTOR_NAME} >/dev/null 2>&1; then
             log "✅  Existing connector deleted"
             log "Waiting 10 seconds for cleanup..."
@@ -86,7 +86,7 @@ deploy_connector() {
     log "Deploying connector..."
     
     # Deploy connector via REST API
-    if kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
        curl -X POST http://kafka-connect.${NAMESPACE}.svc.cluster.local:8083/connectors \
        -H "Content-Type: application/json" \
        -d "$(cat ${CONFIG_FILE})" >/dev/null 2>&1; then
@@ -103,7 +103,7 @@ validate_deployment() {
     log "Checking connector status..."
     sleep 5
     
-    local status_output=$(kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    local status_output=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status 2>/dev/null)
     
     if [[ -n "$status_output" ]]; then
@@ -122,7 +122,7 @@ validate_deployment() {
     fi
     
     log "Listing all connectors..."
-    kubectl exec -n ${NAMESPACE} deploy/kafka-connect -- \
+    kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
         curl -s http://localhost:8083/connectors 2>/dev/null | jq '.' | tee -a "${LOG_DIR}/connector.log"
     
     return 0

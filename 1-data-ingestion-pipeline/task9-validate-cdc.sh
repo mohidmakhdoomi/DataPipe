@@ -45,7 +45,7 @@ exit_one() {
 }
 
 start_avro_consumer() {
-    exec 3< <(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
@@ -60,10 +60,10 @@ start_avro_consumer() {
 get_pod_names() {
     log "Discovering pod names..."
     
-    local connect_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-    local postgres_pod=$(kubectl get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-    local kafka_pod=$(kubectl get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
-    local schema_registry_pod=$(kubectl get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local connect_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local postgres_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=postgresql,component=database -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local kafka_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka,component=streaming -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    local schema_registry_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
     
     if [[ -z "$connect_pod" || -z "$postgres_pod" || -z "$kafka_pod" || -z "$schema_registry_pod" ]]; then
         log "❌ Failed to discover all required pods"
@@ -89,7 +89,7 @@ get_pod_names() {
 check_connector_status() {
     log "Checking connector status..."
     
-    local status_output=$(kubectl exec -n ${NAMESPACE} ${CONNECT_POD} -- \
+    local status_output=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${CONNECT_POD} -- \
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status 2>/dev/null)
     
     if [[ -n "$status_output" ]]; then
@@ -117,7 +117,7 @@ check_connector_status() {
 check_replication_slot() {
     log "Checking PostgreSQL replication slot..."
     
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c "SELECT slot_name, active, restart_lsn FROM pg_replication_slots;" 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
         log "✅ Replication slot information retrieved"
         return 0
@@ -131,7 +131,7 @@ check_replication_slot() {
 check_kafka_topics() {
     log "Listing Kafka topics..."
     
-    local topics=$(kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+    local topics=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
         kafka-topics --bootstrap-server localhost:9092 --list 2>/dev/null | grep postgres || echo "")
     
     if [[ -n "$topics" ]]; then
@@ -150,7 +150,7 @@ check_kafka_topics() {
 check_schema_registry() {
     log "Checking Schema Registry subjects..."
     
-    local subjects=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    local subjects=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} http://localhost:8081/subjects 2>/dev/null)
     
     if [[ -n "$subjects" ]]; then
@@ -178,7 +178,7 @@ check_message_counts() {
     
     for table in "${tables[@]}"; do
         local topic="postgres.public.$table"
-        local count=$(kubectl exec -n ${NAMESPACE} ${KAFKA_POD} -- \
+        local count=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
             kafka-run-class kafka.tools.GetOffsetShell \
             --broker-list localhost:9092 \
             --topic "$topic" --time -1 2>/dev/null | \
@@ -201,7 +201,7 @@ test_cdc_insert() {
     start_avro_consumer
     
     # Insert record and check if it succeeds
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, last_name) VALUES ('$INS_UPD_DEL_EMAIL', 'CDC', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Test record inserted successfully"
@@ -229,7 +229,7 @@ test_cdc_update() {
     
     start_avro_consumer
 
-    local update_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    local update_result=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
        "UPDATE users SET first_name='Updated' WHERE email='$INS_UPD_DEL_EMAIL' RETURNING id;" 2>/dev/null)
 
@@ -260,13 +260,13 @@ test_cdc_delete() {
     log "Testing DELETE operation (critical for Iceberg)..."
     
     # First, verify the record exists before attempting deletion
-    local record_check=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    local record_check=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
         psql -U postgres -d ecommerce -t -c \
         "SELECT COUNT(*) FROM users WHERE email = '$INS_UPD_DEL_EMAIL';" 2>/dev/null | tr -d ' ')
     
     if [[ "$record_check" == "0" ]]; then
         log "⚠️  Record with email '$INS_UPD_DEL_EMAIL' not found. Re-inserting for DELETE test..."
-        kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+        kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
             psql -U postgres -d ecommerce -c \
             "INSERT INTO users (email, first_name, last_name) VALUES ('$INS_UPD_DEL_EMAIL', 'CDC', 'Test') ON CONFLICT (email) DO NOTHING;" >> "${LOG_DIR}/validate.log" 2>&1
         sleep 2  # Give time for commit visibility
@@ -274,7 +274,7 @@ test_cdc_delete() {
 
     start_avro_consumer
 
-    local delete_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    local delete_result=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
        "DELETE FROM users WHERE email = '$INS_UPD_DEL_EMAIL' RETURNING id;" 2>/dev/null)    
     
@@ -310,7 +310,7 @@ test_schema_evolution_add_nullable_column() {
     
     # Add nullable column to users table
     log "Adding nullable column '$NULLABLE_COL' to users table..."
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "ALTER TABLE users ADD COLUMN $NULLABLE_COL VARCHAR(100);" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Successfully added nullable column"
@@ -329,7 +329,7 @@ test_schema_evolution_add_nullable_column() {
 
     start_avro_consumer
     
-    local insert_result=$(kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    local insert_result=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -qAt -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, $NULLABLE_COL, last_name) VALUES ('$test_email', 'Schema', 'Evolution', 'Test') RETURNING id;" 2>/dev/null)
 
@@ -375,7 +375,7 @@ test_schema_evolution_add_default_column() {
     
     # Add column with default value
     log "Adding column '$DEFAULTING_COL' with default value to users table..."
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "ALTER TABLE users ADD COLUMN $DEFAULTING_COL VARCHAR(20) DEFAULT 'active';" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Successfully added column with default value"
@@ -394,7 +394,7 @@ test_schema_evolution_add_default_column() {
 
     start_avro_consumer
     
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'Default', 'Test') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ INSERT without new column successful"
@@ -429,7 +429,7 @@ test_schema_evolution_add_default_column() {
 # Get schema version from Schema Registry
 get_schema_version() {
     local subject=$1
-    local version=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    local version=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/subjects/$subject/versions/latest" 2>/dev/null | \
         jq -r '.version' 2>/dev/null || echo "0")
     echo "$version"
@@ -440,14 +440,14 @@ verify_schema_registry_compatibility() {
     log "=== Verifying Schema Registry Compatibility Settings ==="
     
     # Check global compatibility level
-    local global_compatibility=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    local global_compatibility=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/config" 2>/dev/null | \
         jq -r '.compatibilityLevel' 2>/dev/null || echo "UNKNOWN")
     
     log "Global compatibility level: $global_compatibility"
     
     # Check subject-specific compatibility for users table
-    local users_compatibility=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    local users_compatibility=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/config/postgres.public.users-value" 2>/dev/null | \
         jq -r '.compatibilityLevel' 2>/dev/null || echo "INHERITED")
     
@@ -475,7 +475,7 @@ test_cdc_after_schema_changes() {
 
     start_avro_consumer
 
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "INSERT INTO users (email, first_name, $NULLABLE_COL, last_name, $DEFAULTING_COL) VALUES ('$test_email', 'Post', 'Schema', 'Change', 'verified') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ INSERT with full schema successful"
@@ -498,7 +498,7 @@ test_cdc_after_schema_changes() {
 
     start_avro_consumer
 
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "UPDATE users SET $NULLABLE_COL='Updated', $DEFAULTING_COL='modified' WHERE email='$test_email' RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ UPDATE with new fields successful"
@@ -530,7 +530,7 @@ cleanup_schema_evolution_tests() {
     # Remove test columns from database
     log "Removing test columns added during schema evolution testing..."
     
-    if kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "ALTER TABLE users DROP COLUMN IF EXISTS $NULLABLE_COL, DROP COLUMN IF EXISTS $DEFAULTING_COL;" >> "${LOG_DIR}/validate.log" 2>&1; then
         log "✅ Test columns removed successfully from database"
@@ -540,7 +540,7 @@ cleanup_schema_evolution_tests() {
     
     # Clean up test records
     log "Cleaning up schema evolution test records..."
-    kubectl exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
+    kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
        "DELETE FROM users WHERE email LIKE '%schema-evolve%' OR email LIKE '%post-schema-change%';" >> "${LOG_DIR}/validate.log" 2>&1
     
@@ -572,7 +572,7 @@ cleanup_schema_registry_versions() {
     local subject="postgres.public.users-value"
        
     # Get all versions for the subject
-    local versions=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    local versions=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
         sed 's/^\[\(.*\)\]$/\1/' 2>/dev/null || echo "")
     
@@ -596,7 +596,7 @@ cleanup_schema_registry_versions() {
         if [[ "$version" -gt "$baseline_version" ]]; then
             log "Soft deleting schema version $version..."
             
-            local delete_result=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+            local delete_result=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
                 curl -s -w "%{http_code}" -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
                 -X DELETE "http://localhost:8081/subjects/$subject/versions/$version" 2>/dev/null)
             
@@ -622,7 +622,7 @@ cleanup_schema_registry_versions() {
     
     # Verify the cleanup by checking remaining versions
     log "Verifying schema cleanup..."
-    local remaining_versions=$(kubectl exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
+    local remaining_versions=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} "http://localhost:8081/subjects/$subject/versions" 2>/dev/null | \
         sed 's/^\[\(.*\)\]$/\1/' 2>/dev/null || echo "")
     
@@ -637,7 +637,7 @@ cleanup_schema_registry_versions() {
 check_connector_logs() {
     log "Checking connector logs for any errors..."
     
-    local error_logs=$(kubectl logs -n ${NAMESPACE} ${CONNECT_POD} --tail=20 2>/dev/null | grep -E "(ERROR|WARN|Exception)" || echo "")
+    local error_logs=$(kubectl --context "kind-$NAMESPACE" logs -n ${NAMESPACE} ${CONNECT_POD} --tail=20 2>/dev/null | grep -E "(ERROR|WARN|Exception)" || echo "")
     
     if [[ -n "$error_logs" ]]; then
         log "⚠️  Found warnings/errors in connector logs:"
@@ -653,7 +653,7 @@ check_connector_logs() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_DIR}/validate.log"; then
         log "✅ Resource usage information retrieved"
         return 0
     else
