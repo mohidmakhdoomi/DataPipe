@@ -166,7 +166,7 @@ main() {
         log "✅ Data Generator completed successfully"
     else
         log "❌ : Data Generator failed"
-        exit_onegit 
+        exit_one
     fi
 
     log "Sleeping 2 mins after running Data Generator"
