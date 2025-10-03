@@ -252,7 +252,7 @@ topics:
     "transforms.unwrap.add.fields": "op,ts_ms,source.ts_ms,source.lsn",
     "snapshot.mode": "initial",
     "heartbeat.interval.ms": "30000",
-    "heartbeat.topics.prefix": "__debezium-heartbeat",
+    "topic.heartbeat.prefix": "__debezium-heartbeat",
     "provide.transaction.metadata": "true",
     "decimal.handling.mode": "string",
     "time.precision.mode": "adaptive_time_microseconds",
@@ -551,7 +551,7 @@ error_handling:
 heartbeat_config:
   debezium:
     heartbeat.interval.ms: "30000"
-    heartbeat.topics.prefix: "__debezium-heartbeat"
+    topic.heartbeat.prefix: "__debezium-heartbeat"
     purpose: "Detect connector liveness and CDC lag"
     
   kafka_connect:

@@ -179,7 +179,7 @@ spec:
           echo "Creating __debezium-heartbeat topics..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create \
-            --topic __debezium-heartbeat-users.postgres-users \
+            --topic __debezium-heartbeat-users.postgres \
             --partitions 6 \
             --replication-factor 3 \
             --config retention.ms=604800000 \
@@ -190,7 +190,7 @@ spec:
 
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create \
-            --topic __debezium-heartbeat-products.postgres-products \
+            --topic __debezium-heartbeat-products.postgres \
             --partitions 6 \
             --replication-factor 3 \
             --config retention.ms=604800000 \
@@ -201,7 +201,7 @@ spec:
 
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create \
-            --topic __debezium-heartbeat-orders.postgres-orders \
+            --topic __debezium-heartbeat-orders.postgres \
             --partitions 6 \
             --replication-factor 3 \
             --config retention.ms=604800000 \
@@ -212,7 +212,7 @@ spec:
 
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create \
-            --topic __debezium-heartbeat-order-items.postgres-order-items \
+            --topic __debezium-heartbeat-order-items.postgres \
             --partitions 6 \
             --replication-factor 3 \
             --config retention.ms=604800000 \
@@ -221,11 +221,44 @@ spec:
             --config min.insync.replicas=2 \
             --if-not-exists
 
-          # Create postgres.transaction topic (for s3-sink-connector)
-          echo "Creating postgres.transaction topic..."
+          # Create postgres.transaction topic
+          echo "Creating postgres.transaction topics..."
           kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --create \
-            --topic postgres.transaction \
+            --topic postgres.transaction-users \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic postgres.transaction-products \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic postgres.transaction-orders \
+            --partitions 6 \
+            --replication-factor 3 \
+            --config retention.ms=604800000 \
+            --config compression.type=lz4 \
+            --config cleanup.policy=delete \
+            --config min.insync.replicas=2 \
+            --if-not-exists
+
+          kafka-topics --bootstrap-server kafka-0.kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --create \
+            --topic postgres.transaction-order-items \
             --partitions 6 \
             --replication-factor 3 \
             --config retention.ms=604800000 \

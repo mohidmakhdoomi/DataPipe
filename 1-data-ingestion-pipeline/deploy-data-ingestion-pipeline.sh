@@ -159,18 +159,18 @@ main() {
     log "Sleeping 2 mins after inserting Sample Data"
     sleep 120
 
-    # export LOG_DIR="${LOG_DIR}"
+    export LOG_DIR="${LOG_DIR}"
 
-    # log "Executing Data Generator - performance benchmark..."
-    # if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 180; then
-    #     log "✅ Data Generator completed successfully"
-    # else
-    #     log "❌ : Data Generator failed"
-    #     exit_onegit 
-    # fi
+    log "Executing Data Generator - performance benchmark..."
+    if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 180; then
+        log "✅ Data Generator completed successfully"
+    else
+        log "❌ : Data Generator failed"
+        exit_onegit 
+    fi
 
-    # log "Sleeping 2 mins after running Data Generator"
-    # sleep 120
+    log "Sleeping 2 mins after running Data Generator"
+    sleep 120
 
     stop_monitoring
 
