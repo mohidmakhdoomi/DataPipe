@@ -65,7 +65,7 @@ start_avro_consumer() {
         --property schema.registry.url=http://localhost:8081 \
         --timeout-ms 40000 2>/dev/null)
     
-    log INFO "Waiting 15 seconds for kafka-avro-console-consumer to start..."
+    log INFO "Waiting 20 seconds for kafka-avro-console-consumer to start..."
     sleep 20
 }
 
