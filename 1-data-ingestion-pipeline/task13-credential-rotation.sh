@@ -65,8 +65,61 @@ start_avro_consumer() {
         --property schema.registry.url=http://localhost:8081 \
         --timeout-ms 40000 2>/dev/null)
     
-    log INFO "Waiting 20 seconds for kafka-avro-console-consumer to start..."
+    log INFO "Waiting 6 seconds for kafka-avro-console-consumer to start..."
+    sleep 6
+}
+
+pause_connectors() {
+    log INFO "Pausing Debezium connectors..."
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/pause" || {
+        log ERROR "Failed to pause Debezium users connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/pause" || {
+        log ERROR "Failed to pause Debezium products connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/pause" || {
+        log ERROR "Failed to pause Debezium orders connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/pause" || {
+        log ERROR "Failed to pause Debezium order items connector"
+        return 1
+    }
+
+    # Wait for connectors to pause
+    sleep 5
+}
+
+resume_connectors() {
+    log INFO "Resuming Debezium connectors after 20s ..."
     sleep 20
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/resume" || {
+        log ERROR "Failed to resume Debezium users connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/resume" || {
+        log ERROR "Failed to resume Debezium products connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/resume" || {
+        log ERROR "Failed to resume Debezium orders connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/resume" || {
+        log ERROR "Failed to resume Debezium order items connector"
+        return 1
+    }
+
+    # Wait for connectors to resume
+    sleep 5
 }
 
 while [[ $# -gt 0 ]]; do
@@ -235,29 +288,7 @@ rotate_postgresql_credentials() {
     }
     
     # Step 2: Pause Debezium connector
-    log INFO "Pausing Debezium connector..."
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/pause" || {
-        log ERROR "Failed to pause Debezium users connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/pause" || {
-        log ERROR "Failed to pause Debezium products connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/pause" || {
-        log ERROR "Failed to pause Debezium orders connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/pause" || {
-        log ERROR "Failed to pause Debezium order items connector"
-        return 1
-    }
-    
-    # Wait for connector to pause
-    sleep 5
+    pause_connectors
     
     # Step 3: Validate new user can access replication slot
     log INFO "Validating new user has proper replication permissions..."
@@ -296,27 +327,7 @@ rotate_postgresql_credentials() {
     }
     
     # Step 6: Resume Debezium connector
-    log INFO "Resuming Debezium connector after 20s ..."
-    sleep 20
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/resume" || {
-        log ERROR "Failed to resume Debezium users connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/resume" || {
-        log ERROR "Failed to resume Debezium products connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/resume" || {
-        log ERROR "Failed to resume Debezium orders connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/resume" || {
-        log ERROR "Failed to resume Debezium order items connector"
-        return 1
-    }
+    resume_connectors
     
     # Step 7: Validate replication slot is active and new user is connected
     log INFO "Validating replication slot activity and new user connection..."
@@ -389,6 +400,8 @@ rotate_schema_registry_credentials() {
         log INFO "[DRY-RUN] Would rotate Schema Registry credentials"
         return 0
     fi
+
+    pause_connectors
     
     # Generate new credentials
     local new_admin_password
@@ -436,6 +449,8 @@ rotate_schema_registry_credentials() {
         log ERROR "Kafka Connect pod did not become ready for Schema Registry credentials"
         return 1
     }
+
+    resume_connectors
     
     log SUCCESS "Schema Registry credential rotation completed successfully"
     return 0
@@ -466,7 +481,8 @@ validate_end_to_end() {
     fi
     
     # Test 4: End-to-end data flow test
-    log INFO "Testing end-to-end data flow..."
+    log INFO "Testing end-to-end data flow in 20s ..."
+    sleep 20
     local test_email="e2e-test-$(date +%s)@example.com"
 
     local schema_registry_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
@@ -491,6 +507,7 @@ validate_end_to_end() {
         log INFO "CDC test passed"
     else
         log ERROR "CDC topic does not exist"
+        log INFO "Avro consumer output: $avro_out"
         return 1
     fi
     
@@ -506,29 +523,7 @@ rollback_rotation() {
     log INFO "Rolling back to previous configuration..."
     
     # Restore previous Kubernetes secrets if backup exists
-    log INFO "Pausing Debezium connector..."
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/pause" || {
-        log ERROR "Failed to pause Debezium users connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/pause" || {
-        log ERROR "Failed to pause Debezium products connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/pause" || {
-        log ERROR "Failed to pause Debezium orders connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/pause" || {
-        log ERROR "Failed to pause Debezium order items connector"
-        return 1
-    }
-    
-    # Wait for connector to pause
-    sleep 5
+    pause_connectors
 
     if kubectl --context "kind-$NAMESPACE" get secret debezium-credentials-backup -n "$NAMESPACE" &> /dev/null; then
         log INFO "Restoring previous debezium credentials from backup..."
@@ -578,27 +573,7 @@ rollback_rotation() {
         return 1
     }
     
-    log INFO "Resuming Debezium connector after 20s ..."
-    sleep 20
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/resume" || {
-        log ERROR "Failed to resume Debezium users connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/resume" || {
-        log ERROR "Failed to resume Debezium products connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/resume" || {
-        log ERROR "Failed to resume Debezium orders connector"
-        return 1
-    }
-
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/resume" || {
-        log ERROR "Failed to resume Debezium order items connector"
-        return 1
-    }
+    resume_connectors
     
     log SUCCESS "Rollback completed"
     return 0

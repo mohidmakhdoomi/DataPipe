@@ -23,8 +23,8 @@ start_avro_consumer() {
         --property schema.registry.url=http://localhost:8081 \
         --timeout-ms 40000 2>/dev/null)
     
-    log "Waiting 20 seconds for kafka-avro-console-consumer to start..."
-    sleep 20
+    log "Waiting 6 seconds for kafka-avro-console-consumer to start..."
+    sleep 6
 }
 
 # Deploy Debezium connector
