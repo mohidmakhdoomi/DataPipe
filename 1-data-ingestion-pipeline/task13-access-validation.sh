@@ -121,7 +121,7 @@ validate_postgresql_permissions() {
     
     # Test 2: CDC user exists and has replication privileges
     local current_user=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT usename FROM pg_stat_replication" | tr -d ' ' || echo "")
+        SELECT usename FROM pg_stat_replication" | tr -d ' ' | uniq || echo "")
 
     if [[ ! -n "$current_user" ]]; then
         record_test_result "CDC User Replication Privileges" "FAIL" "No CDC user from pg_stat_replication"
@@ -172,11 +172,11 @@ validate_postgresql_permissions() {
     slot_info=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
         SELECT slot_name, active, confirmed_flush_lsn IS NOT NULL as has_lsn
         FROM pg_replication_slots 
-        WHERE slot_name like 'debezium_slot%';" 2>/dev/null | tr -d ' ' || echo "")
+        WHERE slot_name like 'debezium_slot%' and active='t';" 2>/dev/null | tr -d ' ' || echo "")
     
     if [[ -n "$slot_info" ]]; then
-        local slot_active=$(echo "$slot_info" | cut -d'|' -f2)
-        local has_lsn=$(echo "$slot_info" | cut -d'|' -f3)
+        local slot_active=$(echo "$slot_info" | cut -d'|' -f2 | uniq)
+        local has_lsn=$(echo "$slot_info" | cut -d'|' -f3 | uniq)
         
         if [[ "$slot_active" == "t" && "$has_lsn" == "t" ]]; then
             record_test_result "Replication Slot Status" "PASS" "Replication slot is active and has valid LSN"
@@ -422,7 +422,7 @@ validate_s3_access() {
     
     # Test 4: S3 Sink connector status (if deployed)
     local s3_connector_status
-    s3_connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/s3-sink-connector/status" | jq -r '.connector.state // "NOT_FOUND"' 2>/dev/null || echo "NOT_FOUND")
+    s3_connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/s3-sink-users-connector/status" | jq -r '.connector.state // "NOT_FOUND"' 2>/dev/null || echo "NOT_FOUND")
     
     if [[ "$s3_connector_status" == "RUNNING" ]]; then
         record_test_result "S3 Sink Connector Status" "PASS" "S3 Sink connector is running"
