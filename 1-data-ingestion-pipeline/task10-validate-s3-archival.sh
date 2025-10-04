@@ -9,7 +9,7 @@ IFS=$'\n\t'       # Safer word splitting
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
-readonly CONNECTOR_NAME="s3-sink-connector"
+readonly CONNECTOR_NAME="s3-sink-users-connector"
 readonly S3_BUCKET=$(yq 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
 readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task10-logs"
 MONITOR_PID=0
@@ -252,7 +252,7 @@ check_dlq() {
     
     log "DLQ message count: $dlq_messages"
     
-    if [[ "$dlq_messages" -eq "0" ]]; then
+    if [[ $dlq_messages -eq 0 ]]; then
         log "✅ No messages in dead letter queue"
         return 0
     else

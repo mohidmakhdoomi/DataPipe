@@ -9,7 +9,7 @@ IFS=$'\n\t'       # Safer word splitting
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
-readonly CONNECTOR_NAME="postgres-cdc-connector"
+readonly CONNECTOR_NAME="postgres-cdc-users-connector"
 readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task9-logs"
 readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
@@ -50,10 +50,10 @@ start_avro_consumer() {
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
         --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 20000 2>/dev/null)
+        --timeout-ms 25000 2>/dev/null)
     
-    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
-    sleep 10
+    log "Waiting 15 seconds for kafka-avro-console-consumer to start..."
+    sleep 15
 }
 
 # Get pod names with validation
