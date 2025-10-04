@@ -214,6 +214,7 @@ test_cdc_insert() {
             log "✅ CDC INSERT event captured"
         else
             log "⚠️  CDC INSERT event not found"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
         
         return 0
@@ -247,6 +248,7 @@ test_cdc_update() {
             return 0
         else
             log "⚠️  UPDATE operation not found - check configuration"
+            log "DEBUG Avro consumer output: $avro_out"
             return 1
         fi
     else
@@ -292,6 +294,7 @@ test_cdc_delete() {
             return 0
         else
             log "⚠️  DELETE operation not found - check configuration"
+            log "DEBUG Avro consumer output: $avro_out"
             return 1
         fi
     else
@@ -346,6 +349,7 @@ test_schema_evolution_add_nullable_column() {
             log "✅ CDC captured record with new schema field"
         else
             log "⚠️  CDC record with new field not found"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ INSERT with new schema failed"
@@ -407,6 +411,7 @@ test_schema_evolution_add_default_column() {
             log "✅ CDC captured record with default value"
         else
             log "⚠️  CDC record with default value not found"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ INSERT with default column failed"
@@ -487,6 +492,7 @@ test_cdc_after_schema_changes() {
             log "✅ CDC captured INSERT after schema evolution"
         else
             log "⚠️  CDC INSERT not captured after schema evolution"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ INSERT with full schema failed"
@@ -510,6 +516,7 @@ test_cdc_after_schema_changes() {
             log "✅ CDC captured UPDATE after schema evolution"
         else
             log "⚠️  CDC UPDATE not captured after schema evolution"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ UPDATE with new fields failed"

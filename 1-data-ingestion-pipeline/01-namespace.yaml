@@ -16,8 +16,8 @@ metadata:
   namespace: data-ingestion
 spec:
   hard:
-    requests.memory: "5Gi"
-    limits.memory: "5Gi"
+    requests.memory: "6Gi"
+    limits.memory: "6Gi"
     requests.cpu: "2"
     limits.cpu: "4"
     pods: "10"

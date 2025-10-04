@@ -118,6 +118,7 @@ test_cdc_flow() {
         log "✅ CDC message found in Kafka topic"
         message_found=true
     else
+        log "DEBUG Avro consumer output: $avro_out"
         log "⚠️  CDC message not found in initial check, trying alternative approach..."
         
         # Check topic exists and has messages

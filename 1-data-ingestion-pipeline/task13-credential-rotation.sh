@@ -507,7 +507,7 @@ validate_end_to_end() {
         log INFO "CDC test passed"
     else
         log ERROR "CDC topic does not exist"
-        log INFO "Avro consumer output: $avro_out"
+        log INFO "DEBUG Avro consumer output: $avro_out"
         return 1
     fi
     
