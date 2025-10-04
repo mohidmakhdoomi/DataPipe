@@ -172,7 +172,7 @@ validate_postgresql_permissions() {
     slot_info=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
         SELECT slot_name, active, confirmed_flush_lsn IS NOT NULL as has_lsn
         FROM pg_replication_slots 
-        WHERE slot_name = 'debezium_slot';" 2>/dev/null | tr -d ' ' || echo "")
+        WHERE slot_name like 'debezium_slot%';" 2>/dev/null | tr -d ' ' || echo "")
     
     if [[ -n "$slot_info" ]]; then
         local slot_active=$(echo "$slot_info" | cut -d'|' -f2)
@@ -255,7 +255,7 @@ validate_kafka_connect_access() {
     
     # Test 4: Debezium connector status
     local connector_status
-    connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+    connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/status" | jq -r '.connector.state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     
     if [[ "$connector_status" == "RUNNING" ]]; then
         record_test_result "Debezium Connector Status" "PASS" "Debezium connector is running"
@@ -265,7 +265,7 @@ validate_kafka_connect_access() {
     
     # Test 5: Connector task status
     local task_status
-    task_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.tasks[0].state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+    task_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/status" | jq -r '.tasks[0].state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     
     if [[ "$task_status" == "RUNNING" ]]; then
         record_test_result "Connector Task Status" "PASS" "Connector task is running"
@@ -275,7 +275,7 @@ validate_kafka_connect_access() {
     
     # Test 6: Kafka connectivity from Kafka Connect
     local kafka_connectivity
-    kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://localhost:8083/connectors/postgres-cdc-connector/config" | jq -r '.["database.hostname"] // "unknown"' 2>/dev/null || echo "unknown")
+    kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://localhost:8083/connectors/postgres-cdc-users-connector/config" | jq -r '.["database.hostname"] // "unknown"' 2>/dev/null || echo "unknown")
     
     if [[ "$kafka_connectivity" != "unknown" ]]; then
         record_test_result "Kafka Connect to Kafka" "PASS" "Kafka Connect can communicate with Kafka"

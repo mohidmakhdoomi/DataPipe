@@ -214,7 +214,7 @@ test_cdc_recovery() {
     
     while [[ $elapsed -lt $max_wait ]]; do
         local status=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
-                      curl -s http://localhost:8083/connectors/postgres-cdc-connector/status \
+                      curl -s http://localhost:8083/connectors/postgres-cdc-users-connector/status \
                       2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
         if [[ "$status" == "RUNNING" ]]; then

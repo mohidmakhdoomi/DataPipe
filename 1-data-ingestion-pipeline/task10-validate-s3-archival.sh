@@ -247,7 +247,7 @@ check_dlq() {
     local dlq_messages=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
         kafka-run-class kafka.tools.GetOffsetShell \
         --broker-list localhost:9092 \
-        --topic s3-sink-dlq --time -1 2>/dev/null | \
+        --topic s3-sink-dlq-users --time -1 2>/dev/null | \
         awk -F: '{sum += $3} END {print (sum ? sum : 0)}' || echo "0")
     
     log "DLQ message count: $dlq_messages"
@@ -262,7 +262,7 @@ check_dlq() {
         log "Sampling DLQ messages..."
         kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
             kafka-console-consumer --bootstrap-server localhost:9092 \
-            --topic s3-sink-dlq --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_DIR}/validate.log"
+            --topic s3-sink-dlq-users --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_DIR}/validate.log"
         
         return 1
     fi

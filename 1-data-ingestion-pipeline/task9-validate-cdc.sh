@@ -50,10 +50,10 @@ start_avro_consumer() {
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
         --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 25000 2>/dev/null)
+        --timeout-ms 40000 2>/dev/null)
     
     log "Waiting 15 seconds for kafka-avro-console-consumer to start..."
-    sleep 15
+    sleep 20
 }
 
 # Get pod names with validation

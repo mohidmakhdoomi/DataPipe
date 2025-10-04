@@ -7,7 +7,7 @@ set -euo pipefail
 readonly NAMESPACE="data-ingestion"
 readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
 readonly CONFIG_FILE="task9-debezium-connector-config.json"
-readonly CONNECTOR_NAME="postgres-cdc-connector"
+readonly CONNECTOR_NAME="postgres-cdc-users-connector"
 readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
@@ -21,10 +21,10 @@ start_avro_consumer() {
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
         --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 25000 2>/dev/null)
+        --timeout-ms 40000 2>/dev/null)
     
     log "Waiting 15 seconds for kafka-avro-console-consumer to start..."
-    sleep 15
+    sleep 20
 }
 
 # Deploy Debezium connector

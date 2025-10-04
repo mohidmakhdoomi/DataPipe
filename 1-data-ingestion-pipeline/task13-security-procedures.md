@@ -97,7 +97,7 @@ tail -f /tmp/task13-rotation-*.log
 3. **Pause Connector and Transfer Slot**
    ```bash
    # Pause connector
-   curl -X PUT http://kafka-connect:8083/connectors/postgres-cdc-connector/pause
+   curl -X PUT http://kafka-connect:8083/connectors/postgres-cdc-users-connector/pause
    
    # Transfer slot ownership (PostgreSQL 14+)
    ALTER REPLICATION SLOT debezium_slot OWNER TO debezium_20240115_1030;
@@ -116,7 +116,7 @@ tail -f /tmp/task13-rotation-*.log
    kubectl wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s
    
    # Resume connector
-   curl -X PUT http://kafka-connect:8083/connectors/postgres-cdc-connector/resume
+   curl -X PUT http://kafka-connect:8083/connectors/postgres-cdc-users-connector/resume
    ```
 
 6. **Validation and Cleanup**
@@ -375,7 +375,7 @@ FROM pg_replication_slots
 WHERE slot_name = 'debezium_slot';"
 
 # Check connector status
-curl -s http://kafka-connect:8083/connectors/postgres-cdc-connector/status | jq '.connector.state'
+curl -s http://kafka-connect:8083/connectors/postgres-cdc-users-connector/status | jq '.connector.state'
 
 # Check authentication failures
 kubectl logs -n data-ingestion -l app=kafka-connect --since=1h | grep -c "authentication failed"
@@ -412,7 +412,7 @@ groups:
       description: "The Debezium replication slot has been inactive for more than 1 minute"
   
   - alert: ConnectorFailed
-    expr: kafka_connect_connector_status{connector="postgres-cdc-connector"} != 1
+    expr: kafka_connect_connector_status{connector="postgres-cdc-users-connector"} != 1
     for: 2m
     labels:
       severity: critical
@@ -444,7 +444,7 @@ SELECT rolname, rolreplication FROM pg_roles WHERE rolname LIKE 'debezium%';
 **Solution:**
 ```bash
 # Let Debezium recreate the slot from stored offsets
-curl -X DELETE http://kafka-connect:8083/connectors/postgres-cdc-connector
+curl -X DELETE http://kafka-connect:8083/connectors/postgres-cdc-users-connector
 # Redeploy connector - it will resume from last committed offset
 ```
 
