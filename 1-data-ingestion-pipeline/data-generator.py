@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import argparse
 import functools
+import random
 
 # Configuration
 POSTGRES_HOST = "localhost"  # Direct connection via NodePort
@@ -70,7 +71,7 @@ def setup_database():
         return None, None
 
 
-def benchmark_performance(target_rate, duration, table_name):
+def benchmark_performance(target_rate, duration):
     """Run the performance benchmark"""
     log(
         f"Starting performance benchmark: {target_rate} events/sec for {duration} seconds"
@@ -81,7 +82,11 @@ def benchmark_performance(target_rate, duration, table_name):
     if not conn:
         return False
 
-    batch_size = (target_rate // 50) if (target_rate >= 50) else 1
+    batch_size = (target_rate // 50) if (target_rate > 500) else 10
+    batch_size_users = int(batch_size * 0.1)
+    batch_size_products = int(batch_size * 0.1)
+    batch_size_orders = int(batch_size * 0.4)
+    batch_size_order_items = batch_size - batch_size_orders - batch_size_products - batch_size_users
 
     # Performance tracking
     batch_count = 0
@@ -98,15 +103,42 @@ def benchmark_performance(target_rate, duration, table_name):
         try:
             # Create batch with source timestamps for latency measurement
             batch_start = time.time()
+            batch_start_int = int(batch_start * 1000)
+            random_key = str(random.random())[2:]
 
             cur.execute(
                 f"""
-                INSERT INTO {table_name} (email, first_name, last_name) 
+                INSERT INTO users (email, first_name, last_name) 
                 SELECT
-                    'user_' || subquery.uuid || '_{int(batch_start * 1000)}@example.com',
+                    'user_' || subquery.uuid || '_{batch_start_int}_{random_key}@example.com',
                     'First_' || subquery.uuid,
                     'Last_' || subquery.uuid
-                    FROM (SELECT generate_series(1, {batch_size}) as uuid) AS subquery;
+                    FROM (SELECT generate_series(1, {batch_size_users}) as uuid) AS subquery;
+
+                INSERT INTO products (name, description, price, stock_quantity, category)
+                SELECT
+                    'p_' || subquery.uuid || '_{batch_start_int}',
+                    'Product_' || subquery.uuid || '_description',
+                    subquery.uuid,
+                    {batch_size_products} + 20 - subquery.uuid,
+                    'Tables'
+                    FROM (SELECT generate_series(1, {batch_size_products}) as uuid) AS subquery;
+
+                INSERT INTO orders (user_id, status, total_amount, shipping_address)
+                SELECT
+                    subquery.uuid,
+                    'processing',
+                    {batch_size_orders} + 54.5 - subquery.uuid,
+                    '{batch_start_int} Test Way, Toronto, ON, Canada'
+                    FROM (SELECT generate_series(1, {batch_size_orders}) as uuid) AS subquery;
+
+                INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+                SELECT
+                    subquery.uuid,
+                    subquery.uuid + 1000,
+                    {batch_size_order_items} + 10 - subquery.uuid,
+                    {batch_size_order_items} + 1.11 - subquery.uuid
+                    FROM (SELECT generate_series(1, {batch_size_order_items}) as uuid) AS subquery;
                 """
             )
             conn.commit()
@@ -225,14 +257,13 @@ def main():
             raise argparse.ArgumentTypeError('value not in range %s-%s'%(min,max))
     
     parser = argparse.ArgumentParser(description='Query S3 Parquet files from data ingestion pipeline')
-    parser.add_argument('--rate', required=True, type=functools.partial(range_type, min=1, max=15000),  default=1000, metavar="[1-15000]", help='Target rate as events per second')
+    parser.add_argument('--rate', required=True, type=functools.partial(range_type, min=100, max=15000),  default=1000, metavar="[100-15000]", help='Target rate as events per second')
     parser.add_argument('--duration', required=True, type=functools.partial(range_type, min=10, max=10800), default=60, metavar="[10-10800]", help='Duration of generation as seconds')
-    parser.add_argument('--table', required=False, type=str, default='users', help='Table to insert data into')
     
     args = parser.parse_args()
 
     try:
-        success = benchmark_performance(args.rate, args.duration, args.table)
+        success = benchmark_performance(args.rate, args.duration)
         sys.exit(0 if success else 1)
 
     except Exception as e:

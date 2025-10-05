@@ -139,7 +139,7 @@ main() {
     export LOG_DIR="${LOG_DIR}"
 
     log "Executing Data Generator - performance benchmark..."
-    if python "${SCRIPT_DIR}/data-generator.py" --rate 4000 --duration 180; then
+    if python "${SCRIPT_DIR}/data-generator.py" --rate 10000 --duration 300; then
         log "✅ Data Generator completed successfully"
     else
         log "❌ : Data Generator failed"
