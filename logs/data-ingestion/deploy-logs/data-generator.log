@@ -1,20 +1,20 @@
-[2025-10-05 14:21:20] Data Generator : === Starting Data Generator: Performance Benchmarking ===
-[2025-10-05 14:21:20] Data Generator : Starting performance benchmark: 4000 events/sec for 180 seconds
-[2025-10-05 14:21:20] Data Generator : Setting up connection to database...
-[2025-10-05 14:21:22] Data Generator : ✅ DB connection ready
-[2025-10-05 14:21:22] Data Generator : Starting load generation...
-[2025-10-05 14:24:22] Data Generator : Waiting for all batches to complete...
-[2025-10-05 14:24:27] Data Generator : 
+[2025-10-05 17:03:23] Data Generator : === Starting Data Generator: Performance Benchmarking ===
+[2025-10-05 17:03:23] Data Generator : Starting performance benchmark: 10000 events/sec for 300 seconds
+[2025-10-05 17:03:23] Data Generator : Setting up connection to database...
+[2025-10-05 17:03:26] Data Generator : ✅ DB connection ready
+[2025-10-05 17:03:26] Data Generator : Starting load generation...
+[2025-10-05 17:08:26] Data Generator : Waiting for all batches to complete...
+[2025-10-05 17:08:31] Data Generator : 
 === Performance Benchmark Results ===
-[2025-10-05 14:24:27] Data Generator : Events sent: 737600
-[2025-10-05 14:24:27] Data Generator : Duration: 180.01 seconds
-[2025-10-05 14:24:27] Data Generator : Actual rate: 4097.63 events/sec
-[2025-10-05 14:24:27] Data Generator : Target achieved: ✅ YES
-[2025-10-05 14:24:27] Data Generator : Errors: 0
-[2025-10-05 14:24:27] Data Generator : Average batch latency: 4.11ms
-[2025-10-05 14:24:27] Data Generator : P50 batch latency: 3.90ms
-[2025-10-05 14:24:27] Data Generator : P95 batch latency: 5.26ms
-[2025-10-05 14:24:27] Data Generator : P99 batch latency: 7.78ms
-[2025-10-05 14:24:27] Data Generator : Latency target (<500ms avg): ✅ YES
-[2025-10-05 14:24:27] Data Generator : Detailed results written to: E:/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/deploy-logs/performance-results.txt
-[2025-10-05 14:24:27] Data Generator : ✅ Completed successfully - performance targets achieved
+[2025-10-05 17:08:31] Data Generator : Events sent: 3073000
+[2025-10-05 17:08:31] Data Generator : Duration: 300.01 seconds
+[2025-10-05 17:08:31] Data Generator : Actual rate: 10242.89 events/sec
+[2025-10-05 17:08:31] Data Generator : Target achieved: ✅ YES
+[2025-10-05 17:08:31] Data Generator : Errors: 0
+[2025-10-05 17:08:31] Data Generator : Average batch latency: 14.24ms
+[2025-10-05 17:08:31] Data Generator : P50 batch latency: 10.56ms
+[2025-10-05 17:08:31] Data Generator : P95 batch latency: 17.83ms
+[2025-10-05 17:08:31] Data Generator : P99 batch latency: 149.50ms
+[2025-10-05 17:08:31] Data Generator : Latency target (<500ms avg): ✅ YES
+[2025-10-05 17:08:31] Data Generator : Detailed results written to: E:/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/deploy-logs/performance-results.txt
+[2025-10-05 17:08:31] Data Generator : ✅ Completed successfully - performance targets achieved

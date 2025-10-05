@@ -1,8 +1,8 @@
 NAME                               READY   STATUS      RESTARTS   AGE   IP           NODE                     NOMINATED NODE   READINESS GATES
-create-kafka-topics-khzxx          0/1     Completed   0          25m   10.244.1.7   data-ingestion-worker2   <none>           <none>
-kafka-0                            1/1     Running     0          26m   10.244.1.6   data-ingestion-worker2   <none>           <none>
-kafka-1                            1/1     Running     0          26m   10.244.2.5   data-ingestion-worker    <none>           <none>
-kafka-2                            1/1     Running     0          26m   10.244.1.5   data-ingestion-worker2   <none>           <none>
-kafka-connect-6697c8dd97-qhpmj     1/1     Running     0          22m   10.244.2.6   data-ingestion-worker    <none>           <none>
-postgresql-0                       1/1     Running     0          27m   10.244.2.3   data-ingestion-worker    <none>           <none>
-schema-registry-696f9b74b5-897mz   1/1     Running     0          23m   10.244.1.8   data-ingestion-worker2   <none>           <none>
+create-kafka-topics-qzhts          0/1     Completed   0          26m   10.244.1.7   data-ingestion-worker2   <none>           <none>
+kafka-0                            1/1     Running     0          27m   10.244.1.5   data-ingestion-worker2   <none>           <none>
+kafka-1                            1/1     Running     0          27m   10.244.1.6   data-ingestion-worker2   <none>           <none>
+kafka-2                            1/1     Running     0          27m   10.244.2.5   data-ingestion-worker    <none>           <none>
+kafka-connect-6697c8dd97-zfw6t     1/1     Running     0          23m   10.244.2.6   data-ingestion-worker    <none>           <none>
+postgresql-0                       1/1     Running     0          28m   10.244.2.3   data-ingestion-worker    <none>           <none>
+schema-registry-696f9b74b5-x2r8j   1/1     Running     0          25m   10.244.1.8   data-ingestion-worker2   <none>           <none>

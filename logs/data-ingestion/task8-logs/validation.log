@@ -1,32 +1,32 @@
-[2025-10-05 14:26:28] [INFO] Starting Task 8 Validation - Data Ingestion Pipeline
-[2025-10-05 14:26:28] [INFO] Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage
-[2025-10-05 14:26:28] [INFO] Checking if metrics-server is available...
-[2025-10-05 14:26:28] [INFO] ✅ Metrics-server is available
-[2025-10-05 14:26:28] [INFO] Starting background resource monitoring
-[2025-10-05 14:26:28] [INFO] === Starting Phase 1: Service Health Validation ===
-[2025-10-05 14:26:28] [INFO] Current memory usage: 3250Mi / 6144Mi 52%
-[2025-10-05 14:28:32] [INFO] Phase 1 completed successfully in 123 seconds
-[2025-10-05 14:28:32] [INFO] Current memory usage: 3255Mi / 6144Mi 52%
-[2025-10-05 14:28:37] [INFO] === Starting Phase 2: Inter-Service Connectivity ===
-[2025-10-05 14:28:37] [INFO] Current memory usage: 3255Mi / 6144Mi 52%
-[2025-10-05 14:28:48] [INFO] Phase 2 completed successfully in 11 seconds
-[2025-10-05 14:28:48] [INFO] Current memory usage: 3347Mi / 6144Mi 54%
-[2025-10-05 14:28:58] [INFO] === Starting Phase 3: CDC Pipeline Testing ===
-[2025-10-05 14:28:58] [INFO] Current memory usage: 3347Mi / 6144Mi 54%
-[2025-10-05 14:31:23] [INFO] Phase 3 completed successfully in 145 seconds
-[2025-10-05 14:31:23] [INFO] Current memory usage: 3440Mi / 6144Mi 55%
-[2025-10-05 14:31:38] [INFO] === Starting Phase 4: Resource Monitoring ===
-[2025-10-05 14:31:39] [INFO] Current memory usage: 3447Mi / 6144Mi 56%
-[2025-10-05 14:35:48] [INFO] Phase 4 completed successfully in 249 seconds
-[2025-10-05 14:35:48] [INFO] Current memory usage: 3301Mi / 6144Mi 53%
-[2025-10-05 14:36:08] [INFO] === Starting Phase 5: Performance Benchmarking ===
-[2025-10-05 14:36:08] [INFO] Current memory usage: 3301Mi / 6144Mi 53%
-[2025-10-05 14:37:16] [INFO] Phase 5 completed successfully in 68 seconds
-[2025-10-05 14:37:16] [INFO] Current memory usage: 3330Mi / 6144Mi 54%
-[2025-10-05 14:37:41] [INFO] === Starting Phase 6: Persistence Validation ===
-[2025-10-05 14:37:41] [INFO] Current memory usage: 3330Mi / 6144Mi 54%
-[2025-10-05 14:42:56] [INFO] Phase 6 completed successfully in 315 seconds
-[2025-10-05 14:42:56] [INFO] Current memory usage: 2514Mi / 6144Mi 40%
-[2025-10-05 14:43:26] [INFO] Stopping background resource monitoring
-[2025-10-05 14:43:26] [INFO] Validation report generated: /e/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/task8-logs/task8-validation-report.md
-[2025-10-05 14:43:26] [INFO] ✅ Task 8 Validation COMPLETED SUCCESSFULLY
+[2025-10-05 17:10:31] [INFO] Starting Task 8 Validation - Data Ingestion Pipeline
+[2025-10-05 17:10:31] [INFO] Target: 1000 events/sec, <500ms latency, <3.8Gi memory usage
+[2025-10-05 17:10:31] [INFO] Checking if metrics-server is available...
+[2025-10-05 17:10:31] [INFO] ✅ Metrics-server is available
+[2025-10-05 17:10:31] [INFO] Starting background resource monitoring
+[2025-10-05 17:10:32] [INFO] === Starting Phase 1: Service Health Validation ===
+[2025-10-05 17:10:32] [INFO] Current memory usage: 3807Mi / 6144Mi 61%
+[2025-10-05 17:12:35] [INFO] Phase 1 completed successfully in 123 seconds
+[2025-10-05 17:12:35] [INFO] Current memory usage: 3811Mi / 6144Mi 62%
+[2025-10-05 17:12:40] [INFO] === Starting Phase 2: Inter-Service Connectivity ===
+[2025-10-05 17:12:40] [INFO] Current memory usage: 3811Mi / 6144Mi 62%
+[2025-10-05 17:12:51] [INFO] Phase 2 completed successfully in 10 seconds
+[2025-10-05 17:12:51] [INFO] Current memory usage: 3844Mi / 6144Mi 62%
+[2025-10-05 17:13:01] [INFO] === Starting Phase 3: CDC Pipeline Testing ===
+[2025-10-05 17:13:01] [INFO] Current memory usage: 3812Mi / 6144Mi 62%
+[2025-10-05 17:14:27] [INFO] Phase 3 completed successfully in 86 seconds
+[2025-10-05 17:14:27] [INFO] Current memory usage: 4012Mi / 6144Mi 65%
+[2025-10-05 17:14:42] [INFO] === Starting Phase 4: Resource Monitoring ===
+[2025-10-05 17:14:43] [INFO] Current memory usage: 4013Mi / 6144Mi 65%
+[2025-10-05 17:18:53] [INFO] Phase 4 completed successfully in 249 seconds
+[2025-10-05 17:18:53] [INFO] Current memory usage: 3840Mi / 6144Mi 62%
+[2025-10-05 17:19:13] [INFO] === Starting Phase 5: Performance Benchmarking ===
+[2025-10-05 17:19:13] [INFO] Current memory usage: 3843Mi / 6144Mi 62%
+[2025-10-05 17:20:21] [INFO] Phase 5 completed successfully in 68 seconds
+[2025-10-05 17:20:21] [INFO] Current memory usage: 3855Mi / 6144Mi 62%
+[2025-10-05 17:20:46] [INFO] === Starting Phase 6: Persistence Validation ===
+[2025-10-05 17:20:46] [INFO] Current memory usage: 3845Mi / 6144Mi 62%
+[2025-10-05 17:25:59] [INFO] Phase 6 completed successfully in 312 seconds
+[2025-10-05 17:25:59] [INFO] Current memory usage: 2721Mi / 6144Mi 44%
+[2025-10-05 17:26:29] [INFO] Stopping background resource monitoring
+[2025-10-05 17:26:29] [INFO] Validation report generated: /e/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/task8-logs/task8-validation-report.md
+[2025-10-05 17:26:29] [INFO] ✅ Task 8 Validation COMPLETED SUCCESSFULLY
