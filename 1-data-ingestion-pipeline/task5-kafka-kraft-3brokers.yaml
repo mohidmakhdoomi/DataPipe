@@ -232,7 +232,7 @@ spec:
           exec kafka-server-start /etc/kafka/server.properties
         resources:
           requests:
-            memory: "512Mi"
+            memory: "682Mi"
             cpu: "250m"
           limits:
             memory: "682Mi"
