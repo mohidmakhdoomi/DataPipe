@@ -9,15 +9,18 @@ IFS=$'\n\t'       # Safer word splitting
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="$1"
 readonly CONFIG_FILE="$2"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/deploy-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/deploy-logs"
+readonly LOG_FILE="${LOG_DIR}/connector.log"
+readonly LOG_MESSAGE_PREFIX="Deploy Connector: "
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Deploy Connector: $*" | tee -a "${LOG_DIR}/connector.log"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Validate prerequisites
 validate_prerequisites() {

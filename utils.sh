@@ -1,10 +1,73 @@
 #!/bin/bash
-# This script contains functions for the metrics server
+# This script contains utility functions and variables
 
-readonly METRICS_FILE="components.yaml"
+namespace_limit() {
+    NAMESPACE_MEMORY=$(eval "yq 'select(.metadata.name == \"$NAMESPACE-quota\").spec.hard.\"limits.memory\"' ${SCRIPT_DIR}/../*$NAMESPACE*/*01-namespace.yaml" | sed 's/Mi//')
+    if [[ $NAMESPACE_MEMORY == *Gi ]]; then
+        NAMESPACE_MEMORY=$(echo "${NAMESPACE_MEMORY%??} 1024" | awk '{print $1*$2}')
+    fi
+    echo $NAMESPACE_MEMORY
+}
 
+MEMORY_LIMIT=$(namespace_limit)
+CRITICAL_THRESHOLD=$(echo "${MEMORY_LIMIT} 0.875" | awk '{print int($1*$2)}')
+WARNING_THRESHOLD=$(echo "${MEMORY_LIMIT} 0.8" | awk '{print int($1*$2)}')
+
+MONITOR_PID=0
+
+METRICS_FILE="components.yaml"
+
+# Logging function
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+    # Colors for output
+    local RED_MSG='\033[0;31m'
+    local GREEN_MSG='\033[0;32m'
+    local YELLOW_MSG='\033[1;33m'
+    local BLUE_MSG='\033[0;34m'
+    local NC_MSG='\033[0m' # No Color
+
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    local level=$1
+    if [[ "$level" != "DEBUG" || "${VERBOSE:-false}" == "true" ]]; then
+        local color_var
+        case $level in
+            INFO) color_var=${BLUE_MSG};shift ;;
+            WARN)  color_var=${YELLOW_MSG};shift ;;
+            ERROR) color_var=${RED_MSG};shift ;;
+            SUCCESS) color_var=${GREEN_MSG};shift ;;
+            DEBUG) color_var=${NC_MSG};shift ;;
+            *) color_var=${BLUE_MSG};level="INFO" ;;
+        esac    
+        local message="${LOG_MESSAGE_PREFIX:-}$*"
+        if [[ "${LOG_FILE_ONLY:-false}" == "false" ]]; then
+            echo -e "[$timestamp] ${color_var}[$level]${NC_MSG} $message"
+        fi
+        if [[ -n "${LOG_FILE:-}" ]]; then
+            echo -e "[$timestamp] [$level] $message" >> "$LOG_FILE"
+        fi
+    fi
+}
+
+start_resource_monitor() {
+    # Start background resource monitoring if available
+    if [[ -f "${SCRIPT_DIR}/../resource-monitor.sh" ]]; then
+        log "Starting background resource monitoring"
+        bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/$NAMESPACE/resource-logs" &
+        MONITOR_PID=$!
+    fi
+}
+
+stop_monitoring() {
+    # Stop resource monitoring
+    if [[ "$MONITOR_PID" -ne 0 ]]; then
+        log "Stopping background resource monitoring"
+        kill $MONITOR_PID 2>/dev/null || true
+    fi
+}
+
+exit_one() {
+    stop_monitoring
+    exit 1
 }
 
 # Check if metrics-server is available

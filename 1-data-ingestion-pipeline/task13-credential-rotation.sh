@@ -22,7 +22,7 @@ readonly NAMESPACE="data-ingestion"
 readonly POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
 readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 readonly SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task13-logs"
 readonly LOG_FILE="${LOG_DIR}/credential-rotation.log"
 readonly SCHEMA_AUTH_USER="admin"
 SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.admin-password' | base64 -d)
@@ -30,29 +30,10 @@ SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registr
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Colors for output
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
-
-# Logging function
-log() {
-    local level=$1
-    shift
-    local message="$*"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    case $level in
-        INFO)  echo -e "[$timestamp] ${BLUE}[INFO]${NC} $message" ;;
-        WARN)  echo -e "[$timestamp] ${YELLOW}[WARN]${NC} $message" ;;
-        ERROR) echo -e "[$timestamp] ${RED}[ERROR]${NC} $message" ;;
-        SUCCESS) echo -e "[$timestamp] ${GREEN}[SUCCESS]${NC} $message" ;;
-        DEBUG) [[ "${VERBOSE:-false}" == "true" ]] && echo -e "[$timestamp] [DEBUG] $message" ;;
-    esac
-    echo -e "[$timestamp] [$level] $message" >> "$LOG_FILE"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Parse command line arguments
 VERBOSE=false

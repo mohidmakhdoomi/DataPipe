@@ -6,15 +6,16 @@ set -euo pipefail
 readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/startstop-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/startstop-logs"
+readonly LOG_FILE="${LOG_DIR}/startup.log"
+readonly LOG_MESSAGE_PREFIX="Startup: "
 
-# Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Startup: $*" | tee -a "${LOG_DIR}/startup.log"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 scale_up() {
     log "Starting up/scale up PostgreSQL > Kafka > Schema Registry > Kafka Connect"

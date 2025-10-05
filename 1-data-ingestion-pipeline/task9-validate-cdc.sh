@@ -10,11 +10,12 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="postgres-cdc-users-connector"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task9-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task9-logs"
+readonly LOG_FILE="${LOG_DIR}/validate.log"
+readonly LOG_MESSAGE_PREFIX="Task 9 Validate: "
 readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
-MONITOR_PID=0
 PRE_EVOLUTION_VERSION=1
 
 # Generate unique column names per test run to ensure idempotency
@@ -26,23 +27,10 @@ INS_UPD_DEL_EMAIL="task9-validation-${TEST_ID}@example.com"
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Task 9 Validate: $*" | tee -a "${LOG_DIR}/validate.log"
-}
-
-stop_monitoring() {
-    # Stop resource monitoring
-    if [[ "$MONITOR_PID" -ne 0 ]]; then
-        log "Stopping background resource monitoring"
-        kill $MONITOR_PID 2>/dev/null || true
-    fi
-}
-
-exit_one() {
-    stop_monitoring
-    exit 1
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 start_avro_consumer() {
     exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
@@ -723,9 +711,7 @@ main() {
         return 1
     fi
 
-    log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs" &
-    MONITOR_PID=$!
+    start_resource_monitor
     
     # Step 2: Check connector status
     if ! check_connector_status; then

@@ -11,29 +11,17 @@ cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-users-connector"
 readonly S3_BUCKET=$(yq 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task10-logs"
-MONITOR_PID=0
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task10-logs"
+readonly LOG_FILE="${LOG_DIR}/validate.log"
+readonly LOG_MESSAGE_PREFIX="Task 10 Validate: "
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Task 10 Validate: $*" | tee -a "${LOG_DIR}/validate.log"
-}
-
-stop_monitoring() {
-    # Stop resource monitoring
-    if [[ "$MONITOR_PID" -ne 0 ]]; then
-        log "Stopping background resource monitoring"
-        kill $MONITOR_PID 2>/dev/null || true
-    fi
-}
-
-exit_one() {
-    stop_monitoring
-    exit 1
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Get pod names with validation
 get_pod_names() {
@@ -319,9 +307,7 @@ main() {
         return 1
     fi
 
-    log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs" &
-    MONITOR_PID=$!
+    start_resource_monitor
     
     # Step 2: Check connector status
     if ! check_connector_status; then

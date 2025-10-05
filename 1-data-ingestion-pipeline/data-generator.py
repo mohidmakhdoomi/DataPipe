@@ -23,7 +23,7 @@ POSTGRES_USER = "postgres"
 POSTGRES_PASSWORD = "postgres_password"  # Correct password from secrets
 # target_rate = 1000  # events per second
 # duration = 60  # seconds
-LOG_DIR = os.environ.get("LOG_DIR", "./logs/resource-logs")
+LOG_DIR = os.environ.get("LOG_DIR", "./logs/data-ingestion/resource-logs")
 
 
 def log(message):

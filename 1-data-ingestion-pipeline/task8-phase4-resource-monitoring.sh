@@ -5,12 +5,18 @@
 set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
-readonly MONITORING_DURATION=240  # Must be less than 300 to avoid timeout in task8-validation-runner.sh
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly MONITORING_DURATION=30  # Must be less than 300 to avoid timeout in task8-validation-runner.sh
+readonly LOG_MESSAGE_PREFIX="Phase 4: "
+readonly LOG_FILE="${LOG_DIR}/phase4.log"
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 4: $*" | tee -a "${LOG_DIR}/phase4.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Monitor resource usage
 monitor_resources() {
@@ -64,12 +70,12 @@ monitor_resources() {
             fi
             
             # Log current usage
-            log "Total Memory: ${total_memory}Mi / 4096Mi ($(($total_memory*100/4096))%)"
+            log "Total Memory: ${total_memory}Mi / "$MEMORY_LIMIT"Mi ($(($total_memory*100/$MEMORY_LIMIT))%)"
             
             # Check thresholds
-            if [[ $total_memory -gt 3584 ]]; then  # 87.5% of 4Gi
+            if [[ $total_memory -gt $CRITICAL_THRESHOLD ]]; then  # 87.5% of MEMORY_LIMIT
                 log "🚨 CRITICAL: Memory usage at ${total_memory}Mi exceeds 87.5% threshold"
-            elif [[ $total_memory -gt 3276 ]]; then  # 80% of 4Gi
+            elif [[ $total_memory -gt $WARNING_THRESHOLD ]]; then  # 80% of MEMORY_LIMIT
                 log "⚠️  WARNING: Memory usage at ${total_memory}Mi exceeds 80% threshold"
             fi
         else
@@ -89,10 +95,10 @@ monitor_resources() {
     log "  - Samples collected: $sample_count"
     log "  - Average memory usage: ${avg_memory}Mi"
     log "  - Peak memory usage: ${max_memory}Mi"
-    log "  - Peak percentage: $(($max_memory*100/4096))%"
+    log "  - Peak percentage: $(($max_memory*100/$MEMORY_LIMIT))%"
     
     # Check compliance
-    if [[ $max_memory -le 3584 ]]; then  # 87.5% threshold
+    if [[ $max_memory -le $CRITICAL_THRESHOLD ]]; then  # 87.5% threshold
         log "✅ Memory usage compliant - peak ${max_memory}Mi within limits"
         return 0
     else

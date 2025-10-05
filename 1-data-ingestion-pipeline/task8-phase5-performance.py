@@ -22,7 +22,7 @@ POSTGRES_USER = "postgres"
 POSTGRES_PASSWORD = "postgres_password"  # Correct password from secrets
 TARGET_RATE = 1000  # events per second
 DURATION = 60  # seconds
-LOG_DIR = os.environ.get("LOG_DIR", "./logs/task8-logs")
+LOG_DIR = os.environ.get("LOG_DIR", "./logs/data-ingestion/task8-logs")
 
 
 def log(message):

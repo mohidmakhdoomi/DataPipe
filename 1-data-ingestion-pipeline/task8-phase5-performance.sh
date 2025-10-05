@@ -7,11 +7,16 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
-LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task8-logs"
+LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/phase5.log"
+readonly LOG_MESSAGE_PREFIX="Phase 5: "
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 5: $*" | tee -a "${LOG_DIR}/phase5.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 main() {
     log "=== Starting Phase 5: Performance Benchmarking ==="
