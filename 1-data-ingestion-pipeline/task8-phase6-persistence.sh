@@ -29,7 +29,7 @@ record_baseline() {
     
     # Kafka topic offsets
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-        --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
+        --broker-list localhost:9092 --topic postgres.public.users --time -1 \
         > "${LOG_DIR}/baseline-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/baseline-kafka-offsets.txt"
     
     local offset_count=$(wc -l < "${LOG_DIR}/baseline-kafka-offsets.txt")
@@ -238,7 +238,7 @@ verify_persistence() {
     # Check Kafka data (offsets should be preserved)
     log "Checking Kafka data persistence..."
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-        --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
+        --broker-list localhost:9092 --topic postgres.public.users --time -1 \
         > "${LOG_DIR}/after-restart-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/after-restart-kafka-offsets.txt"
     
     if diff "${LOG_DIR}/baseline-kafka-offsets.txt" "${LOG_DIR}/after-restart-kafka-offsets.txt" >/dev/null 2>&1; then

@@ -7,7 +7,7 @@ set -euo pipefail
 readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
 readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
-readonly MONITORING_DURATION=30  # Must be less than 300 to avoid timeout in task8-validation-runner.sh
+readonly MONITORING_DURATION=240  # Must be less than 300 to avoid timeout in task8-validation-runner.sh
 readonly LOG_MESSAGE_PREFIX="Phase 4: "
 readonly LOG_FILE="${LOG_DIR}/phase4.log"
 

@@ -66,7 +66,7 @@ main() {
     
     # Get all pods status
     log "Current pod status:"
-    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide | tee -a "${LOG_DIR}/phase1.log"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide | tee -a "${LOG_FILE}"
     
     # Check individual components
     local components=("postgresql" "kafka" "schema-registry" "kafka-connect")
@@ -80,7 +80,7 @@ main() {
     
     # Check services
     log "Checking service endpoints..."
-    kubectl --context "kind-$NAMESPACE" get svc -n ${NAMESPACE} | tee -a "${LOG_DIR}/phase1.log"
+    kubectl --context "kind-$NAMESPACE" get svc -n ${NAMESPACE} | tee -a "${LOG_FILE}"
     
     # Wait for all deployments to be ready
     local deployments=$(kubectl --context "kind-$NAMESPACE" get deployments -n ${NAMESPACE} -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")

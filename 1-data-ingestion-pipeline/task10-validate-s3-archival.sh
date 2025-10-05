@@ -75,7 +75,7 @@ check_connector_status() {
             return 0
         else
             log "⚠️  Connector or tasks not in RUNNING state"
-            echo "$status_output" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+            echo "$status_output" | jq '.' | tee -a "${LOG_FILE}"
             return 1
         fi
     else
@@ -126,13 +126,13 @@ test_s3_data_flow() {
             log "✅ Parquet files found in S3"
             
             # List the files
-            echo "$aws_out" | head -20 | tee -a "${LOG_DIR}/validate.log"
+            log $(echo "$aws_out" | head -20)
             
             return 0
         else
             log "⚠️  No Parquet files found in expected S3 path"
             log "Checking broader S3 structure..."
-            aws s3 ls "s3://${S3_BUCKET}/topics/postgres.public.users/" --recursive --region us-east-1 | head -20 | tee -a "${LOG_DIR}/validate.log"
+            aws s3 ls "s3://${S3_BUCKET}/topics/postgres.public.users/" --recursive --region us-east-1 | head -20 | tee -a "${LOG_FILE}"
             return 0
         fi
     else
@@ -191,7 +191,7 @@ validate_time_partitioning() {
     local partition_structure=$(aws s3 ls s3://${S3_BUCKET}/topics/postgres.public.users/ --region us-east-1 2>/dev/null | grep "year=" | head -5)
     if [[ -n "$partition_structure" ]]; then
         log "✅ Time-based partitioning structure found:"
-        echo "$partition_structure" | tee -a "${LOG_DIR}/validate.log"
+        echo "$partition_structure" | tee -a "${LOG_FILE}"
         return 0
     else
         log "❌ Time-based partitioning structure not found"
@@ -209,7 +209,7 @@ check_connector_metrics() {
     
     if [[ -n "$metrics" ]]; then
         log "Connector metrics:"
-        echo "$metrics" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+        echo "$metrics" | jq '.' | tee -a "${LOG_FILE}"
         
         # Check for any failed tasks
         local failed_tasks=$(echo "$metrics" | jq -r '.tasks[] | select(.state == "FAILED") | .id' 2>/dev/null || echo "")
@@ -250,7 +250,7 @@ check_dlq() {
         log "Sampling DLQ messages..."
         kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
             kafka-console-consumer --bootstrap-server localhost:9092 \
-            --topic s3-sink-dlq-users --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_DIR}/validate.log"
+            --topic s3-sink-dlq-users --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_FILE}"
         
         return 1
     fi
@@ -260,7 +260,7 @@ check_dlq() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_FILE}"; then
         log "✅ Resource usage information retrieved"
         return 0
     else

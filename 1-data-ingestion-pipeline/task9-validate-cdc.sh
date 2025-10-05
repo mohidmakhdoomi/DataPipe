@@ -92,7 +92,7 @@ check_connector_status() {
             return 0
         else
             log "⚠️  Connector or task not in RUNNING state"
-            echo "$status_output" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+            log $(echo "$status_output" | jq '.')
             return 1
         fi
     else
@@ -106,7 +106,7 @@ check_replication_slot() {
     log "Checking PostgreSQL replication slot..."
     
     if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
-       psql -U postgres -d ecommerce -c "SELECT slot_name, active, restart_lsn FROM pg_replication_slots;" 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
+       psql -U postgres -d ecommerce -c "SELECT slot_name, active, restart_lsn FROM pg_replication_slots;" 2>/dev/null | tee -a "${LOG_FILE}"; then
         log "✅ Replication slot information retrieved"
         return 0
     else
@@ -142,7 +142,7 @@ check_schema_registry() {
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} http://localhost:8081/subjects 2>/dev/null)
     
     if [[ -n "$subjects" ]]; then
-        echo "$subjects" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+        echo "$subjects" | jq '.' | tee -a "${LOG_FILE}"
         
         if echo "$subjects" | grep -q "postgres"; then
             log "✅ CDC schemas found in Schema Registry"
@@ -636,7 +636,7 @@ check_connector_logs() {
     
     if [[ -n "$error_logs" ]]; then
         log "⚠️  Found warnings/errors in connector logs:"
-        echo "$error_logs" | tee -a "${LOG_DIR}/validate.log"
+        echo "$error_logs" | tee -a "${LOG_FILE}"
         return 1
     else
         log "✅ No errors found in recent logs"
@@ -648,7 +648,7 @@ check_connector_logs() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_FILE}"; then
         log "✅ Resource usage information retrieved"
         return 0
     else

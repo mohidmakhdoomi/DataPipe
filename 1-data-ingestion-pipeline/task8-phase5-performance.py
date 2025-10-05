@@ -28,7 +28,7 @@ LOG_DIR = os.environ.get("LOG_DIR", "./logs/data-ingestion/task8-logs")
 def log(message):
     """Log with timestamp"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] Phase 5: {message}")
+    print(f"[{timestamp}] [INFO] Phase 5: {message}")
 
     # Also write to log file (handle Unicode encoding)
     os.makedirs(LOG_DIR, exist_ok=True)
