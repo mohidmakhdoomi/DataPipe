@@ -17,14 +17,16 @@ MONITOR_PID=0
 
 METRICS_FILE="components.yaml"
 
+RED_MSG='\033[0;31m'
+GREEN_MSG='\033[0;32m'
+YELLOW_MSG='\033[1;33m'
+BLUE_MSG='\033[0;34m'
+NC_MSG='\033[0m' # No Color
+
 # Logging function
 log() {
     # Colors for output
-    local RED_MSG='\033[0;31m'
-    local GREEN_MSG='\033[0;32m'
-    local YELLOW_MSG='\033[1;33m'
-    local BLUE_MSG='\033[0;34m'
-    local NC_MSG='\033[0m' # No Color
+
 
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     local level=$1

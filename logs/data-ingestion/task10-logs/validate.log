@@ -1,0 +1,114 @@
+[2025-10-05 05:16:39] [INFO] Task 10 Validate: === Starting Task 10: Validating S3 Sink Connector and Archival ===
+[2025-10-05 05:16:39] [INFO] Task 10 Validate: Discovering pod names...
+[2025-10-05 05:16:39] [INFO] Task 10 Validate: Using pods:
+[2025-10-05 05:16:39] [INFO] Task 10 Validate:   Kafka Connect S3: kafka-connect-6697c8dd97-qbtrm
+[2025-10-05 05:16:40] [INFO] Task 10 Validate:   PostgreSQL: postgresql-0
+[2025-10-05 05:16:40] [INFO] Task 10 Validate:   Kafka: kafka-0
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Starting background resource monitoring
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Checking S3 Sink connector status...
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Connector state: RUNNING
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Task count: 6
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: ✅ S3 Sink connector and tasks are RUNNING
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Task 0 state: RUNNING
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Task 1 state: RUNNING
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Task 2 state: RUNNING
+[2025-10-05 05:16:40] [INFO] Task 10 Validate: Task 3 state: RUNNING
+[2025-10-05 05:16:41] [INFO] Task 10 Validate: Task 4 state: RUNNING
+[2025-10-05 05:16:41] [INFO] Task 10 Validate: Task 5 state: RUNNING
+[2025-10-05 05:16:41] [INFO] Task 10 Validate: Checking S3 bucket accessibility...
+[2025-10-05 05:16:42] [INFO] Task 10 Validate: ✅ S3 bucket is accessible
+[2025-10-05 05:16:42] [INFO] Task 10 Validate: Testing data flow to S3...
+[2025-10-05 05:16:42] [INFO] Task 10 Validate: Inserting test record with email: task10-s3-validation-1759655802@example.com
+Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
+   id   
+--------
+ 743736
+(1 row)
+
+INSERT 0 1
+[2025-10-05 05:16:42] [INFO] Task 10 Validate: ✅ Test record inserted successfully
+[2025-10-05 05:16:42] [INFO] Task 10 Validate: Waiting 120 seconds for CDC and S3 processing...
+[2025-10-05 05:18:43] [INFO] Task 10 Validate: Checking for data in S3...
+[2025-10-05 05:18:43] [INFO] Task 10 Validate: Checking S3 path: topics/postgres.public.users/year=2025/month=10/day=05/hour=09/
+[2025-10-05 05:18:44] [INFO] Task 10 Validate: ✅ Parquet files found in S3
+[2025-10-05 05:18:44] [INFO] Task 10 Validate: 2025-10-05 05:05:23       3371 postgres.public.users+0+0000123637.snappy.parquet
+2025-10-05 05:07:32       3400 postgres.public.users+0+0000123638.snappy.parquet
+2025-10-05 05:16:46       3393 postgres.public.users+0+0000123639.snappy.parquet
+2025-10-05 05:14:24       4066 postgres.public.users+1+0000123896.snappy.parquet
+2025-10-05 05:16:28       4073 postgres.public.users+1+0000123897.snappy.parquet
+2025-10-05 05:16:28       4027 postgres.public.users+4+0000124522.snappy.parquet
+2025-10-05 05:16:28       3746 postgres.public.users+5+0000123154.snappy.parquet
+[2025-10-05 05:18:44] [INFO] Task 10 Validate: Validating Parquet file structure...
+[2025-10-05 05:18:46] [INFO] Task 10 Validate: Found Parquet file: postgres.public.users+0+0000123637.snappy.parquet
+[2025-10-05 05:18:46] [INFO] Task 10 Validate: Parquet file location: /topics/postgres.public.users/year=2025/month=10/day=05/hour=09/postgres.public.users+0+0000123637.snappy.parquet
+[2025-10-05 05:18:47] [INFO] Task 10 Validate: ✅ Parquet file has valid size: 3371 bytes
+[2025-10-05 05:18:47] [INFO] Task 10 Validate: Validating time-based partitioning structure...
+[2025-10-05 05:18:48] [INFO] Task 10 Validate: ✅ Time-based partitioning structure found:
+                           PRE year=2025/
+[2025-10-05 05:18:48] [INFO] Task 10 Validate: Checking connector metrics and performance...
+[2025-10-05 05:18:49] [INFO] Task 10 Validate: Connector metrics:
+{
+  "name": "s3-sink-users-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 1,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 2,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 3,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 4,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 5,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "sink"
+}
+[2025-10-05 05:18:49] [INFO] Task 10 Validate: ✅ No failed tasks found
+[2025-10-05 05:18:49] [INFO] Task 10 Validate: Checking dead letter queue for errors...
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: DLQ message count: 0
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: ✅ No messages in dead letter queue
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: Checking resource usage...
+kafka-0                            22m   492Mi   
+kafka-1                            22m   483Mi   
+kafka-2                            22m   424Mi   
+kafka-connect-6697c8dd97-qbtrm     29m   845Mi   
+postgresql-0                       9m    333Mi   
+schema-registry-6595fd55fb-kmwwl   7m    275Mi   
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: ✅ Resource usage information retrieved
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: === S3 Archival Validation Complete ===
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: 
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: Summary:
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: - S3 Sink connector status: ✅ PASSED
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: - S3 bucket accessibility: Validated
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: - Data flow to S3: Tested
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: - Parquet file structure: Validated
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: - Time-based partitioning: Verified
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: - Error handling (DLQ): Checked
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: 
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: ✅ All validation tests passed - Task 10 is complete!
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: ✅ S3 archival is operational with Parquet format and time-based partitioning
+[2025-10-05 05:18:53] [INFO] Task 10 Validate: Stopping background resource monitoring

@@ -1,0 +1,90 @@
+[2025-10-05 05:20:27] [INFO] Starting Task 13: Access Validation
+[2025-10-05 05:20:27] [INFO] Component: postgresql, Verbose: false
+[2025-10-05 05:20:27] [INFO] Validating PostgreSQL CDC user permissions...
+[2025-10-05 05:20:27] [SUCCESS] PostgreSQL Connectivity: PASSED
+[2025-10-05 05:20:28] [SUCCESS] CDC User Replication Privileges: PASSED
+[2025-10-05 05:20:28] [SUCCESS] CDC User Table Permissions: PASSED
+[2025-10-05 05:20:29] [SUCCESS] Replication Slot Status: PASSED
+[2025-10-05 05:20:29] [SUCCESS] WAL Level Configuration: PASSED
+[2025-10-05 05:20:29] [SUCCESS] Max Replication Slots: PASSED
+[2025-10-05 05:20:29] [INFO] PostgreSQL permissions validation completed
+[2025-10-05 05:20:29] [INFO] Validating network connectivity...
+[2025-10-05 05:20:30] [SUCCESS] Kafka Connect to PostgreSQL: PASSED
+[2025-10-05 05:20:30] [SUCCESS] Kafka Connect to Kafka: PASSED
+[2025-10-05 05:20:30] [SUCCESS] Kafka Connect to Schema Registry: PASSED
+[2025-10-05 05:20:31] [SUCCESS] Schema Registry to Kafka: PASSED
+[2025-10-05 05:20:31] [INFO] Network connectivity validation completed
+[2025-10-05 05:20:31] [INFO] Validating Kubernetes RBAC...
+[2025-10-05 05:20:31] [SUCCESS] Service Accounts: PASSED
+[2025-10-05 05:20:31] [SUCCESS] Network Policies: PASSED
+[2025-10-05 05:20:32] [SUCCESS] Required Secrets: PASSED
+[2025-10-05 05:20:32] [INFO] Kubernetes RBAC validation completed
+[2025-10-05 05:20:32] [INFO] Generating validation report...
+[2025-10-05 05:20:32] [SUCCESS] Access validation completed successfully!
+[2025-10-05 12:46:38] [INFO] Starting Task 13: Access Validation
+[2025-10-05 12:46:38] [INFO] Component: postgresql, Verbose: false
+[2025-10-05 12:46:38] [INFO] Validating PostgreSQL CDC user permissions...
+[2025-10-05 12:46:39] [SUCCESS] PostgreSQL Connectivity: PASSED
+[2025-10-05 12:46:39] [SUCCESS] CDC User Replication Privileges: PASSED
+[2025-10-05 12:46:40] [SUCCESS] CDC User Table Permissions: PASSED
+[2025-10-05 12:46:40] [SUCCESS] Replication Slot Status: PASSED
+[2025-10-05 12:46:41] [SUCCESS] WAL Level Configuration: PASSED
+[2025-10-05 12:46:41] [SUCCESS] Max Replication Slots: PASSED
+[2025-10-05 12:46:41] [INFO] PostgreSQL permissions validation completed
+[2025-10-05 12:46:41] [INFO] Validating network connectivity...
+[2025-10-05 12:46:41] [SUCCESS] Kafka Connect to PostgreSQL: PASSED
+[2025-10-05 12:46:42] [SUCCESS] Kafka Connect to Kafka: PASSED
+[2025-10-05 12:46:42] [SUCCESS] Kafka Connect to Schema Registry: PASSED
+[2025-10-05 12:46:42] [SUCCESS] Schema Registry to Kafka: PASSED
+[2025-10-05 12:46:42] [INFO] Network connectivity validation completed
+[2025-10-05 12:46:42] [INFO] Validating Kubernetes RBAC...
+[2025-10-05 12:46:43] [SUCCESS] Service Accounts: PASSED
+[2025-10-05 12:46:43] [SUCCESS] Network Policies: PASSED
+[2025-10-05 12:46:43] [SUCCESS] Required Secrets: PASSED
+[2025-10-05 12:46:43] [INFO] Kubernetes RBAC validation completed
+[2025-10-05 12:46:43] [INFO] Generating validation report...
+[2025-10-05 12:46:43] [SUCCESS] Access validation completed successfully!
+[2025-10-05 12:54:13] [INFO] Starting Task 13: Access Validation
+[2025-10-05 12:54:13] [INFO] Component: all, Verbose: false
+[2025-10-05 12:54:13] [INFO] Validating PostgreSQL CDC user permissions...
+[2025-10-05 12:54:13] [SUCCESS] PostgreSQL Connectivity: PASSED
+[2025-10-05 12:54:13] [SUCCESS] CDC User Replication Privileges: PASSED
+[2025-10-05 12:54:14] [SUCCESS] CDC User Table Permissions: PASSED
+[2025-10-05 12:54:15] [SUCCESS] Replication Slot Status: PASSED
+[2025-10-05 12:54:15] [SUCCESS] WAL Level Configuration: PASSED
+[2025-10-05 12:54:15] [SUCCESS] Max Replication Slots: PASSED
+[2025-10-05 12:54:15] [INFO] PostgreSQL permissions validation completed
+[2025-10-05 12:54:15] [INFO] Validating Kafka Connect access...
+[2025-10-05 12:54:16] [SUCCESS] Kafka Connect Connectivity: PASSED
+[2025-10-05 12:54:16] [SUCCESS] Kafka Connect Version: PASSED
+[2025-10-05 12:54:16] [SUCCESS] Required Connector Plugins: PASSED
+[2025-10-05 12:54:16] [SUCCESS] Debezium Connector Status: PASSED
+[2025-10-05 12:54:17] [SUCCESS] Connector Task Status: PASSED
+[2025-10-05 12:54:17] [SUCCESS] Kafka Connect to Kafka: PASSED
+[2025-10-05 12:54:17] [INFO] Kafka Connect access validation completed
+[2025-10-05 12:54:17] [INFO] Validating Schema Registry access...
+[2025-10-05 12:54:17] [SUCCESS] Schema Registry Connectivity: PASSED
+[2025-10-05 12:54:17] [SUCCESS] Schema Registry Subjects: PASSED
+[2025-10-05 12:54:18] [SUCCESS] Schema Compatibility Level: PASSED
+[2025-10-05 12:54:19] [SUCCESS] Schema Registry Authentication: PASSED
+[2025-10-05 12:54:19] [SUCCESS] Schema Registry to Kafka: PASSED
+[2025-10-05 12:54:19] [INFO] Schema Registry access validation completed
+[2025-10-05 12:54:19] [INFO] Validating AWS S3 access...
+[2025-10-05 12:54:20] [SUCCESS] AWS Credentials Configuration: PASSED
+[2025-10-05 12:54:20] [SUCCESS] S3 Bucket Configuration: PASSED
+[2025-10-05 12:54:20] [SUCCESS] S3 Connector Plugin: PASSED
+[2025-10-05 12:54:20] [SUCCESS] S3 Sink Connector Status: PASSED
+[2025-10-05 12:54:20] [INFO] AWS S3 access validation completed
+[2025-10-05 12:54:20] [INFO] Validating network connectivity...
+[2025-10-05 12:54:21] [SUCCESS] Kafka Connect to PostgreSQL: PASSED
+[2025-10-05 12:54:21] [SUCCESS] Kafka Connect to Kafka: PASSED
+[2025-10-05 12:54:21] [SUCCESS] Kafka Connect to Schema Registry: PASSED
+[2025-10-05 12:54:22] [SUCCESS] Schema Registry to Kafka: PASSED
+[2025-10-05 12:54:22] [INFO] Network connectivity validation completed
+[2025-10-05 12:54:22] [INFO] Validating Kubernetes RBAC...
+[2025-10-05 12:54:22] [SUCCESS] Service Accounts: PASSED
+[2025-10-05 12:54:22] [SUCCESS] Network Policies: PASSED
+[2025-10-05 12:54:23] [SUCCESS] Required Secrets: PASSED
+[2025-10-05 12:54:23] [INFO] Kubernetes RBAC validation completed
+[2025-10-05 12:54:23] [INFO] Generating validation report...
+[2025-10-05 12:54:23] [SUCCESS] Access validation completed successfully!

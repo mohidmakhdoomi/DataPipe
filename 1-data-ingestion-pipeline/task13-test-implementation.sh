@@ -259,13 +259,13 @@ main() {
     for result in "${test_results[@]}"; do
         
         if [[ "$result" == *"PASS" ]]; then
-            echo -e "${GREEN}✓${NC} $result"
+            echo -e "${GREEN_MSG}✓${NC_MSG} $result"
             passed=$((passed + 1))
         elif [[ "$result" == *"WARN" ]]; then
-            echo -e "${YELLOW}⚠${NC} $result"
+            echo -e "${YELLOW_MSG}⚠${NC_MSG} $result"
             warned=$((warned + 1))
         else
-            echo -e "${RED}✗${NC} $result"
+            echo -e "${RED_MSG}✗${NC_MSG} $result"
             failed=$((failed + 1))
         fi
     done
