@@ -107,10 +107,10 @@ spec:
           containerPort: 8081
         resources:
           requests:
-            memory: "384Mi"
+            memory: "1Gi"
             cpu: "250m"
           limits:
-            memory: "512Mi"
+            memory: "1Gi"
             cpu: "500m"
         livenessProbe:
           exec:

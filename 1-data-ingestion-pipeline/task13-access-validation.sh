@@ -22,32 +22,16 @@ readonly POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
 readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 readonly SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
 readonly KAFKA_SERVICE="kafka-headless.${NAMESPACE}.svc.cluster.local:9092"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task13-logs"
 readonly LOG_FILE="${LOG_DIR}/access-validation.log"
 
-# Colors for output
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
+# Ensure log directory exists
+mkdir -p "${LOG_DIR}"
 
-# Logging function
-log() {
-    local level=$1
-    shift
-    local message="$*"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    case $level in
-        INFO)  echo -e "${BLUE}[INFO]${NC} $message" ;;
-        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" ;;
-        ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
-        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
-        DEBUG) [[ "${VERBOSE:-false}" == "true" ]] && echo -e "[DEBUG] $message" ;;
-    esac
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Parse command line arguments
 VERBOSE=false
@@ -121,7 +105,7 @@ validate_postgresql_permissions() {
     
     # Test 2: CDC user exists and has replication privileges
     local current_user=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT usename FROM pg_stat_replication" | tr -d ' ' || echo "")
+        SELECT DISTINCT usename FROM pg_stat_replication" | tr -d ' ' || echo "")
 
     if [[ ! -n "$current_user" ]]; then
         record_test_result "CDC User Replication Privileges" "FAIL" "No CDC user from pg_stat_replication"
@@ -172,16 +156,17 @@ validate_postgresql_permissions() {
     slot_info=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -- psql -U postgres -d ecommerce -t -c "
         SELECT slot_name, active, confirmed_flush_lsn IS NOT NULL as has_lsn
         FROM pg_replication_slots 
-        WHERE slot_name = 'debezium_slot';" 2>/dev/null | tr -d ' ' || echo "")
+        WHERE slot_name like 'debezium_slot%' and active='t';" 2>/dev/null | tr -d ' ' || echo "")
     
     if [[ -n "$slot_info" ]]; then
-        local slot_active=$(echo "$slot_info" | cut -d'|' -f2)
-        local has_lsn=$(echo "$slot_info" | cut -d'|' -f3)
+        local num_slots=$(echo "$slot_info" | wc -l)
+        local slot_active=$(echo "$slot_info" | cut -d'|' -f2 | uniq)
+        local has_lsn=$(echo "$slot_info" | cut -d'|' -f3 | uniq)
         
-        if [[ "$slot_active" == "t" && "$has_lsn" == "t" ]]; then
+        if [[ $num_slots -eq 4 && "$slot_active" == "t" && "$has_lsn" == "t" ]]; then
             record_test_result "Replication Slot Status" "PASS" "Replication slot is active and has valid LSN"
         else
-            record_test_result "Replication Slot Status" "FAIL" "Replication slot issues (active: $slot_active, has_lsn: $has_lsn)"
+            record_test_result "Replication Slot Status" "FAIL" "Replication slot issues (num_slots: $num_slots, active: $slot_active, has_lsn: $has_lsn)"
         fi
     else
         record_test_result "Replication Slot Status" "FAIL" "Replication slot 'debezium_slot' not found"
@@ -255,7 +240,7 @@ validate_kafka_connect_access() {
     
     # Test 4: Debezium connector status
     local connector_status
-    connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+    connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/status" | jq -r '.connector.state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     
     if [[ "$connector_status" == "RUNNING" ]]; then
         record_test_result "Debezium Connector Status" "PASS" "Debezium connector is running"
@@ -265,7 +250,7 @@ validate_kafka_connect_access() {
     
     # Test 5: Connector task status
     local task_status
-    task_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.tasks[0].state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
+    task_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/status" | jq -r '.tasks[0].state // "UNKNOWN"' 2>/dev/null || echo "UNKNOWN")
     
     if [[ "$task_status" == "RUNNING" ]]; then
         record_test_result "Connector Task Status" "PASS" "Connector task is running"
@@ -275,7 +260,7 @@ validate_kafka_connect_access() {
     
     # Test 6: Kafka connectivity from Kafka Connect
     local kafka_connectivity
-    kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://localhost:8083/connectors/postgres-cdc-connector/config" | jq -r '.["database.hostname"] // "unknown"' 2>/dev/null || echo "unknown")
+    kafka_connectivity=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://localhost:8083/connectors/postgres-cdc-users-connector/config" | jq -r '.["database.hostname"] // "unknown"' 2>/dev/null || echo "unknown")
     
     if [[ "$kafka_connectivity" != "unknown" ]]; then
         record_test_result "Kafka Connect to Kafka" "PASS" "Kafka Connect can communicate with Kafka"
@@ -422,7 +407,7 @@ validate_s3_access() {
     
     # Test 4: S3 Sink connector status (if deployed)
     local s3_connector_status
-    s3_connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/s3-sink-connector/status" | jq -r '.connector.state // "NOT_FOUND"' 2>/dev/null || echo "NOT_FOUND")
+    s3_connector_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deployment/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/s3-sink-users-connector/status" | jq -r '.connector.state // "NOT_FOUND"' 2>/dev/null || echo "NOT_FOUND")
     
     if [[ "$s3_connector_status" == "RUNNING" ]]; then
         record_test_result "S3 Sink Connector Status" "PASS" "S3 Sink connector is running"

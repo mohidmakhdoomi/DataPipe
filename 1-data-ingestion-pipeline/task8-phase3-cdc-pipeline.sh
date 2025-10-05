@@ -5,15 +5,21 @@
 set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/phase3.log"
+readonly LOG_MESSAGE_PREFIX="Phase 3: "
 readonly CONFIG_FILE="task9-debezium-connector-config.json"
-readonly CONNECTOR_NAME="postgres-cdc-connector"
+readonly CONNECTOR_NAME="postgres-cdc-users-connector"
 readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 3: $*" | tee -a "${LOG_DIR}/phase3.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 start_avro_consumer() {
     exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
@@ -21,10 +27,10 @@ start_avro_consumer() {
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
         --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 20000 2>/dev/null)
+        --timeout-ms 60000 2>/dev/null)
     
-    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
-    sleep 10
+    log "Waiting 6 seconds for kafka-avro-console-consumer to start..."
+    sleep 6
 }
 
 # Deploy Debezium connector
@@ -118,6 +124,7 @@ test_cdc_flow() {
         log "✅ CDC message found in Kafka topic"
         message_found=true
     else
+        log "DEBUG Avro consumer output: $avro_out"
         log "⚠️  CDC message not found in initial check, trying alternative approach..."
         
         # Check topic exists and has messages

@@ -5,11 +5,17 @@
 set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/phase1.log"
+readonly LOG_MESSAGE_PREFIX="Phase 1: "
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 1: $*" | tee -a "${LOG_DIR}/phase1.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Health check with retries
 health_check() {
@@ -60,7 +66,7 @@ main() {
     
     # Get all pods status
     log "Current pod status:"
-    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide | tee -a "${LOG_DIR}/phase1.log"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide | tee -a "${LOG_FILE}"
     
     # Check individual components
     local components=("postgresql" "kafka" "schema-registry" "kafka-connect")
@@ -74,7 +80,7 @@ main() {
     
     # Check services
     log "Checking service endpoints..."
-    kubectl --context "kind-$NAMESPACE" get svc -n ${NAMESPACE} | tee -a "${LOG_DIR}/phase1.log"
+    kubectl --context "kind-$NAMESPACE" get svc -n ${NAMESPACE} | tee -a "${LOG_FILE}"
     
     # Wait for all deployments to be ready
     local deployments=$(kubectl --context "kind-$NAMESPACE" get deployments -n ${NAMESPACE} -o jsonpath='{.items[*].metadata.name}' 2>/dev/null || echo "")

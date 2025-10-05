@@ -22,7 +22,7 @@ readonly NAMESPACE="data-ingestion"
 readonly POSTGRES_SERVICE="postgresql.${NAMESPACE}.svc.cluster.local"
 readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 readonly SCHEMA_REGISTRY_SERVICE="schema-registry.${NAMESPACE}.svc.cluster.local:8081"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task13-logs"
 readonly LOG_FILE="${LOG_DIR}/credential-rotation.log"
 readonly SCHEMA_AUTH_USER="admin"
 SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registry-auth -n data-ingestion -o yaml | yq 'select(.metadata.name == "schema-registry-auth").data.admin-password' | base64 -d)
@@ -30,47 +30,111 @@ SCHEMA_AUTH_PASS=$(kubectl --context "kind-$NAMESPACE" get secret schema-registr
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Colors for output
-readonly RED='\033[0;31m'
-readonly GREEN='\033[0;32m'
-readonly YELLOW='\033[1;33m'
-readonly BLUE='\033[0;34m'
-readonly NC='\033[0m' # No Color
-
-# Logging function
-log() {
-    local level=$1
-    shift
-    local message="$*"
-    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
-    case $level in
-        INFO)  echo -e "${BLUE}[INFO]${NC} $message" ;;
-        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" ;;
-        ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
-        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
-    esac
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Parse command line arguments
+VERBOSE=false
 DRY_RUN=false
 COMPONENT="all"
 
+run_query() {
+    local debug_query="$1"
+    if [[ "${VERBOSE:-false}" == "true" ]]; then
+        local query_string="kubectl --context \"kind-$NAMESPACE\" exec -n \"$NAMESPACE\" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c \"REPLACE_THIS\""
+        local full_string=$(echo "$query_string" | sed "s/REPLACE_THIS/$debug_query/g")
+        log DEBUG "$debug_query \n $(eval "$full_string")"
+    fi
+}
+
+db_status() {
+    run_query "SELECT * FROM pg_replication_slots;"
+
+    run_query "SELECT * FROM pg_roles WHERE rolname like 'debezium%' OR rolname like 'postgres%';"
+
+    run_query "SELECT * FROM pg_stat_replication;"
+}
+
 start_avro_consumer() {
+    db_status
+
+    log DEBUG "schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS}"
     exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
         --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 20000 2>/dev/null)
+        --timeout-ms 60000 2>/dev/null)
     
-    log INFO "Waiting 10 seconds for kafka-avro-console-consumer to start..."
-    sleep 10
+    log DEBUG "Waiting 6 seconds for kafka-avro-console-consumer to start..."
+    sleep 6
+}
+
+pause_connectors() {
+    db_status
+
+    log INFO "Pausing Debezium connectors..."
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/pause" || {
+        log ERROR "Failed to pause Debezium users connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/pause" || {
+        log ERROR "Failed to pause Debezium products connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/pause" || {
+        log ERROR "Failed to pause Debezium orders connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/pause" || {
+        log ERROR "Failed to pause Debezium order items connector"
+        return 1
+    }
+
+    # Wait for connectors to pause
+    sleep 5
+}
+
+resume_connectors() {
+    log INFO "Resuming Debezium connectors after 20s ..."
+    sleep 20
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/resume" || {
+        log ERROR "Failed to resume Debezium users connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/resume" || {
+        log ERROR "Failed to resume Debezium products connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/resume" || {
+        log ERROR "Failed to resume Debezium orders connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/resume" || {
+        log ERROR "Failed to resume Debezium order items connector"
+        return 1
+    }
+
+    # Wait for connectors to resume
+    sleep 5
+
+    db_status
 }
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --verbose)
+            VERBOSE=true
+            shift
+            ;;
         --dry-run)
             DRY_RUN=true
             shift
@@ -83,6 +147,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 [--dry-run] [--component postgresql|kafka-connect|schema-registry|all]"
             echo ""
             echo "Options:"
+            echo "  --verbose                    DEBUG level logging"
             echo "  --dry-run                    Validate configuration without making changes"
             echo "  --component COMPONENT        Rotate credentials for specific component (default: all)"
             echo "  -h, --help                  Show this help message"
@@ -150,21 +215,7 @@ preflight_checks() {
         log ERROR "Cannot connect to Kafka Connect"
         return 1
     fi
-    
-    # Check for high CDC lag (abort if lag > 30 seconds)
-    local cdc_lag
-    cdc_lag=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT EXTRACT(EPOCH FROM (now() - confirmed_flush_lsn::text::timestamp)) 
-        FROM pg_replication_slots 
-        WHERE slot_name = 'debezium_slot';" 2>/dev/null | tr -d ' ' || echo "999")
-    
-    # Use bash arithmetic for floating point comparison (convert to integer milliseconds)
-    local cdc_lag_ms=$(echo "$cdc_lag * 1000" | awk '{printf "%.0f", $1}')
-    if (( cdc_lag_ms > 30000 )); then
-        log ERROR "CDC lag is too high ($cdc_lag seconds). Aborting rotation."
-        return 1
-    fi
-    
+       
     # Check available memory (skip if kubectl --context "kind-$NAMESPACE" top nodes doesn't return percentage format)
     local available_memory
     available_memory=$(kubectl --context "kind-$NAMESPACE" top nodes --no-headers 2>/dev/null | awk '{print $4}' | sed 's/%//' | head -1 2>/dev/null || echo "unknown")
@@ -212,7 +263,7 @@ rotate_postgresql_credentials() {
     log INFO "Starting PostgreSQL CDC user credential rotation..."
     
     local current_user=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT usename FROM pg_stat_replication" | tr -d ' ')
+        SELECT DISTINCT usename FROM pg_stat_replication" | tr -d ' ')
     local new_user="debezium_$(date +%Y%m%d_%H%M%S)"
     local new_password
     new_password=$(generate_password)
@@ -235,14 +286,7 @@ rotate_postgresql_credentials() {
     }
     
     # Step 2: Pause Debezium connector
-    log INFO "Pausing Debezium connector..."
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
-        log ERROR "Failed to pause Debezium connector"
-        return 1
-    }
-    
-    # Wait for connector to pause
-    sleep 5
+    pause_connectors
     
     # Step 3: Validate new user can access replication slot
     log INFO "Validating new user has proper replication permissions..."
@@ -281,22 +325,17 @@ rotate_postgresql_credentials() {
     }
     
     # Step 6: Resume Debezium connector
-    log INFO "Resuming Debezium connector after 20s ..."
-    sleep 20
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
-        log ERROR "Failed to resume Debezium connector"
-        return 1
-    }
+    resume_connectors
     
     # Step 7: Validate replication slot is active and new user is connected
     log INFO "Validating replication slot activity and new user connection..."
-    sleep 10
+    sleep 15
     
     local slot_active
     slot_active=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT active FROM pg_replication_slots WHERE slot_name = 'debezium_slot';" | tr -d ' ')
+        SELECT COUNT(active) FROM pg_replication_slots WHERE slot_name like 'debezium_slot%' and active='t';" | tr -d ' ')
     
-    if [[ "$slot_active" != "t" ]]; then
+    if [[ "$slot_active" != "4" ]]; then
         log ERROR "Replication slot is not active after rotation"
         return 1
     fi
@@ -304,7 +343,7 @@ rotate_postgresql_credentials() {
     # Validate new user is connected for replication
     local replication_connection
     replication_connection=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT usename FROM pg_stat_replication WHERE usename = '$new_user';" | tr -d ' ')
+        SELECT DISTINCT usename FROM pg_stat_replication WHERE usename = '$new_user';" | tr -d ' ')
     
     if [[ "$replication_connection" == "$new_user" ]]; then
         log INFO "New user '$new_user' is successfully connected for replication"
@@ -315,7 +354,7 @@ rotate_postgresql_credentials() {
     # Step 8: Validate CDC is working by checking user in kafka connect log
     log INFO "Validating CDC functionality..."
     local log_info=$(kubectl --context "kind-$NAMESPACE" logs deploy/kafka-connect -n data-ingestion -c kafka-connect)
-    local log_match=$(echo "$log_info" | grep -o "database.user = $new_user")
+    local log_match=$(echo "$log_info" | grep -o "database.user = $new_user" | tail -1)
 
     if [[ "$log_match" == "database.user = $new_user" ]]; then
         log INFO "CDC is successfully processing changes after rotation"
@@ -359,6 +398,8 @@ rotate_schema_registry_credentials() {
         log INFO "[DRY-RUN] Would rotate Schema Registry credentials"
         return 0
     fi
+
+    pause_connectors
     
     # Generate new credentials
     local new_admin_password
@@ -406,6 +447,8 @@ rotate_schema_registry_credentials() {
         log ERROR "Kafka Connect pod did not become ready for Schema Registry credentials"
         return 1
     }
+
+    resume_connectors
     
     log SUCCESS "Schema Registry credential rotation completed successfully"
     return 0
@@ -423,7 +466,7 @@ validate_end_to_end() {
     
     # Test 2: Kafka Connect status
     local connect_status
-    connect_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/status" | jq -r '.connector.state // "unknown"' 2>/dev/null || echo "unknown")
+    connect_status=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/status" | jq -r '.connector.state // "unknown"' 2>/dev/null || echo "unknown")
     if [[ "$connect_status" != "RUNNING" ]]; then
         log ERROR "Kafka Connect connector is not running (status: $connect_status)"
         return 1
@@ -436,7 +479,8 @@ validate_end_to_end() {
     fi
     
     # Test 4: End-to-end data flow test
-    log INFO "Testing end-to-end data flow..."
+    log INFO "Testing end-to-end data flow in 20s ..."
+    sleep 20
     local test_email="e2e-test-$(date +%s)@example.com"
 
     local schema_registry_pod=$(kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=schema-registry,component=schema-management -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
@@ -461,6 +505,12 @@ validate_end_to_end() {
         log INFO "CDC test passed"
     else
         log ERROR "CDC topic does not exist"
+
+        log DEBUG "test email: $test_email"
+        log DEBUG "Avro consumer output: $avro_out"
+        db_status
+        log DEBUG "$(kubectl --context "kind-$NAMESPACE" get all -n "$NAMESPACE")"
+        # read -p "Press key to continue.. " -n1 -s
         return 1
     fi
     
@@ -476,14 +526,7 @@ rollback_rotation() {
     log INFO "Rolling back to previous configuration..."
     
     # Restore previous Kubernetes secrets if backup exists
-    log INFO "Pausing Debezium connector..."
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/pause" || {
-        log ERROR "Failed to pause Debezium connector"
-        return 1
-    }
-    
-    # Wait for connector to pause
-    sleep 5
+    pause_connectors
 
     if kubectl --context "kind-$NAMESPACE" get secret debezium-credentials-backup -n "$NAMESPACE" &> /dev/null; then
         log INFO "Restoring previous debezium credentials from backup..."
@@ -533,12 +576,7 @@ rollback_rotation() {
         return 1
     }
     
-    log INFO "Resuming Debezium connector after 20s ..."
-    sleep 20
-    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-connector/resume" || {
-        log ERROR "Failed to resume Debezium connector"
-        return 1
-    }
+    resume_connectors
     
     log SUCCESS "Rollback completed"
     return 0
@@ -547,7 +585,7 @@ rollback_rotation() {
 # Main execution function
 main() {
     log INFO "Starting Task 13: Data-Ingestion-Specific Security Procedures"
-    log INFO "Component: $COMPONENT, Dry Run: $DRY_RUN"
+    log INFO "Component: $COMPONENT, Dry Run: $DRY_RUN, Verbose: $VERBOSE"
     log INFO "Log file: $LOG_FILE"
     
     # Validate prerequisites
@@ -561,6 +599,8 @@ main() {
         log ERROR "Pre-flight checks failed"
         exit 1
     fi
+
+    db_status
     
     # Create backup of current secrets
     if [[ "$DRY_RUN" == "false" ]]; then

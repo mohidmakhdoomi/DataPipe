@@ -1,0 +1,457 @@
+[2025-10-05 14:09:14] [INFO] Deployment: ========== Starting Data Ingestion Pipeline deployment ==========
+[2025-10-05 14:09:14] [INFO] Deployment: Deleting existing cluster if needed
+[2025-10-05 14:09:21] [INFO] Deployment: Creating cluster using kind-config.yaml
+[2025-10-05 14:09:45] [INFO] Deployment: Checking if metrics-server is available...
+[2025-10-05 14:09:45] [INFO] Deployment: ⚠️   Metrics-server is not available
+[2025-10-05 14:09:46] [INFO] Deployment: Installing metrics-server...
+[2025-10-05 14:09:47] [INFO] Deployment: Metrics-server installation initiated
+[2025-10-05 14:09:47] [INFO] Deployment: Waiting for metrics-server to be ready...
+[2025-10-05 14:10:22] [INFO] Deployment: Metrics-server is ready
+[2025-10-05 14:10:22] [INFO] Deployment: Waiting for metrics to be available...
+[2025-10-05 14:10:32] [INFO] Deployment: ✅ Metrics are now available
+[2025-10-05 14:10:32] [INFO] Deployment: Starting background resource monitoring
+[2025-10-05 14:10:32] [INFO] Deployment: Applying 01-namespace.yaml
+[2025-10-05 14:10:32] [INFO] Deployment: Applying 02-service-accounts.yaml
+[2025-10-05 14:10:33] [INFO] Deployment: Applying 03-network-policies.yaml
+[2025-10-05 14:10:33] [INFO] Deployment: Applying 04-secrets.yaml
+[2025-10-05 14:10:33] [INFO] Deployment: Applying storage-classes.yaml
+[2025-10-05 14:10:33] [INFO] Deployment: Applying data-services-pvcs.yaml
+[2025-10-05 14:10:34] [INFO] Deployment: Applying task4-postgresql-statefulset.yaml
+[2025-10-05 14:10:34] [INFO] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=postgresql,component=database -n data-ingestion --timeout=300s 2>&1
+[2025-10-05 14:11:07] [INFO] Deployment: ✅ pod -l app=postgresql,component=database is ready
+[2025-10-05 14:11:07] [INFO] Deployment: Applying task5-kafka-kraft-3brokers.yaml
+[2025-10-05 14:11:08] [INFO] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=kafka,component=streaming -n data-ingestion --timeout=300s 2>&1
+[2025-10-05 14:12:12] [INFO] Deployment: ✅ pod -l app=kafka,component=streaming is ready
+[2025-10-05 14:12:12] [INFO] Deployment: Applying task5-kafka-topics-job.yaml
+[2025-10-05 14:12:12] [INFO] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=complete job/create-kafka-topics -n data-ingestion --timeout=120s 2>&1
+[2025-10-05 14:13:48] [INFO] Deployment: ✅ job/create-kafka-topics is complete
+[2025-10-05 14:13:48] [INFO] Deployment: Applying task6-schema-registry.yaml
+[2025-10-05 14:13:49] [INFO] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=schema-registry,component=schema-management -n data-ingestion --timeout=300s 2>&1
+[2025-10-05 14:15:30] [INFO] Deployment: ✅ pod -l app=schema-registry,component=schema-management is ready
+[2025-10-05 14:15:30] [INFO] Deployment: Applying task7-kafka-connect-deployment.yaml
+[2025-10-05 14:15:30] [INFO] Deployment: kubectl --context "kind-data-ingestion" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n data-ingestion --timeout=300s 2>&1
+[2025-10-05 14:17:20] [INFO] Deployment: ✅ pod -l app=kafka-connect,component=worker is ready
+[2025-10-05 14:17:21] [INFO] Deployment: Deploying Connector config postgres-cdc-users-connector
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-users-connector ===
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          111s
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:17:21] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:17:22] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:17:22] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:17:22] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:17:22] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:17:28] [0;34m[INFO][0m Deploy Connector: {
+  "name": "postgres-cdc-users-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "source"
+}
+[2025-10-05 14:17:28] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:17:28] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector"
+]
+[2025-10-05 14:17:28] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:17:28] [INFO] Deployment: Deploying Connector config postgres-cdc-products-connector
+[2025-10-05 14:17:28] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-products-connector ===
+[2025-10-05 14:17:28] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          119s
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:17:29] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:17:30] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:17:35] [0;34m[INFO][0m Deploy Connector: {
+  "name": "postgres-cdc-products-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "source"
+}
+[2025-10-05 14:17:35] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:17:35] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector"
+]
+[2025-10-05 14:17:35] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:17:35] [INFO] Deployment: Deploying Connector config postgres-cdc-orders-connector
+[2025-10-05 14:17:35] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-orders-connector ===
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          2m6s
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:17:36] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:17:37] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:17:37] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:17:42] [0;34m[INFO][0m Deploy Connector: {
+  "name": "postgres-cdc-orders-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "source"
+}
+[2025-10-05 14:17:42] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:17:42] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector",
+  "postgres-cdc-orders-connector"
+]
+[2025-10-05 14:17:42] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:17:42] [INFO] Deployment: Deploying Connector config postgres-cdc-order-items-connector
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying postgres-cdc-order-items-connector ===
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          2m13s
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:17:43] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:17:44] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:17:44] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:17:49] [0;34m[INFO][0m Deploy Connector: {
+  "name": "postgres-cdc-order-items-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "source"
+}
+[2025-10-05 14:17:49] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:17:49] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector",
+  "postgres-cdc-orders-connector",
+  "postgres-cdc-order-items-connector"
+]
+[2025-10-05 14:17:49] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:17:49] [INFO] Deployment: Deploying Connector config s3-sink-users-connector
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-users-connector ===
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          2m20s
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:17:50] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:17:51] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:17:51] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:17:56] [0;34m[INFO][0m Deploy Connector: {
+  "name": "s3-sink-users-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 1,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 2,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 3,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 4,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 5,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "sink"
+}
+[2025-10-05 14:17:56] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:17:56] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector",
+  "postgres-cdc-orders-connector",
+  "postgres-cdc-order-items-connector",
+  "s3-sink-users-connector"
+]
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:17:57] [INFO] Deployment: Deploying Connector config s3-sink-products-connector
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-products-connector ===
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          2m27s
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:17:57] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:17:58] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:17:58] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:17:58] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:17:58] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:18:03] [0;34m[INFO][0m Deploy Connector: {
+  "name": "s3-sink-products-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 1,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 2,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 3,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 4,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 5,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "sink"
+}
+[2025-10-05 14:18:03] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:18:03] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector",
+  "postgres-cdc-orders-connector",
+  "s3-sink-users-connector",
+  "s3-sink-products-connector",
+  "postgres-cdc-order-items-connector"
+]
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:18:04] [INFO] Deployment: Deploying Connector config s3-sink-orders-connector
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-orders-connector ===
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          2m34s
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:18:04] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:18:05] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:18:05] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:18:05] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:18:05] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:18:05] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:18:10] [0;34m[INFO][0m Deploy Connector: {
+  "name": "s3-sink-orders-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 1,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 2,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 3,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 4,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 5,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "sink"
+}
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector",
+  "postgres-cdc-orders-connector",
+  "s3-sink-users-connector",
+  "s3-sink-products-connector",
+  "postgres-cdc-order-items-connector",
+  "s3-sink-orders-connector"
+]
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:18:11] [INFO] Deployment: Deploying Connector config s3-sink-order-items-connector
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: === Starting Connector Deployment: Deploying s3-sink-order-items-connector ===
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: Validating prerequisites...
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: ✅  Prerequisites validated
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: Checking Kafka Connect service status...
+NAME                             READY   STATUS    RESTARTS   AGE
+kafka-connect-6697c8dd97-qhpmj   1/1     Running   0          2m41s
+[2025-10-05 14:18:11] [0;34m[INFO][0m Deploy Connector: Waiting for Kafka Connect to be ready...
+pod/kafka-connect-6697c8dd97-qhpmj condition met
+[2025-10-05 14:18:12] [0;34m[INFO][0m Deploy Connector: ✅  Kafka Connect is ready
+[2025-10-05 14:18:12] [0;34m[INFO][0m Deploy Connector: Checking if connector already exists...
+[2025-10-05 14:18:12] [0;34m[INFO][0m Deploy Connector: ✅  No existing connector found
+[2025-10-05 14:18:12] [0;34m[INFO][0m Deploy Connector: Deploying connector...
+[2025-10-05 14:18:12] [0;34m[INFO][0m Deploy Connector: ✅  Connector deployed successfully
+[2025-10-05 14:18:12] [0;34m[INFO][0m Deploy Connector: Checking connector status...
+[2025-10-05 14:18:17] [0;34m[INFO][0m Deploy Connector: {
+  "name": "s3-sink-order-items-connector",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 1,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 2,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 3,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 4,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    },
+    {
+      "id": 5,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083"
+    }
+  ],
+  "type": "sink"
+}
+[2025-10-05 14:18:18] [0;34m[INFO][0m Deploy Connector: ✅  Connector is in RUNNING state
+[2025-10-05 14:18:18] [0;34m[INFO][0m Deploy Connector: Listing all connectors...
+[
+  "postgres-cdc-users-connector",
+  "postgres-cdc-products-connector",
+  "postgres-cdc-orders-connector",
+  "s3-sink-users-connector",
+  "s3-sink-products-connector",
+  "postgres-cdc-order-items-connector",
+  "s3-sink-orders-connector",
+  "s3-sink-order-items-connector"
+]
+[2025-10-05 14:18:18] [0;34m[INFO][0m Deploy Connector: ✅  Connector Deployment completed successfully
+[2025-10-05 14:18:18] [INFO] Deployment: Sleeping 1 min before inserting Sample Data
+[2025-10-05 14:19:18] [INFO] Deployment: Inserting Sample Data into PostgreSQL
+[2025-10-05 14:19:20] [INFO] Deployment: Sleeping 2 mins after inserting Sample Data
+[2025-10-05 14:21:20] [INFO] Deployment: Executing Data Generator - performance benchmark...
+[2025-10-05 14:24:27] [INFO] Deployment: ✅ Data Generator completed successfully
+[2025-10-05 14:24:27] [INFO] Deployment: Sleeping 2 mins after running Data Generator
+[2025-10-05 14:26:27] [INFO] Deployment: Stopping background resource monitoring
+[2025-10-05 14:26:28] [INFO] Deployment: ========== SUCCESS - Data Ingestion Pipeline deployment completed ==========

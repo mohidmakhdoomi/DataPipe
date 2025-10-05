@@ -5,13 +5,14 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
+readonly NAMESPACE="batch-analytics"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-LOG_DIR="${SCRIPT_DIR}/../logs/batch-analytics-layer/deploy-logs"
-MONITOR_PID=0
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/deploy-logs"
+readonly LOG_FILE="${LOG_DIR}/main.log"
+readonly LOG_MESSAGE_PREFIX="Deployment: "
 
 readonly KIND_CONFIG="batch-kind-config.yaml"
-NAMESPACE="batch-analytics"
 
 readonly CONFIG_FILES=(
     "batch-01-namespace.yaml"
@@ -20,31 +21,13 @@ readonly CONFIG_FILES=(
     "batch-pvcs.yaml"
 )
 
-# Load functions for metrics server (if available)
-if [[ -f "${SCRIPT_DIR}/../metrics-server.sh" ]]; then
-    source "${SCRIPT_DIR}/../metrics-server.sh"
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
 fi
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
-
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Batch Deployment: $*" | tee -a "${LOG_DIR}/main.log"
-}
-
-stop_monitoring() {
-    # Stop resource monitoring if running
-    if [[ "$MONITOR_PID" -ne 0 ]]; then
-        log "Stopping background resource monitoring"
-        kill $MONITOR_PID 2>/dev/null || true
-    fi
-}
-
-exit_one() {
-    stop_monitoring
-    exit 1
-}
 
 # Main execution
 main() {
@@ -64,19 +47,13 @@ main() {
     
     # Install metrics server if available
     if command -v install_metrics_server >/dev/null 2>&1; then
-        export NAMESPACE="${NAMESPACE}"
         if ! install_metrics_server; then
             log "❌ : metrics-server not available"
             exit_one
         fi
     fi
 
-    # Start background resource monitoring if available
-    if [[ -f "${SCRIPT_DIR}/../resource-monitor.sh" ]]; then
-        log "Starting background resource monitoring"
-        bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/batch-analytics-layer/resource-logs" &
-        MONITOR_PID=$!
-    fi
+    start_resource_monitor
     
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"

@@ -9,12 +9,13 @@ IFS=$'\n\t'       # Safer word splitting
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
-readonly CONNECTOR_NAME="postgres-cdc-connector"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task9-logs"
+readonly CONNECTOR_NAME="postgres-cdc-users-connector"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task9-logs"
+readonly LOG_FILE="${LOG_DIR}/validate.log"
+readonly LOG_MESSAGE_PREFIX="Task 9 Validate: "
 readonly SCHEMA_AUTH_USER=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-user' 04-secrets.yaml)
 readonly SCHEMA_AUTH_PASS=$(yq 'select(.metadata.name == "schema-registry-auth").stringData.admin-password' 04-secrets.yaml)
 
-MONITOR_PID=0
 PRE_EVOLUTION_VERSION=1
 
 # Generate unique column names per test run to ensure idempotency
@@ -26,23 +27,10 @@ INS_UPD_DEL_EMAIL="task9-validation-${TEST_ID}@example.com"
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Task 9 Validate: $*" | tee -a "${LOG_DIR}/validate.log"
-}
-
-stop_monitoring() {
-    # Stop resource monitoring
-    if [[ "$MONITOR_PID" -ne 0 ]]; then
-        log "Stopping background resource monitoring"
-        kill $MONITOR_PID 2>/dev/null || true
-    fi
-}
-
-exit_one() {
-    stop_monitoring
-    exit 1
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 start_avro_consumer() {
     exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
@@ -50,10 +38,10 @@ start_avro_consumer() {
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
         --property schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
         --property schema.registry.url=http://localhost:8081 \
-        --timeout-ms 20000 2>/dev/null)
+        --timeout-ms 60000 2>/dev/null)
     
-    log "Waiting 10 seconds for kafka-avro-console-consumer to start..."
-    sleep 10
+    log "Waiting 6 seconds for kafka-avro-console-consumer to start..."
+    sleep 6
 }
 
 # Get pod names with validation
@@ -104,7 +92,7 @@ check_connector_status() {
             return 0
         else
             log "⚠️  Connector or task not in RUNNING state"
-            echo "$status_output" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+            log $(echo "$status_output" | jq '.')
             return 1
         fi
     else
@@ -118,7 +106,7 @@ check_replication_slot() {
     log "Checking PostgreSQL replication slot..."
     
     if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
-       psql -U postgres -d ecommerce -c "SELECT slot_name, active, restart_lsn FROM pg_replication_slots;" 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
+       psql -U postgres -d ecommerce -c "SELECT slot_name, active, restart_lsn FROM pg_replication_slots;" 2>/dev/null | tee -a "${LOG_FILE}"; then
         log "✅ Replication slot information retrieved"
         return 0
     else
@@ -154,7 +142,7 @@ check_schema_registry() {
         curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} http://localhost:8081/subjects 2>/dev/null)
     
     if [[ -n "$subjects" ]]; then
-        echo "$subjects" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+        echo "$subjects" | jq '.' | tee -a "${LOG_FILE}"
         
         if echo "$subjects" | grep -q "postgres"; then
             log "✅ CDC schemas found in Schema Registry"
@@ -214,6 +202,7 @@ test_cdc_insert() {
             log "✅ CDC INSERT event captured"
         else
             log "⚠️  CDC INSERT event not found"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
         
         return 0
@@ -247,6 +236,7 @@ test_cdc_update() {
             return 0
         else
             log "⚠️  UPDATE operation not found - check configuration"
+            log "DEBUG Avro consumer output: $avro_out"
             return 1
         fi
     else
@@ -292,6 +282,7 @@ test_cdc_delete() {
             return 0
         else
             log "⚠️  DELETE operation not found - check configuration"
+            log "DEBUG Avro consumer output: $avro_out"
             return 1
         fi
     else
@@ -346,6 +337,7 @@ test_schema_evolution_add_nullable_column() {
             log "✅ CDC captured record with new schema field"
         else
             log "⚠️  CDC record with new field not found"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ INSERT with new schema failed"
@@ -407,6 +399,7 @@ test_schema_evolution_add_default_column() {
             log "✅ CDC captured record with default value"
         else
             log "⚠️  CDC record with default value not found"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ INSERT with default column failed"
@@ -487,6 +480,7 @@ test_cdc_after_schema_changes() {
             log "✅ CDC captured INSERT after schema evolution"
         else
             log "⚠️  CDC INSERT not captured after schema evolution"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ INSERT with full schema failed"
@@ -510,6 +504,7 @@ test_cdc_after_schema_changes() {
             log "✅ CDC captured UPDATE after schema evolution"
         else
             log "⚠️  CDC UPDATE not captured after schema evolution"
+            log "DEBUG Avro consumer output: $avro_out"
         fi
     else
         log "❌ UPDATE with new fields failed"
@@ -641,7 +636,7 @@ check_connector_logs() {
     
     if [[ -n "$error_logs" ]]; then
         log "⚠️  Found warnings/errors in connector logs:"
-        echo "$error_logs" | tee -a "${LOG_DIR}/validate.log"
+        echo "$error_logs" | tee -a "${LOG_FILE}"
         return 1
     else
         log "✅ No errors found in recent logs"
@@ -653,7 +648,7 @@ check_connector_logs() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | grep -E "(kafka-connect|postgresql|kafka|schema)" | tee -a "${LOG_FILE}"; then
         log "✅ Resource usage information retrieved"
         return 0
     else
@@ -716,9 +711,7 @@ main() {
         return 1
     fi
 
-    log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs" &
-    MONITOR_PID=$!
+    start_resource_monitor
     
     # Step 2: Check connector status
     if ! check_connector_status; then

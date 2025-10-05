@@ -9,28 +9,14 @@
 
 set -euo pipefail
 
+readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-log() {
-    local level=$1
-    shift
-    local message="$*"
-    
-    case $level in
-        INFO)  echo -e "${BLUE}[INFO]${NC} $message" ;;
-        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" ;;
-        ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
-        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
-    esac
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Test script existence and permissions
 test_script_files() {
@@ -273,13 +259,13 @@ main() {
     for result in "${test_results[@]}"; do
         
         if [[ "$result" == *"PASS" ]]; then
-            echo -e "${GREEN}✓${NC} $result"
+            echo -e "${GREEN_MSG}✓${NC_MSG} $result"
             passed=$((passed + 1))
         elif [[ "$result" == *"WARN" ]]; then
-            echo -e "${YELLOW}⚠${NC} $result"
+            echo -e "${YELLOW_MSG}⚠${NC_MSG} $result"
             warned=$((warned + 1))
         else
-            echo -e "${RED}✗${NC} $result"
+            echo -e "${RED_MSG}✗${NC_MSG} $result"
             failed=$((failed + 1))
         fi
     done

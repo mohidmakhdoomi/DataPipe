@@ -3,14 +3,17 @@
 
 readonly NAMESPACE="$1"
 readonly LOG_DIR="$2"
-readonly CRITICAL_THRESHOLD=3584  # 3.5Gi in Mi
-readonly WARNING_THRESHOLD=3276   # 3.2Gi in Mi
+
+readonly LOG_FILE="${LOG_DIR}/resource-monitor.log"
+readonly LOG_FILE_ONLY=true
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 mkdir -p "${LOG_DIR}"
-
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "${LOG_DIR}/resource-monitor.log"
-}
 
 while true; do
     # Get memory usage from all pods in namespace
@@ -33,7 +36,7 @@ while true; do
         done <<< "$resource_data"
 
         # Log total and check thresholds
-        log "Total Memory: ${total_memory}Mi / 4096Mi ($(($total_memory*100/4096))%)"
+        log "Total Memory: ${total_memory}Mi / "$MEMORY_LIMIT"Mi ($(($total_memory*100/$MEMORY_LIMIT))%)"
         log "======================================="
         
         # Alert on thresholds

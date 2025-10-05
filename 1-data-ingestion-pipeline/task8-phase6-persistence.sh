@@ -5,11 +5,18 @@
 set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/phase6.log"
+readonly LOG_MESSAGE_PREFIX="Phase 6: "
+readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 6: $*" | tee -a "${LOG_DIR}/phase6.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Record baseline state
 record_baseline() {
@@ -22,7 +29,7 @@ record_baseline() {
     
     # Kafka topic offsets
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-        --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
+        --broker-list localhost:9092 --topic postgres.public.users --time -1 \
         > "${LOG_DIR}/baseline-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/baseline-kafka-offsets.txt"
     
     local offset_count=$(wc -l < "${LOG_DIR}/baseline-kafka-offsets.txt")
@@ -31,6 +38,59 @@ record_baseline() {
     # Record current pod states
     kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -o wide > "${LOG_DIR}/baseline-pods.txt"
     log "Baseline pod states recorded"
+}
+
+pause_connectors() {
+    log "Pausing Debezium connectors..."
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/pause" || {
+        log "Failed to pause Debezium users connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/pause" || {
+        log "Failed to pause Debezium products connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/pause" || {
+        log "Failed to pause Debezium orders connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/pause" || {
+        log "Failed to pause Debezium order items connector"
+        return 1
+    }
+
+    # Wait for connectors to pause
+    sleep 5
+}
+
+resume_connectors() {
+    log "Resuming Debezium connectors after 20s ..."
+    sleep 20
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/resume" || {
+        log "Failed to resume Debezium users connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-products-connector/resume" || {
+        log "Failed to resume Debezium products connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-orders-connector/resume" || {
+        log "Failed to resume Debezium orders connector"
+        return 1
+    }
+
+    kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-order-items-connector/resume" || {
+        log "Failed to resume Debezium order items connector"
+        return 1
+    }
+
+    # Wait for connectors to resume
+    sleep 5
 }
 
 # Force pod restarts
@@ -46,6 +106,10 @@ force_pod_restarts() {
     local deleted_pods=()
 
     if [[ -n "$connect_pod" ]]; then
+        if ! pause_connectors; then
+            log "⚠️ Failed to pause connectors before Kafka Connect restart"
+        fi
+
         kubectl --context "kind-$NAMESPACE" scale deploy kafka-connect -n ${NAMESPACE} --replicas=0 >/dev/null 2>&1 &
         log "Waiting for Kafka Connect to terminate..."
         if kubectl --context "kind-$NAMESPACE" wait --for=delete pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
@@ -136,6 +200,12 @@ wait_for_restart() {
     log "Waiting for Kafka Connect to be ready..."
     if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s >/dev/null 2>&1; then
         log "✅ Kafka Connect pod restarted and ready"
+
+        if ! resume_connectors; then
+            log "⚠️ Failed to resume connectors after Kafka Connect restart"
+        else
+            log "✅ Resumed connectors"
+        fi
     else
         log "⚠️  Kafka Connect pod restart timeout (may still be starting)"
     fi
@@ -168,7 +238,7 @@ verify_persistence() {
     # Check Kafka data (offsets should be preserved)
     log "Checking Kafka data persistence..."
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-        --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
+        --broker-list localhost:9092 --topic postgres.public.users --time -1 \
         > "${LOG_DIR}/after-restart-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/after-restart-kafka-offsets.txt"
     
     if diff "${LOG_DIR}/baseline-kafka-offsets.txt" "${LOG_DIR}/after-restart-kafka-offsets.txt" >/dev/null 2>&1; then
@@ -214,7 +284,7 @@ test_cdc_recovery() {
     
     while [[ $elapsed -lt $max_wait ]]; do
         local status=$(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
-                      curl -s http://localhost:8083/connectors/postgres-cdc-connector/status \
+                      curl -s http://localhost:8083/connectors/postgres-cdc-users-connector/status \
                       2>/dev/null | grep -o '"connector":{"state":"[^"]*"' | cut -d'"' -f6 || echo "UNKNOWN")
         
         if [[ "$status" == "RUNNING" ]]; then

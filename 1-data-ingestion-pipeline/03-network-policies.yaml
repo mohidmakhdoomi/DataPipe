@@ -149,6 +149,12 @@ spec:
     ports:
     - protocol: TCP
       port: 8083
+    - protocol: TCP
+      port: 8084
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 8086
   egress:
   - to:
     - podSelector:
@@ -157,6 +163,12 @@ spec:
     ports:
     - protocol: TCP
       port: 8083
+    - protocol: TCP
+      port: 8084
+    - protocol: TCP
+      port: 8085
+    - protocol: TCP
+      port: 8086
   - to:
     - podSelector:
         matchLabels:

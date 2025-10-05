@@ -20,11 +20,11 @@ data:
     listen_addresses = '*'
     max_connections = 100
     
-    # WAL Configuration for CDC
+    # WAL Configuration for CDC - INCREASED for 4 instances
     wal_level = logical
-    max_wal_senders = 4
-    max_replication_slots = 4
-    max_logical_replication_workers = 4
+    max_wal_senders = 8
+    max_replication_slots = 8
+    max_logical_replication_workers = 8
     
     # Performance Tuning
     checkpoint_completion_target = 0.9
@@ -41,10 +41,10 @@ data:
     log_statement = 'mod'
     log_min_duration_statement = 1000
     
-    # Replication Configuration
+    # Replication Configuration - INCREASED for multiple slots
     hot_standby = on
-    wal_keep_size = 1GB
-    max_slot_wal_keep_size = 2GB
+    wal_keep_size = 2GB
+    max_slot_wal_keep_size = 4GB
   
   init-schema.sql: |
     -- Create database for e-commerce
@@ -117,8 +117,11 @@ data:
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO debezium_parent;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO debezium_parent;
     
-    -- Create publication for CDC
-    CREATE PUBLICATION dbz_publication FOR ALL TABLES;
+    -- Create separate publications for each table
+    CREATE PUBLICATION dbz_publication_users FOR TABLE users;
+    CREATE PUBLICATION dbz_publication_products FOR TABLE products;
+    CREATE PUBLICATION dbz_publication_orders FOR TABLE orders;
+    CREATE PUBLICATION dbz_publication_order_items FOR TABLE order_items;
     
     -- Create function to update updated_at timestamp
     CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -180,10 +183,7 @@ spec:
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
-            add:
-            - CHOWN
-            - FOWNER
-            - DAC_OVERRIDE
+            add: ["CHOWN", "FOWNER", "DAC_OVERRIDE"]
         command: ['sh', '-c']
         args:
         - |
@@ -198,7 +198,7 @@ spec:
 
           cp /tmp/init-schema.sql /docker-entrypoint-initdb.d/init-schema.sql
           echo "CREATE USER $DBZ_DB_USERNAME WITH REPLICATION PASSWORD '$DBZ_DB_PASSWORD' IN ROLE debezium_parent; ALTER ROLE $DBZ_DB_USERNAME SET ROLE debezium_parent;" >> /docker-entrypoint-initdb.d/init-schema.sql
-          echo "PostgreSQL Debezium user created"
+          echo "PostgreSQL Debezium user created for multi-instance setup"
         env:
         - name: DBZ_DB_USERNAME
           valueFrom:
@@ -233,8 +233,7 @@ spec:
           seccompProfile:
             type: RuntimeDefault
           capabilities:
-            drop:
-            - ALL
+            drop: ["ALL"]
         env:
         - name: POSTGRES_DB
           value: "postgres"
@@ -261,10 +260,10 @@ spec:
           protocol: TCP
         resources:
           requests:
-            memory: "512Mi"
+            memory: "1Gi"
             cpu: "500m"
           limits:
-            memory: "512Mi"
+            memory: "1Gi"
             cpu: "1"
         volumeMounts:
         - name: postgresql-data

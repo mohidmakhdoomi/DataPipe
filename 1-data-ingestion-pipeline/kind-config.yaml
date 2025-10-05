@@ -31,17 +31,29 @@ nodes:
     protocol: TCP
     listenAddress: "127.0.0.1"
   
-  # Schema Registry access (for future tasks)
+  # Schema Registry access
   - containerPort: 30081
     hostPort: 8081
     protocol: TCP
     listenAddress: "127.0.0.1"
   
-  # Kafka Connect REST API (for future tasks)
+  # Kafka Connect Multi-Instance Access
   - containerPort: 30083
     hostPort: 8083
     protocol: TCP
-    listenAddress: "127.0.0.1"
+    listenAddress: "127.0.0.1"  # Users instance
+  - containerPort: 30084
+    hostPort: 8084
+    protocol: TCP
+    listenAddress: "127.0.0.1"  # Products instance
+  - containerPort: 30085
+    hostPort: 8085
+    protocol: TCP
+    listenAddress: "127.0.0.1"  # Orders instance
+  - containerPort: 30086
+    hostPort: 8086
+    protocol: TCP
+    listenAddress: "127.0.0.1"  # Order Items instance
 
 # Worker node 1 - hosts data services workloads
 - role: worker

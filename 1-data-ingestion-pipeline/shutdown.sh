@@ -6,15 +6,16 @@ set -euo pipefail
 readonly NAMESPACE="data-ingestion"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/startstop-logs"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/startstop-logs"
+readonly LOG_FILE="${LOG_DIR}/shutdown.log"
+readonly LOG_MESSAGE_PREFIX="Shutdown: "
 
-# Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Shutdown: $*" | tee -a "${LOG_DIR}/shutdown.log"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 scale_down() {
     log "Starting to shutdown/scale down Kafka Connect > Schema Registry > Kafka > PostgreSQL"

@@ -220,10 +220,10 @@ spec:
           containerPort: 8083
         resources:
           requests:
-            memory: "1Gi"
+            memory: "2Gi"
             cpu: "500m"
           limits:
-            memory: "1Gi"
+            memory: "2Gi"
             cpu: "1"
         livenessProbe:
           httpGet:
