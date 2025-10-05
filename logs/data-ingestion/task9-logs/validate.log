@@ -1,40 +1,40 @@
-[2025-10-05 05:02:42] [INFO] Task 9 Validate: === Starting Task 9: Validating Debezium PostgreSQL CDC Connector ===
-[2025-10-05 05:02:42] [INFO] Task 9 Validate: Discovering pod names...
-[2025-10-05 05:02:43] [INFO] Task 9 Validate: Using pods:
-[2025-10-05 05:02:43] [INFO] Task 9 Validate:   Kafka Connect: kafka-connect-6697c8dd97-qbtrm
-[2025-10-05 05:02:43] [INFO] Task 9 Validate:   PostgreSQL: postgresql-0
-[2025-10-05 05:02:43] [INFO] Task 9 Validate:   Kafka: kafka-0
-[2025-10-05 05:02:43] [INFO] Task 9 Validate:   Schema Registry: schema-registry-6595fd55fb-kmwwl
-[2025-10-05 05:02:43] [INFO] Task 9 Validate: Starting background resource monitoring
-[2025-10-05 05:02:43] [INFO] Task 9 Validate: Checking connector status...
-[2025-10-05 05:02:44] [INFO] Task 9 Validate: Connector state: RUNNING
-[2025-10-05 05:02:44] [INFO] Task 9 Validate: Task state: RUNNING
-[2025-10-05 05:02:44] [INFO] Task 9 Validate: ✅ Connector and task are both RUNNING
-[2025-10-05 05:02:44] [INFO] Task 9 Validate: Checking PostgreSQL replication slot...
+[2025-10-05 14:43:27] [INFO] Task 9 Validate: === Starting Task 9: Validating Debezium PostgreSQL CDC Connector ===
+[2025-10-05 14:43:27] [INFO] Task 9 Validate: Discovering pod names...
+[2025-10-05 14:43:27] [INFO] Task 9 Validate: Using pods:
+[2025-10-05 14:43:27] [INFO] Task 9 Validate:   Kafka Connect: kafka-connect-6697c8dd97-vzz2j
+[2025-10-05 14:43:27] [INFO] Task 9 Validate:   PostgreSQL: postgresql-0
+[2025-10-05 14:43:27] [INFO] Task 9 Validate:   Kafka: kafka-0
+[2025-10-05 14:43:28] [INFO] Task 9 Validate:   Schema Registry: schema-registry-696f9b74b5-wqldb
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: Starting background resource monitoring
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: Checking connector status...
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: Connector state: RUNNING
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: Task state: RUNNING
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: ✅ Connector and task are both RUNNING
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: Checking PostgreSQL replication slot...
          slot_name         | active | restart_lsn 
 ---------------------------+--------+-------------
  debezium_slot_products    | t      | 0/1BF6A38
  debezium_slot_orders      | t      | 0/1BF6A38
- debezium_slot_order_items | t      | 0/29EF7E0
- debezium_slot_users       | t      | 0/182E3E20
+ debezium_slot_order_items | t      | 0/29EFB40
+ debezium_slot_users       | t      | 0/1845F4A0
 (4 rows)
 
-[2025-10-05 05:02:44] [INFO] Task 9 Validate: ✅ Replication slot information retrieved
-[2025-10-05 05:02:44] [INFO] Task 9 Validate: Listing Kafka topics...
-[2025-10-05 05:02:48] [INFO] Task 9 Validate: ✅ Found CDC topics:
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - __debezium-heartbeat-order-items.postgres
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - __debezium-heartbeat-orders.postgres
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - __debezium-heartbeat-products.postgres
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - __debezium-heartbeat-users.postgres
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.public.order_items
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.public.orders
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.public.products
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.public.users
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.transaction-order-items
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.transaction-orders
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.transaction-products
-[2025-10-05 05:02:48] [INFO] Task 9 Validate:   - postgres.transaction-users
-[2025-10-05 05:02:48] [INFO] Task 9 Validate: Checking Schema Registry subjects...
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: ✅ Replication slot information retrieved
+[2025-10-05 14:43:28] [INFO] Task 9 Validate: Listing Kafka topics...
+[2025-10-05 14:43:32] [INFO] Task 9 Validate: ✅ Found CDC topics:
+[2025-10-05 14:43:32] [INFO] Task 9 Validate:   - __debezium-heartbeat-order-items.postgres
+[2025-10-05 14:43:32] [INFO] Task 9 Validate:   - __debezium-heartbeat-orders.postgres
+[2025-10-05 14:43:32] [INFO] Task 9 Validate:   - __debezium-heartbeat-products.postgres
+[2025-10-05 14:43:32] [INFO] Task 9 Validate:   - __debezium-heartbeat-users.postgres
+[2025-10-05 14:43:32] [INFO] Task 9 Validate:   - postgres.public.order_items
+[2025-10-05 14:43:32] [INFO] Task 9 Validate:   - postgres.public.orders
+[2025-10-05 14:43:33] [INFO] Task 9 Validate:   - postgres.public.products
+[2025-10-05 14:43:33] [INFO] Task 9 Validate:   - postgres.public.users
+[2025-10-05 14:43:33] [INFO] Task 9 Validate:   - postgres.transaction-order-items
+[2025-10-05 14:43:33] [INFO] Task 9 Validate:   - postgres.transaction-orders
+[2025-10-05 14:43:33] [INFO] Task 9 Validate:   - postgres.transaction-products
+[2025-10-05 14:43:33] [INFO] Task 9 Validate:   - postgres.transaction-users
+[2025-10-05 14:43:33] [INFO] Task 9 Validate: Checking Schema Registry subjects...
 [
   "__debezium-heartbeat-order-items.postgres-key",
   "__debezium-heartbeat-order-items.postgres-value",
@@ -61,157 +61,157 @@
   "postgres.transaction-users-key",
   "postgres.transaction-users-value"
 ]
-[2025-10-05 05:02:49] [INFO] Task 9 Validate: ✅ CDC schemas found in Schema Registry
-[2025-10-05 05:02:49] [INFO] Task 9 Validate: Checking topic message counts...
-[2025-10-05 05:02:52] [INFO] Task 9 Validate: users: 742041 messages
-[2025-10-05 05:02:56] [INFO] Task 9 Validate: products: 9000 messages
-[2025-10-05 05:03:00] [INFO] Task 9 Validate: orders: 9000 messages
-[2025-10-05 05:03:04] [INFO] Task 9 Validate: order_items: 9000 messages
-[2025-10-05 05:03:04] [INFO] Task 9 Validate: Total messages across all topics: 769041
-[2025-10-05 05:03:04] [INFO] Task 9 Validate: Starting CDC operations testing...
-[2025-10-05 05:03:04] [INFO] Task 9 Validate: Testing CDC with INSERT operation...
-[2025-10-05 05:03:04] [INFO] Task 9 Validate: Inserting test record with email: task9-validation-1759654962@example.com
-[2025-10-05 05:03:04] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:43:33] [INFO] Task 9 Validate: ✅ CDC schemas found in Schema Registry
+[2025-10-05 14:43:33] [INFO] Task 9 Validate: Checking topic message counts...
+[2025-10-05 14:43:37] [INFO] Task 9 Validate: users: 746601 messages
+[2025-10-05 14:43:41] [INFO] Task 9 Validate: products: 9000 messages
+[2025-10-05 14:43:45] [INFO] Task 9 Validate: orders: 9000 messages
+[2025-10-05 14:43:49] [INFO] Task 9 Validate: order_items: 9000 messages
+[2025-10-05 14:43:49] [INFO] Task 9 Validate: Total messages across all topics: 773601
+[2025-10-05 14:43:49] [INFO] Task 9 Validate: Starting CDC operations testing...
+[2025-10-05 14:43:49] [INFO] Task 9 Validate: Testing CDC with INSERT operation...
+[2025-10-05 14:43:49] [INFO] Task 9 Validate: Inserting test record with email: task9-validation-1759689807@example.com
+[2025-10-05 14:43:49] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
    id   
 --------
- 743732
+ 746602
 (1 row)
 
 INSERT 0 1
-[2025-10-05 05:03:11] [INFO] Task 9 Validate: ✅ Test record inserted successfully
-[2025-10-05 05:03:11] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
-[2025-10-05 05:05:14] [INFO] Task 9 Validate: Checking if CDC event appeared in Kafka...
-[2025-10-05 05:05:14] [INFO] Task 9 Validate: ✅ CDC INSERT event captured
-[2025-10-05 05:05:14] [INFO] Task 9 Validate: INSERT test completed, proceeding with UPDATE/DELETE tests...
-[2025-10-05 05:05:14] [INFO] Task 9 Validate: Testing UPDATE operation...
-[2025-10-05 05:05:14] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
-[2025-10-05 05:05:20] [INFO] Task 9 Validate: ✅ UPDATE operation executed
-743732
-[2025-10-05 05:05:20] [INFO] Task 9 Validate: Waiting for CDC to process UPDATE...
-[2025-10-05 05:07:22] [INFO] Task 9 Validate: Checking if UPDATE event appeared in Kafka...
-[2025-10-05 05:07:22] [INFO] Task 9 Validate: ✅ UPDATE operation found with proper format
-[2025-10-05 05:07:22] [INFO] Task 9 Validate: Testing DELETE operation (critical for Iceberg)...
-[2025-10-05 05:07:22] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
-[2025-10-05 05:07:28] [INFO] Task 9 Validate: ✅ DELETE operation executed successfully (record deleted)
-743732
-[2025-10-05 05:07:29] [INFO] Task 9 Validate: Waiting for CDC to process DELETE...
-[2025-10-05 05:09:31] [INFO] Task 9 Validate: Checking if DELETE event appeared in Kafka with proper rewrite format...
-[2025-10-05 05:09:31] [INFO] Task 9 Validate: ✅ DELETE operation found with proper format
-[2025-10-05 05:09:31] [INFO] Task 9 Validate: === Verifying Schema Registry Compatibility Settings ===
-[2025-10-05 05:09:31] [INFO] Task 9 Validate: Global compatibility level: BACKWARD
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: Users table compatibility level: null
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: ✅ Schema Registry has appropriate compatibility level for evolution
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: Starting Schema Evolution testing...
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: === Testing Schema Evolution: Adding Nullable Column ===
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: Initial schema version: 1
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: Adding nullable column 'test_middle_name_1759654962' to users table...
+[2025-10-05 14:43:55] [INFO] Task 9 Validate: ✅ Test record inserted successfully
+[2025-10-05 14:43:55] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
+[2025-10-05 14:45:58] [INFO] Task 9 Validate: Checking if CDC event appeared in Kafka...
+[2025-10-05 14:45:58] [INFO] Task 9 Validate: ✅ CDC INSERT event captured
+[2025-10-05 14:45:58] [INFO] Task 9 Validate: INSERT test completed, proceeding with UPDATE/DELETE tests...
+[2025-10-05 14:45:58] [INFO] Task 9 Validate: Testing UPDATE operation...
+[2025-10-05 14:45:58] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:46:04] [INFO] Task 9 Validate: ✅ UPDATE operation executed
+746602
+[2025-10-05 14:46:04] [INFO] Task 9 Validate: Waiting for CDC to process UPDATE...
+[2025-10-05 14:48:07] [INFO] Task 9 Validate: Checking if UPDATE event appeared in Kafka...
+[2025-10-05 14:48:07] [INFO] Task 9 Validate: ✅ UPDATE operation found with proper format
+[2025-10-05 14:48:07] [INFO] Task 9 Validate: Testing DELETE operation (critical for Iceberg)...
+[2025-10-05 14:48:07] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:48:13] [INFO] Task 9 Validate: ✅ DELETE operation executed successfully (record deleted)
+746602
+[2025-10-05 14:48:13] [INFO] Task 9 Validate: Waiting for CDC to process DELETE...
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: Checking if DELETE event appeared in Kafka with proper rewrite format...
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: ✅ DELETE operation found with proper format
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: === Verifying Schema Registry Compatibility Settings ===
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: Global compatibility level: BACKWARD
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: Users table compatibility level: null
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: ✅ Schema Registry has appropriate compatibility level for evolution
+[2025-10-05 14:49:15] [INFO] Task 9 Validate: Starting Schema Evolution testing...
+[2025-10-05 14:49:16] [INFO] Task 9 Validate: === Testing Schema Evolution: Adding Nullable Column ===
+[2025-10-05 14:49:16] [INFO] Task 9 Validate: Initial schema version: 1
+[2025-10-05 14:49:16] [INFO] Task 9 Validate: Adding nullable column 'test_middle_name_1759689807' to users table...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
 ALTER TABLE
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: ✅ Successfully added nullable column
-[2025-10-05 05:09:32] [INFO] Task 9 Validate: Waiting 10 seconds for schema change to propagate...
-[2025-10-05 05:09:42] [INFO] Task 9 Validate: Testing INSERT with new schema (including test_middle_name_1759654962)...
-[2025-10-05 05:09:42] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
-[2025-10-05 05:09:49] [INFO] Task 9 Validate: ✅ INSERT with new schema successful
-743733
-[2025-10-05 05:09:49] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
-[2025-10-05 05:10:50] [INFO] Task 9 Validate: Verifying CDC captured the new test_middle_name_1759654962 field...
-[2025-10-05 05:10:50] [INFO] Task 9 Validate: ✅ CDC captured record with new schema field
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: New schema version: 2
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: ✅ Schema Registry shows schema evolution (v1 → v2)
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: ✅ Nullable column schema evolution test passed
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: === Testing Schema Evolution: Adding Column with Default Value ===
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: Initial schema version: 2
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: Adding column 'test_status_1759654962' with default value to users table...
+[2025-10-05 14:49:16] [INFO] Task 9 Validate: ✅ Successfully added nullable column
+[2025-10-05 14:49:16] [INFO] Task 9 Validate: Waiting 10 seconds for schema change to propagate...
+[2025-10-05 14:49:26] [INFO] Task 9 Validate: Testing INSERT with new schema (including test_middle_name_1759689807)...
+[2025-10-05 14:49:26] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:49:33] [INFO] Task 9 Validate: ✅ INSERT with new schema successful
+746603
+[2025-10-05 14:49:33] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
+[2025-10-05 14:50:35] [INFO] Task 9 Validate: Verifying CDC captured the new test_middle_name_1759689807 field...
+[2025-10-05 14:50:35] [INFO] Task 9 Validate: ✅ CDC captured record with new schema field
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: New schema version: 2
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: ✅ Schema Registry shows schema evolution (v1 → v2)
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: ✅ Nullable column schema evolution test passed
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: === Testing Schema Evolution: Adding Column with Default Value ===
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: Initial schema version: 2
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: Adding column 'test_status_1759689807' with default value to users table...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
 ALTER TABLE
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: ✅ Successfully added column with default value
-[2025-10-05 05:10:51] [INFO] Task 9 Validate: Waiting 5 seconds for schema change to propagate...
-[2025-10-05 05:10:56] [INFO] Task 9 Validate: Testing INSERT without new column (should use default value)...
-[2025-10-05 05:10:56] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: ✅ Successfully added column with default value
+[2025-10-05 14:50:36] [INFO] Task 9 Validate: Waiting 5 seconds for schema change to propagate...
+[2025-10-05 14:50:41] [INFO] Task 9 Validate: Testing INSERT without new column (should use default value)...
+[2025-10-05 14:50:41] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
    id   
 --------
- 743734
+ 746604
 (1 row)
 
 INSERT 0 1
-[2025-10-05 05:11:03] [INFO] Task 9 Validate: ✅ INSERT without new column successful
-[2025-10-05 05:11:03] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
-[2025-10-05 05:12:05] [INFO] Task 9 Validate: Verifying CDC captured the default test_status_1759654962 value...
-[2025-10-05 05:12:05] [INFO] Task 9 Validate: ✅ CDC captured record with default value
-[2025-10-05 05:12:06] [INFO] Task 9 Validate: New schema version: 3
-[2025-10-05 05:12:06] [INFO] Task 9 Validate: ✅ Schema Registry shows schema evolution (v2 → v3)
-[2025-10-05 05:12:06] [INFO] Task 9 Validate: ✅ Default column schema evolution test passed
-[2025-10-05 05:12:06] [INFO] Task 9 Validate: === Testing CDC Operations After Schema Changes ===
-[2025-10-05 05:12:06] [INFO] Task 9 Validate: Testing INSERT with all schema fields...
-[2025-10-05 05:12:06] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:50:48] [INFO] Task 9 Validate: ✅ INSERT without new column successful
+[2025-10-05 14:50:48] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
+[2025-10-05 14:52:50] [INFO] Task 9 Validate: Verifying CDC captured the default test_status_1759689807 value...
+[2025-10-05 14:52:50] [INFO] Task 9 Validate: ✅ CDC captured record with default value
+[2025-10-05 14:52:50] [INFO] Task 9 Validate: New schema version: 3
+[2025-10-05 14:52:51] [INFO] Task 9 Validate: ✅ Schema Registry shows schema evolution (v2 → v3)
+[2025-10-05 14:52:51] [INFO] Task 9 Validate: ✅ Default column schema evolution test passed
+[2025-10-05 14:52:51] [INFO] Task 9 Validate: === Testing CDC Operations After Schema Changes ===
+[2025-10-05 14:52:51] [INFO] Task 9 Validate: Testing INSERT with all schema fields...
+[2025-10-05 14:52:51] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
    id   
 --------
- 743735
+ 746605
 (1 row)
 
 INSERT 0 1
-[2025-10-05 05:12:12] [INFO] Task 9 Validate: ✅ INSERT with full schema successful
-[2025-10-05 05:12:12] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
-[2025-10-05 05:14:14] [INFO] Task 9 Validate: ✅ CDC captured INSERT after schema evolution
-[2025-10-05 05:14:14] [INFO] Task 9 Validate: Testing UPDATE with new schema fields...
-[2025-10-05 05:14:14] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
+[2025-10-05 14:52:57] [INFO] Task 9 Validate: ✅ INSERT with full schema successful
+[2025-10-05 14:52:57] [INFO] Task 9 Validate: Waiting for CDC to process INSERT...
+[2025-10-05 14:53:59] [INFO] Task 9 Validate: ✅ CDC captured INSERT after schema evolution
+[2025-10-05 14:53:59] [INFO] Task 9 Validate: Testing UPDATE with new schema fields...
+[2025-10-05 14:53:59] [INFO] Task 9 Validate: Waiting 6 seconds for kafka-avro-console-consumer to start...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
    id   
 --------
- 743735
+ 746605
 (1 row)
 
 UPDATE 1
-[2025-10-05 05:14:21] [INFO] Task 9 Validate: ✅ UPDATE with new fields successful
-[2025-10-05 05:14:21] [INFO] Task 9 Validate: Waiting for CDC to process UPDATE...
-[2025-10-05 05:16:23] [INFO] Task 9 Validate: ✅ CDC captured UPDATE after schema evolution
-[2025-10-05 05:16:23] [INFO] Task 9 Validate: ✅ CDC operations after schema changes test passed
-[2025-10-05 05:16:23] [INFO] Task 9 Validate: === Cleaning Up Schema Evolution Test Changes ===
-[2025-10-05 05:16:24] [INFO] Task 9 Validate: Current schema version before cleanup: 3
-[2025-10-05 05:16:24] [INFO] Task 9 Validate: Removing test columns added during schema evolution testing...
+[2025-10-05 14:54:06] [INFO] Task 9 Validate: ✅ UPDATE with new fields successful
+[2025-10-05 14:54:06] [INFO] Task 9 Validate: Waiting for CDC to process UPDATE...
+[2025-10-05 14:55:07] [INFO] Task 9 Validate: ✅ CDC captured UPDATE after schema evolution
+[2025-10-05 14:55:07] [INFO] Task 9 Validate: ✅ CDC operations after schema changes test passed
+[2025-10-05 14:55:07] [INFO] Task 9 Validate: === Cleaning Up Schema Evolution Test Changes ===
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Current schema version before cleanup: 3
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Removing test columns added during schema evolution testing...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
 ALTER TABLE
-[2025-10-05 05:16:24] [INFO] Task 9 Validate: ✅ Test columns removed successfully from database
-[2025-10-05 05:16:24] [INFO] Task 9 Validate: Cleaning up schema evolution test records...
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: ✅ Test columns removed successfully from database
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Cleaning up schema evolution test records...
 Defaulted container "postgresql" out of: postgresql, fix-permissions (init)
 DELETE 3
-[2025-10-05 05:16:24] [INFO] Task 9 Validate: Cleaning up Schema Registry schema versions...
-[2025-10-05 05:16:25] [INFO] Task 9 Validate: Found schema versions: 1,2,3
-[2025-10-05 05:16:25] [INFO] Task 9 Validate: Preserving baseline schema version: 1
-[2025-10-05 05:16:25] [INFO] Task 9 Validate: Soft deleting schema version 3...
-[2025-10-05 05:16:25] [INFO] Task 9 Validate: ✅ Successfully soft deleted schema version 3
-[2025-10-05 05:16:26] [INFO] Task 9 Validate: Soft deleting schema version 2...
-[2025-10-05 05:16:26] [INFO] Task 9 Validate: ✅ Successfully soft deleted schema version 2
-[2025-10-05 05:16:27] [INFO] Task 9 Validate: No schema versions to delete (only baseline 1 or older versions exists)
-[2025-10-05 05:16:27] [INFO] Task 9 Validate: Verifying schema cleanup...
-[2025-10-05 05:16:27] [INFO] Task 9 Validate: Remaining schema versions after cleanup: 1
-[2025-10-05 05:16:27] [INFO] Task 9 Validate: Waiting 10 seconds for schema cleanup to propagate...
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: Final schema version after cleanup: 1
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: ✅ Schema Registry successfully reset to baseline version
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: ✅ Schema evolution test cleanup completed
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: Checking connector logs for any errors...
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: ✅ No errors found in recent logs
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: Checking resource usage...
-kafka-0                            23m   490Mi   
-kafka-1                            22m   483Mi   
-kafka-2                            21m   423Mi   
-kafka-connect-6697c8dd97-qbtrm     28m   843Mi   
-postgresql-0                       22m   333Mi   
-schema-registry-6595fd55fb-kmwwl   17m   274Mi   
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: ✅ Resource usage information retrieved
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: === CDC Validation Complete ===
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: 
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: Summary:
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: - Connector status: ✅ PASSED
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: - Topics and Schema Registry: Validated
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: - CDC operations: INSERT/UPDATE/DELETE tested
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: - Schema Registry compatibility: Verified
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: - Schema evolution: Nullable and default column tests completed
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: - Post-evolution CDC: Verified CDC works after schema changes
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: 
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: ✅ All validation tests passed - Task 9 is complete!
-[2025-10-05 05:16:38] [INFO] Task 9 Validate: ✅ Schema evolution handling and compatibility verified
-[2025-10-05 05:16:39] [INFO] Task 9 Validate: Stopping background resource monitoring
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Cleaning up Schema Registry schema versions...
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Found schema versions: 1,2,3
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Preserving baseline schema version: 1
+[2025-10-05 14:55:08] [INFO] Task 9 Validate: Soft deleting schema version 3...
+[2025-10-05 14:55:09] [INFO] Task 9 Validate: ✅ Successfully soft deleted schema version 3
+[2025-10-05 14:55:10] [INFO] Task 9 Validate: Soft deleting schema version 2...
+[2025-10-05 14:55:10] [INFO] Task 9 Validate: ✅ Successfully soft deleted schema version 2
+[2025-10-05 14:55:11] [INFO] Task 9 Validate: No schema versions to delete (only baseline 1 or older versions exists)
+[2025-10-05 14:55:11] [INFO] Task 9 Validate: Verifying schema cleanup...
+[2025-10-05 14:55:11] [INFO] Task 9 Validate: Remaining schema versions after cleanup: 1
+[2025-10-05 14:55:11] [INFO] Task 9 Validate: Waiting 10 seconds for schema cleanup to propagate...
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: Final schema version after cleanup: 1
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: ✅ Schema Registry successfully reset to baseline version
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: ✅ Schema evolution test cleanup completed
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: Checking connector logs for any errors...
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: ✅ No errors found in recent logs
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: Checking resource usage...
+kafka-0                            26m   499Mi   
+kafka-1                            24m   483Mi   
+kafka-2                            23m   420Mi   
+kafka-connect-6697c8dd97-vzz2j     49m   914Mi   
+postgresql-0                       9m    75Mi    
+schema-registry-696f9b74b5-wqldb   30m   259Mi   
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: ✅ Resource usage information retrieved
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: === CDC Validation Complete ===
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: 
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: Summary:
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: - Connector status: ✅ PASSED
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: - Topics and Schema Registry: Validated
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: - CDC operations: INSERT/UPDATE/DELETE tested
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: - Schema Registry compatibility: Verified
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: - Schema evolution: Nullable and default column tests completed
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: - Post-evolution CDC: Verified CDC works after schema changes
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: 
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: ✅ All validation tests passed - Task 9 is complete!
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: ✅ Schema evolution handling and compatibility verified
+[2025-10-05 14:55:22] [INFO] Task 9 Validate: Stopping background resource monitoring

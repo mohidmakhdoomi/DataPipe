@@ -1,96 +1,20 @@
-[2025-10-05 04:36:04] Data Generator : === Starting Data Generator: Performance Benchmarking ===
-[2025-10-05 04:36:04] Data Generator : Starting performance benchmark: 4000 events/sec for 180 seconds
-[2025-10-05 04:36:04] Data Generator : Setting up connection to database...
-[2025-10-05 04:36:06] Data Generator : ✅ DB connection ready
-[2025-10-05 04:36:06] Data Generator : Starting load generation...
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653416854@example.com) already exists.
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653416994@example.com) already exists.
-
-[2025-10-05 04:36:56] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:57] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653417037@example.com) already exists.
-
-[2025-10-05 04:36:58] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653418665@example.com) already exists.
-
-[2025-10-05 04:36:58] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:58] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:59] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653419495@example.com) already exists.
-
-[2025-10-05 04:36:59] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:59] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:36:59] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:00] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653420790@example.com) already exists.
-
-[2025-10-05 04:37:00] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:00] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:00] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:01] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653421165@example.com) already exists.
-
-[2025-10-05 04:37:01] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:01] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653421637@example.com) already exists.
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653423198@example.com) already exists.
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: duplicate key value violates unique constraint "users_email_key"
-DETAIL:  Key (email)=(user_1_1759653423904@example.com) already exists.
-
-[2025-10-05 04:37:03] Data Generator : ⚠️  Batch insert error: current transaction is aborted, commands ignored until end of transaction block
-
-[2025-10-05 04:39:06] Data Generator : Waiting for all batches to complete...
-[2025-10-05 04:39:11] Data Generator : 
+[2025-10-05 14:21:20] Data Generator : === Starting Data Generator: Performance Benchmarking ===
+[2025-10-05 14:21:20] Data Generator : Starting performance benchmark: 4000 events/sec for 180 seconds
+[2025-10-05 14:21:20] Data Generator : Setting up connection to database...
+[2025-10-05 14:21:22] Data Generator : ✅ DB connection ready
+[2025-10-05 14:21:22] Data Generator : Starting load generation...
+[2025-10-05 14:24:22] Data Generator : Waiting for all batches to complete...
+[2025-10-05 14:24:27] Data Generator : 
 === Performance Benchmark Results ===
-[2025-10-05 04:39:11] Data Generator : Events sent: 734720
-[2025-10-05 04:39:11] Data Generator : Duration: 180.01 seconds
-[2025-10-05 04:39:11] Data Generator : Actual rate: 4081.66 events/sec
-[2025-10-05 04:39:11] Data Generator : Target achieved: ✅ YES
-[2025-10-05 04:39:11] Data Generator : Errors: 34
-[2025-10-05 04:39:11] Data Generator : Average batch latency: 10.21ms
-[2025-10-05 04:39:11] Data Generator : P50 batch latency: 4.18ms
-[2025-10-05 04:39:11] Data Generator : P95 batch latency: 31.95ms
-[2025-10-05 04:39:11] Data Generator : P99 batch latency: 152.92ms
-[2025-10-05 04:39:11] Data Generator : Latency target (<500ms avg): ✅ YES
-[2025-10-05 04:39:11] Data Generator : Detailed results written to: E:/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/deploy-logs/performance-results.txt
-[2025-10-05 04:39:11] Data Generator : ❌ Failed - performance targets not met
+[2025-10-05 14:24:27] Data Generator : Events sent: 737600
+[2025-10-05 14:24:27] Data Generator : Duration: 180.01 seconds
+[2025-10-05 14:24:27] Data Generator : Actual rate: 4097.63 events/sec
+[2025-10-05 14:24:27] Data Generator : Target achieved: ✅ YES
+[2025-10-05 14:24:27] Data Generator : Errors: 0
+[2025-10-05 14:24:27] Data Generator : Average batch latency: 4.11ms
+[2025-10-05 14:24:27] Data Generator : P50 batch latency: 3.90ms
+[2025-10-05 14:24:27] Data Generator : P95 batch latency: 5.26ms
+[2025-10-05 14:24:27] Data Generator : P99 batch latency: 7.78ms
+[2025-10-05 14:24:27] Data Generator : Latency target (<500ms avg): ✅ YES
+[2025-10-05 14:24:27] Data Generator : Detailed results written to: E:/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/deploy-logs/performance-results.txt
+[2025-10-05 14:24:27] Data Generator : ✅ Completed successfully - performance targets achieved
