@@ -25,6 +25,9 @@ readonly KAFKA_SERVICE="kafka-headless.${NAMESPACE}.svc.cluster.local:9092"
 readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task13-logs"
 readonly LOG_FILE="${LOG_DIR}/access-validation.log"
 
+# Ensure log directory exists
+mkdir -p "${LOG_DIR}"
+
 # Colors for output
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
@@ -121,7 +124,7 @@ validate_postgresql_permissions() {
     
     # Test 2: CDC user exists and has replication privileges
     local current_user=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT usename FROM pg_stat_replication" | tr -d ' ' | uniq || echo "")
+        SELECT DISTINCT usename FROM pg_stat_replication" | tr -d ' ' || echo "")
 
     if [[ ! -n "$current_user" ]]; then
         record_test_result "CDC User Replication Privileges" "FAIL" "No CDC user from pg_stat_replication"
@@ -175,13 +178,14 @@ validate_postgresql_permissions() {
         WHERE slot_name like 'debezium_slot%' and active='t';" 2>/dev/null | tr -d ' ' || echo "")
     
     if [[ -n "$slot_info" ]]; then
+        local num_slots=$(echo "$slot_info" | wc -l)
         local slot_active=$(echo "$slot_info" | cut -d'|' -f2 | uniq)
         local has_lsn=$(echo "$slot_info" | cut -d'|' -f3 | uniq)
         
-        if [[ "$slot_active" == "t" && "$has_lsn" == "t" ]]; then
+        if [[ $num_slots -eq 4 && "$slot_active" == "t" && "$has_lsn" == "t" ]]; then
             record_test_result "Replication Slot Status" "PASS" "Replication slot is active and has valid LSN"
         else
-            record_test_result "Replication Slot Status" "FAIL" "Replication slot issues (active: $slot_active, has_lsn: $has_lsn)"
+            record_test_result "Replication Slot Status" "FAIL" "Replication slot issues (num_slots: $num_slots, active: $slot_active, has_lsn: $has_lsn)"
         fi
     else
         record_test_result "Replication Slot Status" "FAIL" "Replication slot 'debezium_slot' not found"
