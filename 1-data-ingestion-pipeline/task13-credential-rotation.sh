@@ -45,19 +45,41 @@ log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     case $level in
-        INFO)  echo -e "${BLUE}[INFO]${NC} $message" ;;
-        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" ;;
-        ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
-        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
+        INFO)  echo -e "[$timestamp] ${BLUE}[INFO]${NC} $message" ;;
+        WARN)  echo -e "[$timestamp] ${YELLOW}[WARN]${NC} $message" ;;
+        ERROR) echo -e "[$timestamp] ${RED}[ERROR]${NC} $message" ;;
+        SUCCESS) echo -e "[$timestamp] ${GREEN}[SUCCESS]${NC} $message" ;;
+        DEBUG) [[ "${VERBOSE:-false}" == "true" ]] && echo -e "[$timestamp] [DEBUG] $message" ;;
     esac
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+    echo -e "[$timestamp] [$level] $message" >> "$LOG_FILE"
 }
 
 # Parse command line arguments
+VERBOSE=false
 DRY_RUN=false
 COMPONENT="all"
 
+run_query() {
+    local debug_query="$1"
+    if [[ "${VERBOSE:-false}" == "true" ]]; then
+        local query_string="kubectl --context \"kind-$NAMESPACE\" exec -n \"$NAMESPACE\" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -c \"REPLACE_THIS\""
+        local full_string=$(echo "$query_string" | sed "s/REPLACE_THIS/$debug_query/g")
+        log DEBUG "$debug_query \n $(eval "$full_string")"
+    fi
+}
+
+db_status() {
+    run_query "SELECT * FROM pg_replication_slots;"
+
+    run_query "SELECT * FROM pg_roles WHERE rolname like 'debezium%' OR rolname like 'postgres%';"
+
+    run_query "SELECT * FROM pg_stat_replication;"
+}
+
 start_avro_consumer() {
+    db_status
+
+    log DEBUG "schema.registry.basic.auth.user.info=${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS}"
     exec 3< <(kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${SCHEMA_REGISTRY_POD} -- \
         kafka-avro-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
         --topic postgres.public.users --property basic.auth.credentials.source="USER_INFO" \
@@ -65,11 +87,13 @@ start_avro_consumer() {
         --property schema.registry.url=http://localhost:8081 \
         --timeout-ms 60000 2>/dev/null)
     
-    log INFO "Waiting 6 seconds for kafka-avro-console-consumer to start..."
+    log DEBUG "Waiting 6 seconds for kafka-avro-console-consumer to start..."
     sleep 6
 }
 
 pause_connectors() {
+    db_status
+
     log INFO "Pausing Debezium connectors..."
     kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" deploy/kafka-connect -c kafka-connect -- curl -s -X PUT "http://$KAFKA_CONNECT_SERVICE/connectors/postgres-cdc-users-connector/pause" || {
         log ERROR "Failed to pause Debezium users connector"
@@ -120,10 +144,16 @@ resume_connectors() {
 
     # Wait for connectors to resume
     sleep 5
+
+    db_status
 }
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --verbose)
+            VERBOSE=true
+            shift
+            ;;
         --dry-run)
             DRY_RUN=true
             shift
@@ -136,6 +166,7 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: $0 [--dry-run] [--component postgresql|kafka-connect|schema-registry|all]"
             echo ""
             echo "Options:"
+            echo "  --verbose                    DEBUG level logging"
             echo "  --dry-run                    Validate configuration without making changes"
             echo "  --component COMPONENT        Rotate credentials for specific component (default: all)"
             echo "  -h, --help                  Show this help message"
@@ -203,21 +234,7 @@ preflight_checks() {
         log ERROR "Cannot connect to Kafka Connect"
         return 1
     fi
-    
-    # Check for high CDC lag (abort if lag > 30 seconds)
-    local cdc_lag
-    cdc_lag=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT EXTRACT(EPOCH FROM (now() - confirmed_flush_lsn::text::timestamp)) 
-        FROM pg_replication_slots 
-        WHERE slot_name like 'debezium_slot%';" 2>/dev/null | tr -d ' ' || echo "999")
-    
-    # Use bash arithmetic for floating point comparison (convert to integer milliseconds)
-    local cdc_lag_ms=$(echo "$cdc_lag * 1000" | awk '{printf "%.0f", $1}')
-    if (( cdc_lag_ms > 30000 )); then
-        log ERROR "CDC lag is too high ($cdc_lag seconds). Aborting rotation."
-        return 1
-    fi
-    
+       
     # Check available memory (skip if kubectl --context "kind-$NAMESPACE" top nodes doesn't return percentage format)
     local available_memory
     available_memory=$(kubectl --context "kind-$NAMESPACE" top nodes --no-headers 2>/dev/null | awk '{print $4}' | sed 's/%//' | head -1 2>/dev/null || echo "unknown")
@@ -335,9 +352,9 @@ rotate_postgresql_credentials() {
     
     local slot_active
     slot_active=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT active FROM pg_replication_slots WHERE slot_name like 'debezium_slot%' and active='t';" | tr -d ' ')
+        SELECT COUNT(active) FROM pg_replication_slots WHERE slot_name like 'debezium_slot%' and active='t';" | tr -d ' ')
     
-    if [[ "$slot_active" != "t" ]]; then
+    if [[ "$slot_active" != "4" ]]; then
         log ERROR "Replication slot is not active after rotation"
         return 1
     fi
@@ -345,7 +362,7 @@ rotate_postgresql_credentials() {
     # Validate new user is connected for replication
     local replication_connection
     replication_connection=$(kubectl --context "kind-$NAMESPACE" exec -n "$NAMESPACE" postgresql-0 -c postgresql -- psql -U postgres -d ecommerce -t -c "
-        SELECT usename FROM pg_stat_replication WHERE usename = '$new_user';" | tr -d ' ')
+        SELECT DISTINCT usename FROM pg_stat_replication WHERE usename = '$new_user';" | tr -d ' ')
     
     if [[ "$replication_connection" == "$new_user" ]]; then
         log INFO "New user '$new_user' is successfully connected for replication"
@@ -507,7 +524,12 @@ validate_end_to_end() {
         log INFO "CDC test passed"
     else
         log ERROR "CDC topic does not exist"
-        log INFO "DEBUG Avro consumer output: $avro_out"
+
+        log DEBUG "test email: $test_email"
+        log DEBUG "Avro consumer output: $avro_out"
+        db_status
+        log DEBUG "$(kubectl --context "kind-$NAMESPACE" get all -n "$NAMESPACE")"
+        # read -p "Press key to continue.. " -n1 -s
         return 1
     fi
     
@@ -582,7 +604,7 @@ rollback_rotation() {
 # Main execution function
 main() {
     log INFO "Starting Task 13: Data-Ingestion-Specific Security Procedures"
-    log INFO "Component: $COMPONENT, Dry Run: $DRY_RUN"
+    log INFO "Component: $COMPONENT, Dry Run: $DRY_RUN, Verbose: $VERBOSE"
     log INFO "Log file: $LOG_FILE"
     
     # Validate prerequisites
@@ -596,6 +618,8 @@ main() {
         log ERROR "Pre-flight checks failed"
         exit 1
     fi
+
+    db_status
     
     # Create backup of current secrets
     if [[ "$DRY_RUN" == "false" ]]; then

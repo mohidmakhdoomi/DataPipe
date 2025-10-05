@@ -65,6 +65,7 @@
     "slot.max.retries": "6",
     "slot.retry.delay.ms": "10000",
     "status.update.interval.ms": "10000",
-    "retriable.restart.connector.wait.ms": "10000"
+    "retriable.restart.connector.wait.ms": "10000",
+    "custom.metric.tags": "table=order-items"
   }
 }

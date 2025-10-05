@@ -40,13 +40,13 @@ log() {
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
     case $level in
-        INFO)  echo -e "${BLUE}[INFO]${NC} $message" ;;
-        WARN)  echo -e "${YELLOW}[WARN]${NC} $message" ;;
-        ERROR) echo -e "${RED}[ERROR]${NC} $message" ;;
-        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} $message" ;;
-        DEBUG) [[ "${VERBOSE:-false}" == "true" ]] && echo -e "[DEBUG] $message" ;;
+        INFO)  echo -e "[$timestamp] ${BLUE}[INFO]${NC} $message" ;;
+        WARN)  echo -e "[$timestamp] ${YELLOW}[WARN]${NC} $message" ;;
+        ERROR) echo -e "[$timestamp] ${RED}[ERROR]${NC} $message" ;;
+        SUCCESS) echo -e "[$timestamp] ${GREEN}[SUCCESS]${NC} $message" ;;
+        DEBUG) [[ "${VERBOSE:-false}" == "true" ]] && echo -e "[$timestamp] [DEBUG] $message" ;;
     esac
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+    echo -e "[$timestamp] [$level] $message" >> "$LOG_FILE"
 }
 
 # Parse command line arguments
