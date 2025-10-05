@@ -5,11 +5,17 @@
 set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/phase2.log"
+readonly LOG_MESSAGE_PREFIX="Phase 2: "
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 2: $*" | tee -a "${LOG_DIR}/phase2.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Connectivity check with exponential backoff
 connectivity_check() {

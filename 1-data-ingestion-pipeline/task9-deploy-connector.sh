@@ -9,15 +9,18 @@ IFS=$'\n\t'       # Safer word splitting
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="$1"
 readonly CONFIG_FILE="$2"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/deploy-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/deploy-logs"
+readonly LOG_FILE="${LOG_DIR}/connector.log"
+readonly LOG_MESSAGE_PREFIX="Deploy Connector: "
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Deploy Connector: $*" | tee -a "${LOG_DIR}/connector.log"
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Validate prerequisites
 validate_prerequisites() {
@@ -42,7 +45,7 @@ validate_prerequisites() {
 # Wait for Kafka Connect to be ready
 wait_for_kafka_connect() {
     log "Checking Kafka Connect service status..."
-    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker | tee -a "${LOG_DIR}/connector.log"
+    kubectl --context "kind-$NAMESPACE" get pods -n ${NAMESPACE} -l app=kafka-connect,component=worker | tee -a "${LOG_FILE}"
     
     log "Waiting for Kafka Connect to be ready..."
     if kubectl --context "kind-$NAMESPACE" wait --for=condition=ready pod -l app=kafka-connect,component=worker -n ${NAMESPACE} --timeout=300s; then
@@ -107,7 +110,7 @@ validate_deployment() {
         curl -s http://localhost:8083/connectors/${CONNECTOR_NAME}/status 2>/dev/null)
     
     if [[ -n "$status_output" ]]; then
-        echo "$status_output" | jq '.' | tee -a "${LOG_DIR}/connector.log"
+        log $(echo "$status_output" | jq '.')
         
         # Check if connector is running
         local connector_state=$(echo "$status_output" | jq -r '.connector.state' 2>/dev/null || echo "UNKNOWN")
@@ -123,7 +126,7 @@ validate_deployment() {
     
     log "Listing all connectors..."
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} deploy/kafka-connect -- \
-        curl -s http://localhost:8083/connectors 2>/dev/null | jq '.' | tee -a "${LOG_DIR}/connector.log"
+        curl -s http://localhost:8083/connectors 2>/dev/null | jq '.' | tee -a "${LOG_FILE}"
     
     return 0
 }

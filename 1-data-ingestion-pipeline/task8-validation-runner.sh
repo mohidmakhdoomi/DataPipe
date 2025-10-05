@@ -6,46 +6,29 @@ set -euo pipefail  # Exit on error, undefined vars, pipe failures
 IFS=$'\n\t'       # Safer word splitting
 
 # Configuration
+readonly NAMESPACE="data-ingestion"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task8-logs"
-readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs"
-readonly MAX_MEMORY_MI=3584  # 3.5Gi in Mi (leaves 512Mi buffer)
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/validation.log"
+readonly MONITOR_LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/resource-logs"
 readonly TIMEOUT=600         # 10 min per phase
-readonly NAMESPACE="data-ingestion"
-MONITOR_PID=0
-
-# Load functions for metrics server
-source ${SCRIPT_DIR}/../metrics-server.sh
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "${LOG_DIR}/validation.log"
-}
-
-stop_monitoring() {
-    # Stop resource monitoring
-    if [[ "$MONITOR_PID" -ne 0 ]]; then
-        log "Stopping background resource monitoring"
-        kill $MONITOR_PID 2>/dev/null || true
-    fi
-}
-
-exit_one() {
-    stop_monitoring
-    exit 1
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Memory check function
 check_memory() {
     local current_mem=$(kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | awk '{sum+=$3+0} END {print sum}' || echo "0")
-    log "Current memory usage: ${current_mem}Mi / 4096Mi $(($current_mem*100/4096))%"
+    log "Current memory usage: ${current_mem}Mi / "$MEMORY_LIMIT"Mi $(($current_mem*100/$MEMORY_LIMIT))%"
     
-    if [[ ${current_mem:-0} -gt ${MAX_MEMORY_MI} ]]; then
-        log "⚠️   Memory usage critical - ${current_mem}Mi exceeds ${MAX_MEMORY_MI}Mi threshold"
+    if [[ ${current_mem:-0} -gt ${CRITICAL_THRESHOLD} ]]; then
+        log "⚠️   Memory usage critical - ${current_mem}Mi exceeds ${CRITICAL_THRESHOLD}Mi threshold"
         return 1
     fi
     return 0
@@ -107,9 +90,7 @@ main() {
         exit 1
     fi
     
-    log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs" &
-    MONITOR_PID=$!
+    start_resource_monitor
     
     # Execute phases sequentially
     local phases=(

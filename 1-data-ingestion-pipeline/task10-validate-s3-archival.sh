@@ -11,29 +11,17 @@ cd "$SCRIPT_DIR"
 readonly NAMESPACE="data-ingestion"
 readonly CONNECTOR_NAME="s3-sink-users-connector"
 readonly S3_BUCKET=$(yq 'select(.metadata.name == "aws-credentials").data.s3-bucket' 04-secrets.yaml | base64 --decode)
-readonly LOG_DIR="${SCRIPT_DIR}/../logs/data-ingestion-pipeline/task10-logs"
-MONITOR_PID=0
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task10-logs"
+readonly LOG_FILE="${LOG_DIR}/validate.log"
+readonly LOG_MESSAGE_PREFIX="Task 10 Validate: "
 
 # Ensure log directory exists
 mkdir -p "${LOG_DIR}"
 
-# Logging function with timestamps
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Task 10 Validate: $*" | tee -a "${LOG_DIR}/validate.log"
-}
-
-stop_monitoring() {
-    # Stop resource monitoring
-    if [[ "$MONITOR_PID" -ne 0 ]]; then
-        log "Stopping background resource monitoring"
-        kill $MONITOR_PID 2>/dev/null || true
-    fi
-}
-
-exit_one() {
-    stop_monitoring
-    exit 1
-}
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Get pod names with validation
 get_pod_names() {
@@ -87,7 +75,7 @@ check_connector_status() {
             return 0
         else
             log "⚠️  Connector or tasks not in RUNNING state"
-            echo "$status_output" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+            echo "$status_output" | jq '.' | tee -a "${LOG_FILE}"
             return 1
         fi
     else
@@ -138,13 +126,13 @@ test_s3_data_flow() {
             log "✅ Parquet files found in S3"
             
             # List the files
-            echo "$aws_out" | head -20 | tee -a "${LOG_DIR}/validate.log"
+            log $(echo "$aws_out" | head -20)
             
             return 0
         else
             log "⚠️  No Parquet files found in expected S3 path"
             log "Checking broader S3 structure..."
-            aws s3 ls "s3://${S3_BUCKET}/topics/postgres.public.users/" --recursive --region us-east-1 | head -20 | tee -a "${LOG_DIR}/validate.log"
+            aws s3 ls "s3://${S3_BUCKET}/topics/postgres.public.users/" --recursive --region us-east-1 | head -20 | tee -a "${LOG_FILE}"
             return 0
         fi
     else
@@ -203,7 +191,7 @@ validate_time_partitioning() {
     local partition_structure=$(aws s3 ls s3://${S3_BUCKET}/topics/postgres.public.users/ --region us-east-1 2>/dev/null | grep "year=" | head -5)
     if [[ -n "$partition_structure" ]]; then
         log "✅ Time-based partitioning structure found:"
-        echo "$partition_structure" | tee -a "${LOG_DIR}/validate.log"
+        echo "$partition_structure" | tee -a "${LOG_FILE}"
         return 0
     else
         log "❌ Time-based partitioning structure not found"
@@ -221,7 +209,7 @@ check_connector_metrics() {
     
     if [[ -n "$metrics" ]]; then
         log "Connector metrics:"
-        echo "$metrics" | jq '.' | tee -a "${LOG_DIR}/validate.log"
+        echo "$metrics" | jq '.' | tee -a "${LOG_FILE}"
         
         # Check for any failed tasks
         local failed_tasks=$(echo "$metrics" | jq -r '.tasks[] | select(.state == "FAILED") | .id' 2>/dev/null || echo "")
@@ -262,7 +250,7 @@ check_dlq() {
         log "Sampling DLQ messages..."
         kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${KAFKA_POD} -- \
             kafka-console-consumer --bootstrap-server localhost:9092 \
-            --topic s3-sink-dlq-users --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_DIR}/validate.log"
+            --topic s3-sink-dlq-users --from-beginning --timeout-ms 5000 2>/dev/null | head -5 | tee -a "${LOG_FILE}"
         
         return 1
     fi
@@ -272,7 +260,7 @@ check_dlq() {
 check_resource_usage() {
     log "Checking resource usage..."
     
-    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_DIR}/validate.log"; then
+    if kubectl --context "kind-$NAMESPACE" top pods -n ${NAMESPACE} --no-headers 2>/dev/null | tee -a "${LOG_FILE}"; then
         log "✅ Resource usage information retrieved"
         return 0
     else
@@ -319,9 +307,7 @@ main() {
         return 1
     fi
 
-    log "Starting background resource monitoring"
-    bash "${SCRIPT_DIR}/../resource-monitor.sh" "$NAMESPACE" "${SCRIPT_DIR}/../logs/data-ingestion-pipeline/resource-logs" &
-    MONITOR_PID=$!
+    start_resource_monitor
     
     # Step 2: Check connector status
     if ! check_connector_status; then

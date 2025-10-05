@@ -5,12 +5,18 @@
 set -euo pipefail
 
 readonly NAMESPACE="data-ingestion"
-readonly LOG_DIR="${SCRIPT_DIR:-$(pwd)}/../logs/data-ingestion-pipeline/task8-logs"
+readonly SCRIPT_DIR="${SCRIPT_DIR:-$(pwd)}"
+readonly LOG_DIR="${SCRIPT_DIR}/../logs/$NAMESPACE/task8-logs"
+readonly LOG_FILE="${LOG_DIR}/phase6.log"
+readonly LOG_MESSAGE_PREFIX="Phase 6: "
 readonly KAFKA_CONNECT_SERVICE="kafka-connect.${NAMESPACE}.svc.cluster.local:8083"
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Phase 6: $*" | tee -a "${LOG_DIR}/phase6.log"
-}
+mkdir -p "${LOG_DIR}"
+
+# Load util functions and variables (if available)
+if [[ -f "${SCRIPT_DIR}/../utils.sh" ]]; then
+    source "${SCRIPT_DIR}/../utils.sh"
+fi
 
 # Record baseline state
 record_baseline() {
@@ -23,7 +29,7 @@ record_baseline() {
     
     # Kafka topic offsets
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-        --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
+        --broker-list localhost:9092 --topic postgres.public.users --time -1 \
         > "${LOG_DIR}/baseline-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/baseline-kafka-offsets.txt"
     
     local offset_count=$(wc -l < "${LOG_DIR}/baseline-kafka-offsets.txt")
@@ -232,7 +238,7 @@ verify_persistence() {
     # Check Kafka data (offsets should be preserved)
     log "Checking Kafka data persistence..."
     kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} kafka-0 -- kafka-run-class kafka.tools.GetOffsetShell \
-        --broker-list localhost:9092 --topic ecommerce-db.public.users --time -1 \
+        --broker-list localhost:9092 --topic postgres.public.users --time -1 \
         > "${LOG_DIR}/after-restart-kafka-offsets.txt" 2>/dev/null || echo "topic:partition:offset" > "${LOG_DIR}/after-restart-kafka-offsets.txt"
     
     if diff "${LOG_DIR}/baseline-kafka-offsets.txt" "${LOG_DIR}/after-restart-kafka-offsets.txt" >/dev/null 2>&1; then
