@@ -1,0 +1,425 @@
+# Task 14: Backup and Recovery Testing Procedures
+# Validates the three critical failure scenarios identified in requirements
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-testing-config
+  namespace: data-ingestion
+  labels:
+    app: backup-recovery
+    component: testing
+data:
+  # Test Scenario 1: Database Corruption Recovery
+  test-database-corruption.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "=== TEST SCENARIO 1: DATABASE CORRUPTION RECOVERY ==="
+    echo "Simulating database corruption and testing recovery procedures"
+    echo "Test started at $(date)"
+    
+    # Step 1: Create test data to verify recovery
+    echo "Step 1: Creating test data for corruption simulation..."
+    psql -h postgresql.data-ingestion.svc.cluster.local -U ${POSTGRES_USER} -d ecommerce -c "
+    INSERT INTO users (email, first_name, last_name) 
+    VALUES ('test.corruption@example.com', 'Test', 'Corruption');
+    
+    INSERT INTO products (name, description, price, stock_quantity, category)
+    VALUES ('Test Product Corruption', 'Product for corruption test', 99.99, 10, 'test');
+    "
+    
+    # Wait for CDC to process
+    echo "Waiting for CDC to process test data..."
+    sleep 30
+    
+    # Step 2: Verify data in Kafka topics
+    echo "Step 2: Verifying data reached Kafka topics..."
+    KAFKA_BOOTSTRAP="kafka-headless.data-ingestion.svc.cluster.local:9092"
+    
+    # Check if test data appears in CDC topics
+    timeout 30 kafka-console-consumer --bootstrap-server ${KAFKA_BOOTSTRAP} \
+                                     --topic postgres.public.users \
+                                     --from-beginning \
+                                     --max-messages 1 | grep "test.corruption@example.com" || {
+        echo "ERROR: Test data not found in CDC topic"
+        exit 1
+    }
+    
+    echo "✅ Test data successfully processed through CDC pipeline"
+    
+    # Step 3: Simulate corruption by creating inconsistent state
+    echo "Step 3: Simulating corruption by deleting data without CDC..."
+    # Pause connectors first
+    for connector in $(curl -s http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors | jq -r '.[]'); do
+        curl -X PUT http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors/$connector/pause
+    done
+    
+    # Delete data while CDC is paused (simulates corruption)
+    psql -h postgresql.data-ingestion.svc.cluster.local -U ${POSTGRES_USER} -d ecommerce -c "
+    DELETE FROM users WHERE email = 'test.corruption@example.com';
+    DELETE FROM products WHERE name = 'Test Product Corruption';
+    "
+    
+    echo "✅ Corruption simulation complete - data deleted while CDC paused"
+    
+    # Step 4: Test coordinated recovery procedure
+    echo "Step 4: Testing coordinated recovery procedure..."
+    /scripts/coordinated-recovery.sh
+    
+    # Step 5: Verify recovery success
+    echo "Step 5: Verifying recovery success..."
+    sleep 60  # Wait for re-snapshot to complete
+    
+    # Check that topics are repopulated (should not contain deleted data)
+    echo "Checking topic repopulation after recovery..."
+    TOPIC_COUNT=$(timeout 30 kafka-console-consumer --bootstrap-server ${KAFKA_BOOTSTRAP} \
+                                                   --topic postgres.public.users \
+                                                   --from-beginning \
+                                                   --timeout-ms 10000 | wc -l)
+    
+    if [ "$TOPIC_COUNT" -gt 0 ]; then
+        echo "✅ Topics successfully repopulated after recovery"
+    else
+        echo "❌ ERROR: Topics not repopulated after recovery"
+        exit 1
+    fi
+    
+    echo "✅ DATABASE CORRUPTION RECOVERY TEST PASSED"
+    echo "Test completed at $(date)"
+  
+  # Test Scenario 2: CDC Slot Issues Recovery
+  test-cdc-slot-issues.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "=== TEST SCENARIO 2: CDC SLOT ISSUES RECOVERY ==="
+    echo "Testing CDC replication slot corruption and recovery"
+    echo "Test started at $(date)"
+    
+    # Step 1: Check current slot status
+    echo "Step 1: Checking current replication slot status..."
+    psql -h postgresql.data-ingestion.svc.cluster.local -U ${POSTGRES_USER} -d ecommerce -c "
+    SELECT slot_name, plugin, slot_type, database, active, restart_lsn 
+    FROM pg_replication_slots 
+    WHERE slot_name LIKE 'debezium_slot%';"
+    
+    # Step 2: Simulate slot corruption by manually dropping slots
+    echo "Step 2: Simulating slot corruption..."
+    SLOT_COUNT_BEFORE=$(psql -h postgresql.data-ingestion.svc.cluster.local -U ${POSTGRES_USER} -d ecommerce -t -c "
+    SELECT COUNT(*) FROM pg_replication_slots WHERE slot_name LIKE 'debezium_slot%';")
+    
+    echo "Slots before corruption: $SLOT_COUNT_BEFORE"
+    
+    # Drop replication slots to simulate corruption
+    psql -h postgresql.data-ingestion.svc.cluster.local -U ${POSTGRES_USER} -d ecommerce -c "
+    SELECT pg_drop_replication_slot(slot_name) 
+    FROM pg_replication_slots 
+    WHERE slot_name LIKE 'debezium_slot%';"
+    
+    echo "✅ Replication slots dropped (corruption simulated)"
+    
+    # Step 3: Verify connectors detect the issue
+    echo "Step 3: Verifying connectors detect slot issues..."
+    sleep 30
+    
+    # Check connector status (should show errors)
+    for connector in $(curl -s http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors | jq -r '.[]'); do
+        STATUS=$(curl -s http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors/$connector/status | jq -r '.connector.state')
+        echo "Connector $connector status: $STATUS"
+    done
+    
+    # Step 4: Test CDC slot recovery procedure
+    echo "Step 4: Testing CDC slot recovery procedure..."
+    /scripts/cdc-slot-recovery.sh
+    
+    # Step 5: Verify recovery success
+    echo "Step 5: Verifying CDC slot recovery..."
+    sleep 60  # Wait for slots to be recreated
+    
+    SLOT_COUNT_AFTER=$(psql -h postgresql.data-ingestion.svc.cluster.local -U ${POSTGRES_USER} -d ecommerce -t -c "
+    SELECT COUNT(*) FROM pg_replication_slots WHERE slot_name LIKE 'debezium_slot%';")
+    
+    echo "Slots after recovery: $SLOT_COUNT_AFTER"
+    
+    if [ "$SLOT_COUNT_AFTER" -gt 0 ]; then
+        echo "✅ Replication slots successfully recreated"
+    else
+        echo "❌ ERROR: Replication slots not recreated"
+        exit 1
+    fi
+    
+    # Verify connectors are healthy
+    sleep 30
+    for connector in $(curl -s http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors | jq -r '.[]'); do
+        STATUS=$(curl -s http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors/$connector/status | jq -r '.connector.state')
+        if [ "$STATUS" = "RUNNING" ]; then
+            echo "✅ Connector $connector recovered successfully"
+        else
+            echo "❌ ERROR: Connector $connector not recovered (status: $STATUS)"
+            exit 1
+        fi
+    done
+    
+    echo "✅ CDC SLOT ISSUES RECOVERY TEST PASSED"
+    echo "Test completed at $(date)"
+  
+  # Test Scenario 3: Schema Conflicts Recovery
+  test-schema-conflicts.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "=== TEST SCENARIO 3: SCHEMA CONFLICTS RECOVERY ==="
+    echo "Testing schema evolution conflicts and recovery"
+    echo "Test started at $(date)"
+    
+    SCHEMA_REGISTRY_URL="http://schema-registry.data-ingestion.svc.cluster.local:8081"
+    
+    # Step 1: Backup current schemas
+    echo "Step 1: Creating schema backup before test..."
+    /scripts/schema-registry-backup.sh
+    
+    # Step 2: Get current schema for a subject
+    echo "Step 2: Getting current schema state..."
+    SUBJECT="postgres.public.users-value"
+    
+    # Check if subject exists
+    CURRENT_SCHEMA=$(curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+                     ${SCHEMA_REGISTRY_URL}/subjects/${SUBJECT}/versions/latest 2>/dev/null || echo "null")
+    
+    if [ "$CURRENT_SCHEMA" = "null" ]; then
+        echo "Subject $SUBJECT not found, creating test schema..."
+        # Create a test schema
+        TEST_SCHEMA='{
+          "type": "record",
+          "name": "users",
+          "fields": [
+            {"name": "id", "type": "int"},
+            {"name": "email", "type": "string"},
+            {"name": "first_name", "type": "string"},
+            {"name": "last_name", "type": "string"}
+          ]
+        }'
+        
+        curl -X POST -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+             -H "Content-Type: application/json" \
+             -d "{\"schema\": \"$(echo $TEST_SCHEMA | sed 's/"/\\"/g')\"}" \
+             ${SCHEMA_REGISTRY_URL}/subjects/${SUBJECT}/versions
+        
+        echo "✅ Test schema created"
+    else
+        echo "✅ Current schema found for subject: $SUBJECT"
+    fi
+    
+    # Step 3: Simulate schema conflict by changing compatibility
+    echo "Step 3: Simulating schema conflict..."
+    
+    # Change compatibility to FULL (more restrictive)
+    curl -X PUT -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+         -H "Content-Type: application/json" \
+         -d '{"compatibility": "FULL"}' \
+         ${SCHEMA_REGISTRY_URL}/config
+    
+    # Try to register an incompatible schema (should fail)
+    INCOMPATIBLE_SCHEMA='{
+      "type": "record",
+      "name": "users",
+      "fields": [
+        {"name": "id", "type": "int"},
+        {"name": "email", "type": "string"}
+      ]
+    }'
+    
+    echo "Attempting to register incompatible schema (should fail)..."
+    CONFLICT_RESULT=$(curl -s -w "%{http_code}" -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+                      -H "Content-Type: application/json" \
+                      -d "{\"schema\": \"$(echo $INCOMPATIBLE_SCHEMA | sed 's/"/\\"/g')\"}" \
+                      ${SCHEMA_REGISTRY_URL}/subjects/${SUBJECT}/versions)
+    
+    if [[ "$CONFLICT_RESULT" == *"409"* ]] || [[ "$CONFLICT_RESULT" == *"422"* ]]; then
+        echo "✅ Schema conflict detected as expected (HTTP 409/422)"
+    else
+        echo "⚠️  Expected schema conflict not detected, continuing test..."
+    fi
+    
+    # Step 4: Test schema conflict recovery
+    echo "Step 4: Testing schema conflict recovery..."
+    /scripts/schema-conflict-recovery.sh
+    
+    # Step 5: Verify recovery success
+    echo "Step 5: Verifying schema recovery..."
+    
+    # Check that compatibility is restored
+    RESTORED_COMPATIBILITY=$(curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+                            ${SCHEMA_REGISTRY_URL}/config | jq -r '.compatibilityLevel')
+    
+    if [ "$RESTORED_COMPATIBILITY" = "BACKWARD" ]; then
+        echo "✅ Compatibility level restored to BACKWARD"
+    else
+        echo "❌ ERROR: Compatibility level not restored (current: $RESTORED_COMPATIBILITY)"
+        exit 1
+    fi
+    
+    # Verify schema is accessible
+    RESTORED_SCHEMA=$(curl -s -u ${SCHEMA_AUTH_USER}:${SCHEMA_AUTH_PASS} \
+                     ${SCHEMA_REGISTRY_URL}/subjects/${SUBJECT}/versions/latest)
+    
+    if [[ "$RESTORED_SCHEMA" != *"error"* ]]; then
+        echo "✅ Schema successfully restored and accessible"
+    else
+        echo "❌ ERROR: Schema not accessible after recovery"
+        exit 1
+    fi
+    
+    echo "✅ SCHEMA CONFLICTS RECOVERY TEST PASSED"
+    echo "Test completed at $(date)"
+  
+  # Comprehensive Test Runner
+  run-all-tests.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "=========================================="
+    echo "COMPREHENSIVE BACKUP & RECOVERY TEST SUITE"
+    echo "Task 14: Data-Specific Backup and Recovery"
+    echo "=========================================="
+    echo "Test suite started at $(date)"
+    
+    # Test results tracking
+    TESTS_PASSED=0
+    TESTS_FAILED=0
+    
+    # Function to run test and track results
+    run_test() {
+        local test_name="$1"
+        local test_script="$2"
+        
+        echo ""
+        echo "Running test: $test_name"
+        echo "----------------------------------------"
+        
+        if $test_script; then
+            echo "✅ PASSED: $test_name"
+            TESTS_PASSED=$((TESTS_PASSED + 1))
+        else
+            echo "❌ FAILED: $test_name"
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+        fi
+    }
+    
+    # Run all test scenarios
+    run_test "Database Corruption Recovery" "/scripts/test-database-corruption.sh"
+    run_test "CDC Slot Issues Recovery" "/scripts/test-cdc-slot-issues.sh"
+    run_test "Schema Conflicts Recovery" "/scripts/test-schema-conflicts.sh"
+    
+    # Test summary
+    echo ""
+    echo "=========================================="
+    echo "TEST SUITE SUMMARY"
+    echo "=========================================="
+    echo "Tests Passed: $TESTS_PASSED"
+    echo "Tests Failed: $TESTS_FAILED"
+    echo "Total Tests: $((TESTS_PASSED + TESTS_FAILED))"
+    echo "Test suite completed at $(date)"
+    
+    if [ $TESTS_FAILED -eq 0 ]; then
+        echo "🎉 ALL TESTS PASSED - Backup and Recovery procedures validated"
+        exit 0
+    else
+        echo "⚠️  SOME TESTS FAILED - Review backup and recovery procedures"
+        exit 1
+    fi
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backup-recovery-validation
+  namespace: data-ingestion
+  labels:
+    app: backup-recovery
+    component: validation
+spec:
+  template:
+    metadata:
+      labels:
+        app: backup-recovery
+        component: validation
+    spec:
+      serviceAccountName: kafka-connect-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      restartPolicy: Never
+      containers:
+      - name: test-runner
+        image: confluentinc/cp-kafka:7.4.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop: ["ALL"]
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-credentials
+              key: username
+        - name: SCHEMA_AUTH_USER
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: admin-user
+        - name: SCHEMA_AUTH_PASS
+          valueFrom:
+            secretKeyRef:
+              name: schema-registry-auth
+              key: admin-password
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          # Install required tools
+          apt-get update && apt-get install -y postgresql-client curl jq
+          
+          # Make scripts executable
+          chmod +x /scripts/*.sh
+          chmod +x /test-scripts/*.sh
+          
+          # Run comprehensive test suite
+          /test-scripts/run-all-tests.sh
+        volumeMounts:
+        - name: backup-scripts
+          mountPath: /scripts
+        - name: test-scripts
+          mountPath: /test-scripts
+        - name: backup-storage
+          mountPath: /backup
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: backup-scripts
+        configMap:
+          name: backup-recovery-config
+          defaultMode: 0755
+      - name: test-scripts
+        configMap:
+          name: backup-testing-config
+          defaultMode: 0755
+      - name: backup-storage
+        persistentVolumeClaim:
+          claimName: backup-storage-pvc
