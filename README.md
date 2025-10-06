@@ -156,6 +156,7 @@ The repository is organized to separate different pipeline components, with the 
 DataPipe
 ├── .kiro/specs/                                    # Project Design, Requirements, and Tasks
 ├── 1-data-ingestion-pipeline/                      # Data Ingestion Pipeline Components
+│   ├── connectors/                                 # Kafka Connect connector configurations
 │   ├── 01-namespace.yaml                           # Kubernetes Namespace and Resource Quotas
 │   ├── 02-service-accounts.yaml                    # RBAC Service Accounts, Roles, and Bindings
 │   ├── 03-network-policies.yaml                    # Network isolation rules for all components
@@ -164,7 +165,6 @@ DataPipe
 │   ├── deploy-data-ingestion-pipeline.sh           # Main deployment automation script
 │   ├── kind-config.yaml                            # 3-node Kind cluster definition
 │   ├── storage-classes.yaml                        # Differentiated storage for DB vs. streaming
-│   ├── *.json                                      # Kafka Connect connector configurations
 │   ├── task*.yaml                                  # Kubernetes manifests for each pipeline component
 │   └── task*.sh                                    # Validation and testing scripts
 ├── 2-batch-analytics-layer/                        # Batch Analytics Layer (Future Phase)
