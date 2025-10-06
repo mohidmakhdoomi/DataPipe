@@ -1,0 +1,329 @@
+# Automated Backup CronJobs for Data Ingestion Pipeline
+# Schedules regular backups of PostgreSQL and Kafka components
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: scripts
+data:
+  postgresql-base-backup.sh: |
+    #!/bin/bash
+    set -e
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_PATH="/backups/base/${TIMESTAMP}"
+    mkdir -p "${BACKUP_PATH}"
+    
+    echo "Starting PostgreSQL base backup: ${TIMESTAMP}"
+    pg_basebackup -D "${BACKUP_PATH}" -F tar -z -P -U postgres -w
+    
+    if tar -tzf "${BACKUP_PATH}/base.tar.gz" > /dev/null 2>&1; then
+      echo "Backup completed successfully"
+      echo "SUCCESS" > "${BACKUP_PATH}/status.txt"
+    else
+      echo "Backup verification failed"
+      echo "FAILED" > "${BACKUP_PATH}/status.txt"
+      exit 1
+    fi
+    
+    # Cleanup old backups (keep last 7 days)
+    find /backups/base -type d -name "20*" -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+  
+  postgresql-logical-backup.sh: |
+    #!/bin/bash
+    set -e
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    DATABASE="ecommerce"
+    
+    echo "Starting PostgreSQL logical backup: ${TIMESTAMP}"
+    
+    # Full database backup
+    pg_dump -U postgres -d ${DATABASE} -F c -f "/backups/logical/${DATABASE}_${TIMESTAMP}.dump"
+    
+    # Individual table backups
+    for table in users products orders order_items; do
+      pg_dump -U postgres -d ${DATABASE} -t ${table} -F c \
+        -f "/backups/logical/${table}_${TIMESTAMP}.dump"
+    done
+    
+    echo "Logical backup completed"
+    
+    # Cleanup old backups (keep last 14 days)
+    find /backups/logical -name "*.dump" -mtime +14 -delete 2>/dev/null || true
+  
+  cdc-replication-slot-backup.sh: |
+    #!/bin/bash
+    set -e
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    
+    echo "Backing up replication slot metadata: ${TIMESTAMP}"
+    
+    psql -U postgres -d ecommerce -c \
+      "SELECT slot_name, plugin, active, restart_lsn, confirmed_flush_lsn 
+       FROM pg_replication_slots;" \
+      > "/backups/replication_slots/slots_${TIMESTAMP}.txt"
+    
+    psql -U postgres -d ecommerce -t -A -F',' -c \
+      "SELECT slot_name, restart_lsn, confirmed_flush_lsn, active
+       FROM pg_replication_slots 
+       WHERE slot_name LIKE 'debezium_slot%';" \
+      > "/backups/replication_slots/positions_${TIMESTAMP}.csv"
+    
+    echo "Replication slot backup completed"
+    
+    # Cleanup old backups (keep last 14 days)
+    find /backups/replication_slots -name "*_20*.txt" -mtime +14 -delete 2>/dev/null || true
+    find /backups/replication_slots -name "*_20*.csv" -mtime +14 -delete 2>/dev/null || true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-storage-pvc
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: database-local-path
+  resources:
+    requests:
+      storage: 50Gi
+---
+# PostgreSQL Base Backup CronJob - Daily at 2:00 AM
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-base-backup
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: postgresql-base
+spec:
+  schedule: "0 2 * * *"  # Daily at 2:00 AM UTC
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup
+            component: postgresql-base
+        spec:
+          serviceAccountName: postgresql-sa
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            fsGroup: 70
+            seccompProfile:
+              type: RuntimeDefault
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: postgres:15-alpine
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            env:
+            - name: PGHOST
+              value: "postgresql.data-ingestion.svc.cluster.local"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: password
+            command: ["/bin/sh"]
+            args: ["/scripts/postgresql-base-backup.sh"]
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: backup-storage
+              mountPath: /backups
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
+---
+# PostgreSQL Logical Backup CronJob - Daily at 3:00 AM
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-logical-backup
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: postgresql-logical
+spec:
+  schedule: "0 3 * * *"  # Daily at 3:00 AM UTC
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup
+            component: postgresql-logical
+        spec:
+          serviceAccountName: postgresql-sa
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            fsGroup: 70
+            seccompProfile:
+              type: RuntimeDefault
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: postgres:15-alpine
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            env:
+            - name: PGHOST
+              value: "postgresql.data-ingestion.svc.cluster.local"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: password
+            command: ["/bin/sh"]
+            args: ["/scripts/postgresql-logical-backup.sh"]
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: backup-storage
+              mountPath: /backups
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
+---
+# CDC Replication Slot Backup CronJob - Daily at 4:00 AM
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cdc-replication-slot-backup
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: replication-slots
+spec:
+  schedule: "0 4 * * *"  # Daily at 4:00 AM UTC
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup
+            component: replication-slots
+        spec:
+          serviceAccountName: postgresql-sa
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            fsGroup: 70
+            seccompProfile:
+              type: RuntimeDefault
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: postgres:15-alpine
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            env:
+            - name: PGHOST
+              value: "postgresql.data-ingestion.svc.cluster.local"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-credentials
+                  key: password
+            command: ["/bin/sh"]
+            args: ["/scripts/cdc-replication-slot-backup.sh"]
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: backup-storage
+              mountPath: /backups
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "50m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
