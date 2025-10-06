@@ -246,9 +246,8 @@
    - Test basic Spark batch job submission
 
 ### **Secondary Priority: Data Ingestion Pipeline**
-2. **Task 13:** Implement data-ingestion-specific security procedures
-3. **Task 14:** Create data-specific backup and recovery procedures
-4. **Task 15:** Conduct data pipeline performance testing
+1. **Task 14:** Create data-specific backup and recovery procedures
+2. **Task 15:** Conduct data pipeline performance testing
 
 ### **Strategy**
 - **Focus:** Complete Batch Analytics Layer foundation (Tasks 1-4)
