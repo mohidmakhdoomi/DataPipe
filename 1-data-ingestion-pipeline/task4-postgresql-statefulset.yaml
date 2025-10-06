@@ -45,6 +45,11 @@ data:
     hot_standby = on
     wal_keep_size = 2GB
     max_slot_wal_keep_size = 4GB
+    
+    # WAL Archiving Configuration (Task 14: Backup and Recovery)
+    archive_mode = on
+    archive_command = 'test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
+    archive_timeout = 900  # 15 minutes (Claude's recommendation)
   
   init-schema.sql: |
     -- Create database for e-commerce
@@ -280,6 +285,10 @@ spec:
           mountPath: /docker-entrypoint-initdb.d/init-schema.sql
           subPath: init-schema.sql
           readOnly: true
+        - name: wal-archive
+          mountPath: /var/lib/postgresql/wal_archive
+          subPath: init-schema.sql
+          readOnly: true
         livenessProbe:
           exec:
             command:
@@ -312,6 +321,8 @@ spec:
       - name: run
         emptyDir: {}
       - name: modified-scripts
+        emptyDir: {}
+      - name: wal-archive
         emptyDir: {}
   volumeClaimTemplates:
   - metadata:

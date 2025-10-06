@@ -1,0 +1,440 @@
+# Task 14: Data-Specific Backup and Recovery Procedures
+# Multi-Model Consensus Implementation
+# Gemini 2.5 Pro (9/10) + Claude Opus 4.1 (7/10) + Grok 4 (8/10)
+
+---
+# PostgreSQL Backup Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-backup-config
+  namespace: data-ingestion
+  labels:
+    app: postgresql
+    component: backup
+data:
+  # WAL Archiving Configuration (Claude's 15-minute segments)
+  postgresql-backup.conf: |
+    # WAL Archiving for Point-in-Time Recovery
+    archive_mode = on
+    archive_command = 'test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
+    archive_timeout = 900  # 15 minutes (Claude's recommendation)
+    
+    # Backup-specific settings
+    wal_keep_size = 2GB
+    max_wal_size = 4GB
+    checkpoint_completion_target = 0.9
+    
+  # Backup Script (Gemini's pg_basebackup + Grok's scheduling)
+  backup-postgresql.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Resource-conscious backup (Claude's OOM prevention)
+    echo "Starting PostgreSQL backup at $(date)"
+    
+    # Check available memory before backup
+    AVAILABLE_MEM=$(free -m | awk 'NR==2{printf "%.0f", $7}')
+    if [ "$AVAILABLE_MEM" -lt 500 ]; then
+        echo "WARNING: Low memory ($AVAILABLE_MEM MB). Skipping backup to prevent OOM."
+        exit 1
+    fi
+    
+    # Create backup directory with timestamp
+    BACKUP_DIR="/var/lib/postgresql/backups/$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$BACKUP_DIR"
+    
+    # Gemini's pg_basebackup approach
+    pg_basebackup -D "$BACKUP_DIR" -Ft -z -P -U postgres -h postgresql.data-ingestion.svc.cluster.local
+    
+    # Create backup metadata
+    cat > "$BACKUP_DIR/backup_info.txt" << EOF
+    Backup Date: $(date)
+    PostgreSQL Version: $(psql -U postgres -h postgresql.data-ingestion.svc.cluster.local -t -c "SELECT version()")
+    Database Size: $(psql -U postgres -h postgresql.data-ingestion.svc.cluster.local -t -c "SELECT pg_size_pretty(pg_database_size('ecommerce'))")
+    WAL Location: $(psql -U postgres -h postgresql.data-ingestion.svc.cluster.local -t -c "SELECT pg_current_wal_lsn()")
+    EOF
+    
+    # Cleanup old backups (keep last 7 days)
+    find /var/lib/postgresql/backups -type d -mtime +7 -exec rm -rf {} +
+    
+    echo "PostgreSQL backup completed successfully"
+  
+  # Recovery Script (Multi-model consensus)
+  restore-postgresql.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_DIR="$1"
+    TARGET_TIME="$2"  # Optional PITR target
+    
+    if [ -z "$BACKUP_DIR" ]; then
+        echo "Usage: $0 <backup_directory> [target_time]"
+        echo "Available backups:"
+        ls -la /var/lib/postgresql/backups/
+        exit 1
+    fi
+    
+    echo "Starting PostgreSQL recovery from $BACKUP_DIR"
+    
+    # Stop PostgreSQL
+    kubectl scale statefulset postgresql --replicas=0 -n data-ingestion
+    sleep 30
+    
+    # Clear data directory
+    kubectl exec -it postgresql-0 -n data-ingestion -- rm -rf /var/lib/postgresql/data/pgdata/*
+    
+    # Restore base backup
+    kubectl exec -it postgresql-0 -n data-ingestion -- tar -xzf "$BACKUP_DIR/base.tar.gz" -C /var/lib/postgresql/data/pgdata/
+    
+    # Configure recovery
+    if [ -n "$TARGET_TIME" ]; then
+        kubectl exec -it postgresql-0 -n data-ingestion -- bash -c "
+        echo \"restore_command = 'cp /var/lib/postgresql/wal_archive/%f %p'\" > /var/lib/postgresql/data/pgdata/postgresql.auto.conf
+        echo \"recovery_target_time = '$TARGET_TIME'\" >> /var/lib/postgresql/data/pgdata/postgresql.auto.conf
+        touch /var/lib/postgresql/data/pgdata/recovery.signal
+        "
+    fi
+    
+    # Restart PostgreSQL
+    kubectl scale statefulset postgresql --replicas=1 -n data-ingestion
+    
+    echo "PostgreSQL recovery initiated. Check logs for completion."
+
+---
+# Kafka Backup Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-backup-config
+  namespace: data-ingestion
+  labels:
+    app: kafka
+    component: backup
+data:
+  # Kafka Topic Backup Script (Grok's kafka-console approach + Gemini's S3 integration)
+  backup-kafka-topics.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "Starting Kafka topics backup at $(date)"
+    
+    BACKUP_DIR="/var/lib/kafka/backups/$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$BACKUP_DIR"
+    
+    # List of CDC topics to backup
+    TOPICS=(
+        "postgres.public.users"
+        "postgres.public.products" 
+        "postgres.public.orders"
+        "postgres.public.order_items"
+        "connect-configs"
+        "connect-offsets"
+        "connect-status"
+    )
+    
+    # Backup each topic (Grok's console consumer approach)
+    for topic in "${TOPICS[@]}"; do
+        echo "Backing up topic: $topic"
+        
+        # Get topic metadata
+        kafka-topics --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --describe --topic "$topic" > "$BACKUP_DIR/${topic}_metadata.txt"
+        
+        # Backup topic data (from beginning)
+        kafka-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --topic "$topic" --from-beginning --timeout-ms 30000 \
+            > "$BACKUP_DIR/${topic}_data.json" 2>/dev/null || true
+        
+        # Backup consumer group offsets
+        kafka-consumer-groups --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --describe --group connect-cluster --offsets \
+            > "$BACKUP_DIR/consumer_offsets.txt" 2>/dev/null || true
+    done
+    
+    # Create backup manifest
+    cat > "$BACKUP_DIR/manifest.json" << EOF
+    {
+        "backup_date": "$(date -Iseconds)",
+        "kafka_version": "7.4.0",
+        "topics_backed_up": $(printf '%s\n' "${TOPICS[@]}" | jq -R . | jq -s .),
+        "backup_method": "kafka-console-consumer"
+    }
+    EOF
+    
+    echo "Kafka backup completed: $BACKUP_DIR"
+  
+  # Kafka Topic Restore Script
+  restore-kafka-topics.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_DIR="$1"
+    
+    if [ -z "$BACKUP_DIR" ]; then
+        echo "Usage: $0 <backup_directory>"
+        echo "Available backups:"
+        ls -la /var/lib/kafka/backups/
+        exit 1
+    fi
+    
+    echo "Starting Kafka topics restore from $BACKUP_DIR"
+    
+    # Read manifest
+    if [ ! -f "$BACKUP_DIR/manifest.json" ]; then
+        echo "ERROR: Backup manifest not found"
+        exit 1
+    fi
+    
+    # Restore topics data
+    for data_file in "$BACKUP_DIR"/*_data.json; do
+        if [ -f "$data_file" ]; then
+            topic=$(basename "$data_file" _data.json)
+            echo "Restoring topic: $topic"
+            
+            # Replay messages to topic
+            kafka-console-producer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+                --topic "$topic" < "$data_file"
+        fi
+    done
+    
+    echo "Kafka topics restore completed"
+
+---
+# CDC State Backup (Debezium + Schema Registry)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cdc-backup-config
+  namespace: data-ingestion
+  labels:
+    app: kafka-connect
+    component: backup
+data:
+  # CDC State Backup Script
+  backup-cdc-state.sh: |
+    #!/bin/bash
+    set -e
+    
+    echo "Starting CDC state backup at $(date)"
+    
+    BACKUP_DIR="/var/lib/cdc/backups/$(date +%Y%m%d_%H%M%S)"
+    mkdir -p "$BACKUP_DIR"
+    
+    # Backup Debezium connector configurations
+    for connector in postgres-cdc-users-connector postgres-cdc-products-connector postgres-cdc-orders-connector postgres-cdc-order-items-connector; do
+        echo "Backing up connector: $connector"
+        curl -s "http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors/$connector/config" \
+            > "$BACKUP_DIR/${connector}_config.json" || echo "Connector $connector not found"
+    done
+    
+    # Backup S3 Sink connector configurations  
+    for connector in s3-sink-users-connector s3-sink-products-connector s3-sink-orders-connector s3-sink-order-items-connector; do
+        echo "Backing up S3 connector: $connector"
+        curl -s "http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors/$connector/config" \
+            > "$BACKUP_DIR/${connector}_config.json" || echo "Connector $connector not found"
+    done
+    
+    # Backup Schema Registry schemas
+    echo "Backing up Schema Registry schemas"
+    curl -s "http://schema-registry.data-ingestion.svc.cluster.local:8081/subjects" \
+        -u admin:admin-secret > "$BACKUP_DIR/schema_subjects.json"
+    
+    # Backup each schema version
+    for subject in $(curl -s "http://schema-registry.data-ingestion.svc.cluster.local:8081/subjects" -u admin:admin-secret | jq -r '.[]'); do
+        curl -s "http://schema-registry.data-ingestion.svc.cluster.local:8081/subjects/$subject/versions/latest" \
+            -u admin:admin-secret > "$BACKUP_DIR/schema_${subject}.json"
+    done
+    
+    # Backup PostgreSQL replication slot status
+    echo "Backing up replication slot status"
+    kubectl exec -it postgresql-0 -n data-ingestion -- psql -U postgres -d ecommerce -c \
+        "SELECT slot_name, plugin, slot_type, database, active, restart_lsn, confirmed_flush_lsn FROM pg_replication_slots;" \
+        > "$BACKUP_DIR/replication_slots.txt"
+    
+    echo "CDC state backup completed: $BACKUP_DIR"
+  
+  # CDC State Restore Script
+  restore-cdc-state.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_DIR="$1"
+    
+    if [ -z "$BACKUP_DIR" ]; then
+        echo "Usage: $0 <backup_directory>"
+        exit 1
+    fi
+    
+    echo "Starting CDC state restore from $BACKUP_DIR"
+    
+    # Stop all connectors first
+    for connector in postgres-cdc-users-connector postgres-cdc-products-connector postgres-cdc-orders-connector postgres-cdc-order-items-connector s3-sink-users-connector s3-sink-products-connector s3-sink-orders-connector s3-sink-order-items-connector; do
+        curl -X DELETE "http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors/$connector" || true
+    done
+    
+    sleep 10
+    
+    # Restore connector configurations
+    for config_file in "$BACKUP_DIR"/*_config.json; do
+        if [ -f "$config_file" ]; then
+            connector=$(basename "$config_file" _config.json)
+            echo "Restoring connector: $connector"
+            
+            curl -X POST "http://kafka-connect.data-ingestion.svc.cluster.local:8083/connectors" \
+                -H "Content-Type: application/json" \
+                -d @"$config_file"
+        fi
+    done
+    
+    echo "CDC state restore completed"
+
+---
+# Backup Scheduler CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: data-backup-scheduler
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: scheduler
+spec:
+  # Run backups every 6 hours during off-peak (Claude's resource management)
+  schedule: "0 2,8,14,20 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: backup
+            component: job
+        spec:
+          serviceAccountName: kafka-connect-sa
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            fsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          restartPolicy: OnFailure
+          containers:
+          - name: backup-runner
+            image: postgres:15-alpine
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop: ["ALL"]
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+            command: ["/bin/bash"]
+            args:
+            - -c
+            - |
+              # Install required tools
+              apk add --no-cache curl jq
+              
+              # Run backups sequentially (Grok's off-peak scheduling)
+              echo "Starting scheduled backup run at $(date)"
+              
+              # PostgreSQL backup
+              /scripts/backup-postgresql.sh
+              
+              # Wait between backups to manage resources
+              sleep 60
+              
+              # Kafka backup  
+              /scripts/backup-kafka-topics.sh
+              
+              # Wait between backups
+              sleep 60
+              
+              # CDC state backup
+              /scripts/backup-cdc-state.sh
+              
+              echo "Scheduled backup run completed at $(date)"
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /var/lib/postgresql/backups
+            - name: kafka-backup-storage
+              mountPath: /var/lib/kafka/backups
+            - name: cdc-backup-storage
+              mountPath: /var/lib/cdc/backups
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: postgresql-backup-config
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-storage-pvc
+          - name: kafka-backup-storage
+            persistentVolumeClaim:
+              claimName: kafka-backup-storage-pvc
+          - name: cdc-backup-storage
+            persistentVolumeClaim:
+              claimName: cdc-backup-storage-pvc
+
+---
+# Backup Storage PVCs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-storage-pvc
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: database-local-path
+  resources:
+    requests:
+      storage: 2Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-backup-storage-pvc
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: streaming-local-path
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cdc-backup-storage-pvc
+  namespace: data-ingestion
+  labels:
+    app: backup
+    component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: streaming-local-path
+  resources:
+    requests:
+      storage: 500Mi
