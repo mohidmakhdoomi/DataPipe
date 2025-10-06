@@ -69,8 +69,8 @@ graph TB
 ```yaml
 postgresql:
   resources:
-    requests: { memory: "512Mi", cpu: "500m" }
-    limits: { memory: "512Mi", cpu: "1000m" }
+    requests: { memory: "1Gi", cpu: "500m" }
+    limits: { memory: "1Gi", cpu: "1000m" }
   config:
     wal_level: logical
     max_replication_slots: 4
@@ -139,10 +139,10 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 **Configuration**:
 ```yaml
 kafka-connect:
-  replicas: 1  # Single worker optimized for 4Gi constraint
+  replicas: 1  # Single worker optimized for 6Gi constraint
   resources:
-    requests: { memory: "1Gi", cpu: "500m" }
-    limits: { memory: "1Gi", cpu: "1" }
+    requests: { memory: "2Gi", cpu: "500m" }
+    limits: { memory: "2Gi", cpu: "1" }
   
   plugin_installation:
     init_container: "curlimages/curl"
@@ -178,7 +178,7 @@ kafka-connect:
 kafka:
   replicas: 3
   resources:
-    requests: { memory: "512Mi", cpu: "250m" }
+    requests: { memory: "682Mi", cpu: "250m" }
     limits: { memory: "682Mi", cpu: "500m" }
   storage: 10Gi
   config:
@@ -275,8 +275,8 @@ topics:
 ```yaml
 schema-registry:
   resources:
-    requests: { memory: "384Mi", cpu: "250m" }
-    limits: { memory: "512Mi", cpu: "500m" }
+    requests: { memory: "1Gi", cpu: "250m" }
+    limits: { memory: "1Gi", cpu: "500m" }
   config:
     kafkastore.bootstrap.servers: "kafka-headless.data-ingestion.svc.cluster.local:9092"
     kafkastore.topic: "_schemas"
@@ -765,16 +765,18 @@ security_contexts:
 
 ## Performance and Scalability
 
-### Resource Allocation (4Gi Total)
+### Resource Allocation (6Gi Total)
 ```yaml
 resource_allocation:
-  postgresql: 512Mi RAM, 1 CPU
+  postgresql: 1Gi RAM, 1 CPU
   kafka_brokers: 2Gi RAM (shared HA cluster allocation), 1.5 CPU
-    # Individual broker allocation: 512Mi request, 682Mi limit each
-  schema_registry: 512Mi RAM (384Mi request), 0.5 CPU
-  kafka_connect: 1Gi RAM, 1 CPU
-  total: 4Gi RAM, 4 CPU
+    # Individual broker allocation: 682Mi request, 682Mi limit each
+  schema_registry: 1Gi RAM, 0.5 CPU
+  kafka_connect: 2Gi RAM, 1 CPU
+  total: 6Gi RAM, 4 CPU
 ```
+
+*Note: 6Gi memory is allocated but expected usage is 4Gi.*
 
 ### Performance Optimization
 
@@ -825,25 +827,25 @@ replica.fetch.max.bytes=1048576
 ```yaml
 container_limits:
   postgresql:
-    memory: "512Mi"
-    memory_request: "512Mi"
+    memory: "1Gi"
+    memory_request: "1Gi"
     memory_limit_enforcement: true
   kafka:
     memory: "2Gi"  # Shared HA cluster allocation
-    memory_request: "512Mi"
+    memory_request: "682Mi"  # Individual broker allocation
     gc_monitoring: true
     gc_pause_threshold: "50ms"
   schema_registry:
-    memory: "512Mi"
-    memory_request: "384Mi"
-    jvm_optimization: true
-  kafka_connect:
     memory: "1Gi"
     memory_request: "1Gi"
+    jvm_optimization: true
+  kafka_connect:
+    memory: "2Gi"
+    memory_request: "2Gi"
 ```
 
 ### System Memory Considerations
-- Total application allocation: 4Gi
+- Total application allocation: 6Gi
 - System memory reservation: 2Gi (handled at cluster level)
 - OOM killer protection: Enabled via cgroups
 

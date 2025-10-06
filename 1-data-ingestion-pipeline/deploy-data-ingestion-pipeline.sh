@@ -23,7 +23,7 @@ readonly CONFIG_FILES=(
     "data-services-pvcs.yaml"
     "task4-postgresql-statefulset.yaml:ready:pod -l app=postgresql,component=database:300:1"
     "task5-kafka-kraft-3brokers.yaml:ready:pod -l app=kafka,component=streaming:300:3"
-    "task5-kafka-topics-job.yaml:complete:job/create-kafka-topics:120:1"
+    "task5-kafka-topics-job.yaml:complete:job/create-kafka-topics:300:1"
     "task6-schema-registry.yaml:ready:pod -l app=schema-registry,component=schema-management:300:1"
     "task7-kafka-connect-deployment.yaml:ready:pod -l app=kafka-connect,component=worker:300:1"
 )

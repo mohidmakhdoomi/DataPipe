@@ -83,21 +83,21 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
   - Task 11: Data validation and quality checks
   - Task 12: End-to-end pipeline validation ✅
 - **Current Task**: Task 13 (Data-Ingestion-Specific Security Procedures)
-- **Constraint**: 4Gi total RAM allocation for data ingestion pipeline (out of 24Gi total system allocation)
+- **Constraint**: 6Gi total RAM allocation for data ingestion pipeline (out of 26Gi total system allocation)
 
 ### Resource Allocation Strategy
-- **System Total**: 24Gi RAM, 10 CPU cores, 1TB storage
-- **Data Ingestion Pipeline**: 4Gi RAM allocation
-  - Available for workloads: 4Gi
+- **System Total**: 26Gi RAM, 10 CPU cores, 1TB storage
+- **Data Ingestion Pipeline**: 6Gi RAM allocation
+  - Available for workloads: 6Gi
   - Component budgets:
-    - PostgreSQL: 512Mi
+    - PostgreSQL: 1Gi
     - Kafka: 2Gi (3 brokers with HA)
-    - Schema Registry: 512Mi
-    - Kafka Connect: 1Gi
+    - Schema Registry: 1Gi
+    - Kafka Connect: 2Gi
 
 ### Storage Architecture
 - Three differentiated storage classes: database-local-path, streaming-local-path
-- Total allocation: 15.0Gi (PostgreSQL 5Gi + Kafka 10Gi)
+- Total allocation: 15Gi (PostgreSQL 5Gi + Kafka 10Gi)
 - Reclaim policy: Retain (prevents data loss in development)
 - Volume binding: WaitForFirstConsumer (optimal pod placement)
 
@@ -136,7 +136,7 @@ Currently working on the data-ingestion-pipeline spec, the requirements, design 
 - `logs/task8-logs/task8-validation-report.md` - Core services validation report
 
 ### Key Principles
-1. Resource efficiency within 4Gi constraint for data ingestion
+1. Resource efficiency within 6Gi constraint for data ingestion
 2. Production parity through Kubernetes-native approach
 3. Incremental deployment to prevent resource exhaustion
 4. Comprehensive validation before integration

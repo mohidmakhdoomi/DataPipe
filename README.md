@@ -9,7 +9,7 @@
 
 DataPipe is an end-to-end data pipeline demonstrating a Lambda Architecture for high-volume data processing. This repository contains the first major component: a high-throughput, resilient data ingestion pipeline designed for local development and testing.
 
-It captures real-time changes from a PostgreSQL database using Debezium CDC, streams them through a highly-available Kafka cluster, and reliably archives them to AWS S3 in Parquet format. The entire stack is orchestrated on Kubernetes (via `kind`) and is meticulously engineered to operate within a strict 4GB RAM budget.
+It captures real-time changes from a PostgreSQL database using Debezium CDC, streams them through a highly-available Kafka cluster, and reliably archives them to AWS S3 in Parquet format. The entire stack is orchestrated on Kubernetes (via `kind`) and is meticulously engineered to operate within a strict 6GB RAM budget.
 
 ## ✨ Features
 
@@ -17,7 +17,7 @@ It captures real-time changes from a PostgreSQL database using Debezium CDC, str
 -   **Managed Schema Evolution**: Employs Confluent Schema Registry with Avro to enforce data contracts and handle schema changes without breaking the pipeline.
 -   **Optimized S3 Archival**: Archives the event stream to AWS S3 as compressed Parquet files, partitioned by time (`year/month/day/hour`) for efficient analytical queries.
 -   **Kubernetes-Native Deployment**: Defined entirely with Kubernetes manifests for reproducible, production-parity deployment on a local `kind` cluster.
--   **Resource-Efficient**: Meticulously configured to run the complete pipeline—PostgreSQL, Kafka, and Connect—within a **4GB RAM** budget.
+-   **Resource-Efficient**: Meticulously configured to run the complete pipeline—PostgreSQL, Kafka, and Connect—within a **6GB RAM** budget.
 -   **Secure by Design**: Enforces strict service-to-service communication with Network Policies and follows the principle of least privilege with RBAC.
 
 ## 🏗️ Architecture
@@ -85,17 +85,17 @@ The project is being implemented in phases.
 -   **✅ Phase 3: Integration**: Configuration of the Debezium and S3 Sink connectors to establish the end-to-end data flow.
 -   **🚧 Phase 4: Production Readiness (In Progress)**: Implementation of security procedures, backup/recovery plans, and full-scale performance testing.
 
-## ⚙️ Resource Allocation (4Gi Constraint)
+## ⚙️ Resource Allocation (6Gi Constraint)
 
-The entire data ingestion pipeline is designed to run within a **4Gi RAM** limit, making it ideal for local development on standard personal computers.
+The entire data ingestion pipeline is designed to run within a **6Gi RAM** limit, making it ideal for local development on standard personal computers.
 
 | Service           | Requested Memory | CPU Request/Limit | Storage  |
 | ----------------- | ---------------- | ----------------- | -------- |
-| PostgreSQL        | `512Mi`          | `500m` / `1`      | `5Gi`    |
-| Kafka Cluster (3) | `1.5Gi` (total)  | `750m` / `1.5`    | `10Gi`   |
-| Schema Registry   | `384Mi`          | `250m` / `500m`   | -        |
-| Kafka Connect     | `1Gi`            | `500m` / `1`      | -        |
-| **Total**         | **~3.4Gi**       | **~2 / 4**        | **15Gi** |
+| PostgreSQL        | `1Gi`          | `500m` / `1`      | `5Gi`    |
+| Kafka Cluster (3) | `2Gi` (total)  | `750m` / `1.5`    | `10Gi`   |
+| Schema Registry   | `1Gi`          | `250m` / `500m`   | -        |
+| Kafka Connect     | `2Gi`            | `500m` / `1`      | -        |
+| **Total**         | **6Gi**       | **~2 / 4**        | **15Gi** |
 
 ## 🚀 Getting Started
 

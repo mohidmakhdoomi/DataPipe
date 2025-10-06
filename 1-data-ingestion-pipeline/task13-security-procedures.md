@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides comprehensive security procedures for the data ingestion pipeline, focusing on credential rotation, access validation, and compliance requirements. The procedures are designed for the PostgreSQL → Debezium CDC → Kafka → S3 pipeline running on Kind Kubernetes with 4Gi RAM constraints.
+This document provides comprehensive security procedures for the data ingestion pipeline, focusing on credential rotation, access validation, and compliance requirements. The procedures are designed for the PostgreSQL → Debezium CDC → Kafka → S3 pipeline running on Kind Kubernetes with 6Gi RAM constraints.
 
 ## Table of Contents
 

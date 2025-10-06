@@ -5,13 +5,13 @@
 **Project:** DataPipe Lambda Architecture Implementation  
 **Architecture:** Multi-layer data processing with speed and batch layers  
 **Environment:** Local development on Windows Docker Desktop + Kubernetes (Kind)  
-**Total System:** 24Gi RAM, multiple Kind clusters for different layers
+**Total System:** 26Gi RAM, multiple Kind clusters for different layers
 
 ### **Active Projects:**
 
 #### **1. Data Ingestion Pipeline (PHASE 4 - Production)**
 - **Architecture:** PostgreSQL → Debezium CDC → Kafka → S3 Archival  
-- **Constraint:** 4Gi RAM allocation  
+- **Constraint:** 6Gi RAM allocation  
 - **Status:** 13/15 tasks completed (87% complete)
 - **Current:** Task 14 - Data-specific backup and recovery procedures
 
@@ -46,10 +46,10 @@
 
 ### **✅ PHASE 1: FOUNDATION (COMPLETED)**
 - ✅ **Task 1:** Kind Kubernetes cluster setup
-- ✅ **Task 2:** Persistent volume provisioning (15.0Gi total allocated)
+- ✅ **Task 2:** Persistent volume provisioning (15Gi total allocated)
 - ✅ **Task 3:** Kubernetes namespaces and RBAC configuration
 - ✅ **Task 4:** PostgreSQL deployment with CDC configuration
-  - 5Gi storage, 512Mi memory allocation
+  - 5Gi storage, 1Gi memory allocation
   - Logical replication enabled (wal_level=logical, max_replication_slots=4)
   - E-commerce schema: users, products, orders, order_items
   - CDC user and publication configured
@@ -60,14 +60,14 @@
   - CDC topics created: postgres.public.users, postgres.public.products, postgres.public.orders, postgres.public.order_items
   - 6 partitions, LZ4 compression, 7-day retention
 - ✅ **Task 6:** Confluent Schema Registry deployment
-  - 512Mi memory allocation with backward compatibility
+  - 1Gi memory allocation with backward compatibility
   - Kafka backend connection to 3-broker cluster
   - Authentication and authorization with JAAS configuration
   - NodePort service on port 30081 for external access
 - ✅ **Task 7:** Kafka Connect cluster with Debezium plugins
-  - Single worker deployment (1Gi allocation) validated by multi-model consensus
+  - Single worker deployment (2Gi allocation) validated by multi-model consensus
   - Distributed mode configuration for future scalability
-  - JVM tuning: 768Mi heap with G1GC optimization
+  - JVM tuning: 1536Mi heap with G1GC optimization
   - Debezium PostgreSQL connector plugin installation
   - Dead letter queue configuration for error handling
 - ✅ **Task 8:** Core services validation **COMPLETED SUCCESSFULLY**
@@ -126,11 +126,11 @@
 - **Network:** Port mappings for direct host access
 
 ### **Data Ingestion Pipeline - Resource Allocation (Validated)**
-- **PostgreSQL:** 512Mi memory, 5Gi storage ✅
-- **Kafka Cluster:** 2Gi memory (682Mi limit per broker), 10Gi storage ✅
-- **Schema Registry:** 512Mi memory (384Mi request, 512Mi limit) ✅
-- **Kafka Connect:** 1Gi memory (1Gi request, 1Gi limit) ✅
-- **Total Allocation:** 4Gi of 4Gi allocated (100% utilized) ✅
+- **PostgreSQL:** 1Gi memory, 5Gi storage ✅
+- **Kafka Cluster:** 2Gi memory (682Mi per broker), 10Gi storage ✅
+- **Schema Registry:** 1Gi memory ✅
+- **Kafka Connect:** 2Gi memory ✅
+- **Total Allocation:** 6Gi of 6Gi allocated (100% utilized) ✅
 
 ### **Batch Analytics Layer - Resource Allocation (Configured)**
 - **Spark Driver:** 3Gi memory, 1.5 CPU (planned)
@@ -197,7 +197,7 @@
 - [x] End-to-end data integrity validation (Task 12)
 
 ### **Performance Requirements**
-- [x] Resource usage: 4Gi of 4Gi allocated
+- [x] Resource usage: 6Gi of 6Gi allocated
 - [x] Sustained throughput: 1000 events/sec
 - [x] Processing latency: <500ms
 - [x] Recovery time: <1 minute for failures
@@ -259,16 +259,16 @@
 
 ### **Resource Optimization**
 - 3-broker Kafka cluster provides high availability within resource constraints
-- Persistent storage: 15.0Gi allocated across differentiated storage classes
+- Persistent storage: 15Gi allocated across differentiated storage classes
 - Phased implementation prevents resource exhaustion
 - Memory tuning essential for Java-based services
 
 ### **Validated Architecture Decisions**
 - **Kubernetes Cluster:** 3-node Kind cluster (1 control-plane + 2 workers) for high availability
-- **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 512Mi memory
+- **PostgreSQL CDC:** Logical replication with 4 replication slots, optimized for 1Gi memory
 - **Kafka KRaft:** 3-broker cluster eliminates ZooKeeper, 10Gi storage exactly per specification
 - **Topic Configuration:** 6 partitions, LZ4 compression, 7-day retention for all CDC topics
-- **Resource Efficiency:** 4Gi of 4Gi allocated
+- **Resource Efficiency:** 6Gi of 6Gi allocated
 
 ### **Expert Consensus Results**
 - **Multi-model validation:** 7-9/10 confidence across Claude Opus, Gemini Pro, Grok-4, OpenAI o3

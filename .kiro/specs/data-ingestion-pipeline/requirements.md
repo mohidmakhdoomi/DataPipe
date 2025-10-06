@@ -54,7 +54,7 @@ The pipeline will be designed for local development and deployment using Docker 
 2. WHEN using Kubernetes THEN the system SHALL use kind provisioner with containerd image store
 3. WHEN services require persistence THEN PostgreSQL and Kafka SHALL use persistent volumes
 4. WHEN connecting to cloud services THEN the system SHALL connect to real AWS S3 instances
-5. WHEN running locally THEN the system SHALL require no more than 4Gi RAM for operation
+5. WHEN running locally THEN the system SHALL require no more than 6Gi RAM for operation
 
 ### Requirement 5: Schema Management and Evolution
 

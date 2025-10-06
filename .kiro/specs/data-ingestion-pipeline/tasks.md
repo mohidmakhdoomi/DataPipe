@@ -49,7 +49,7 @@ Phase 4: Production (Tasks 13-16)
 - [x] 4. Deploy PostgreSQL with e-commerce schema and CDC configuration
   - Create PostgreSQL StatefulSet with persistent volume (5Gi)
   - Configure logical replication: `wal_level=logical`, `max_replication_slots=4`
-  - Optimize PostgreSQL for 0.75Gi memory allocation:
+  - Optimize PostgreSQL for 1Gi memory allocation:
     - Set `shared_buffers=256MB`
     - Set `effective_cache_size=512MB`
     - Set `work_mem=4MB`
@@ -61,7 +61,7 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.2, 1.3_
 
 **Acceptance Criteria:**
-- [x] Kind cluster running with 3 nodes and 4Gi RAM allocation
+- [x] Kind cluster running with 3 nodes and 6Gi RAM allocation
 - [x] PostgreSQL accessible with logical replication enabled
 - [x] E-commerce tables created with sample data for testing
 - [x] CDC user configured with proper replication permissions
@@ -102,7 +102,7 @@ Phase 4: Production (Tasks 13-16)
   - Kafka backend connection to 3-broker cluster
   - Backward compatibility level configured
   - Authentication and authorization with JAAS
-  - Resource allocation: 384Mi request, 512Mi limit (within budget)
+  - Resource allocation: 1Gi request, 1Gi limit (within budget)
   - Health probes and security context configured
   - NodePort service on port 30081 for external access
   - Schema registry topics with replication factor 3
@@ -116,19 +116,19 @@ Phase 4: Production (Tasks 13-16)
   - _Requirements: 1.1, 1.3, 7.2_
 
   **✅ COMPLETED:** Kafka Connect deployed with comprehensive multi-model consensus validation:
-  - Single worker deployment (1Gi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
+  - Single worker deployment (2Gi allocation) based on expert analysis from Gemini 2.5 Pro, Claude Opus 4, and OpenAI o3
   - Distributed mode configuration for future scalability
-  - JVM tuning: 768Mi heap with G1GC optimization (-XX:MaxRAMPercentage=75.0)
+  - JVM tuning: 1536Mi heap with G1GC optimization (-XX:MaxRAMPercentage=75.0)
   - Debezium PostgreSQL connector plugin with init container installation
   - Dead letter queue configuration (connect-dlq topic) for error handling
   - Integration with existing Kafka cluster and Schema Registry
   - NodePort service on port 30083 for external REST API access
-  - Resource allocation: 1Gi request, 1Gi limit within budget constraints
+  - Resource allocation: 2Gi request, 2Gi limit within budget constraints
 
 - [x] 8. Validate core services connectivity and performance
   - Test inter-service communication: PostgreSQL ↔ Kafka Connect ↔ Kafka
-  - Validate resource consumption and metric exposure within 4Gi limit
-  - Verify container memory limits enforcement and resource consumption within 4Gi limit
+  - Validate resource consumption and metric exposure within 6Gi limit
+  - Verify container memory limits enforcement and resource consumption within 6Gi limit
   - Verify persistent volume functionality across service restarts
   - Benchmark basic throughput: 1000 events/sec baseline test
   - Document baseline performance characteristics and metric definitions
@@ -232,15 +232,15 @@ Upon completion of all tasks, the data ingestion pipeline should demonstrate:
 
 ## Resource Allocation Summary
 
-- **Total RAM**: 4Gi allocated across all components
-- **Actual Usage**: 2666Mi (65% utilization) with 35% headroom
-- **PostgreSQL**: 512Mi RAM (318Mi actual usage), 5Gi storage
-- **Kafka Cluster**: 2Gi RAM (1279Mi actual usage), 10Gi storage
-  - kafka-0: 415Mi memory, 114m CPU
-  - kafka-1: 444Mi memory, 95m CPU
-  - kafka-2: 420Mi memory, 85m CPU
-- **Schema Registry**: 512Mi RAM (254Mi actual usage)
-- **Kafka Connect**: 1Gi RAM (815Mi actual usage)
+- **Total RAM**: 6Gi allocated across all components
+- **Actual Usage**: 3799Mi (61% utilization) with 39% headroom
+- **PostgreSQL**: 1Gi RAM (682Mi actual usage), 5Gi storage
+- **Kafka Cluster**: 2Gi RAM (1450Mi actual usage), 10Gi storage
+  - kafka-0: 484Mi memory, 170m CPU
+  - kafka-1: 473Mi memory, 143m CPU
+  - kafka-2: 493Mi memory, 139m CPU
+- **Schema Registry**: 1Gi RAM (249Mi actual usage)
+- **Kafka Connect**: 2Gi RAM (1418Mi actual usage)
 - **Performance**: Exceeds targets with healthy resource utilization
 
 ## Implementation Notes

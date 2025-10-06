@@ -10,7 +10,7 @@ data:
   postgresql.conf: |
     include '/var/lib/postgresql/data/pgdata/postgresql.conf'
     
-    # Memory Configuration (optimized for 0.75GB allocation)
+    # Memory Configuration (optimized for 1GB allocation)
     shared_buffers = 256MB
     effective_cache_size = 512MB
     work_mem = 4MB
