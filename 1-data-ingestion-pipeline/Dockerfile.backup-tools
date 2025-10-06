@@ -1,0 +1,34 @@
+# Custom Backup Tools Image
+# Combines standard Kafka tools with Avro-specific tools
+# Based on Gemini's Option 2 recommendation
+
+# Stage 1: Get standard Kafka tools
+FROM confluentinc/cp-kafka:7.4.0 as kafka-tools
+
+# Stage 2: Get Avro tools  
+FROM confluentinc/cp-schema-registry:7.4.0 as avro-tools
+
+# Final Stage: Build the combined tools image
+FROM confluentinc/cp-kafka:7.4.0
+
+# Copy Avro tools from schema-registry image
+COPY --from=avro-tools /usr/bin/kafka-avro-console-consumer /usr/bin/
+COPY --from=avro-tools /usr/bin/kafka-avro-console-producer /usr/bin/
+COPY --from=avro-tools /usr/bin/kafka-json-schema-console-consumer /usr/bin/
+COPY --from=avro-tools /usr/bin/kafka-json-schema-console-producer /usr/bin/
+COPY --from=avro-tools /usr/bin/kafka-protobuf-console-consumer /usr/bin/
+COPY --from=avro-tools /usr/bin/kafka-protobuf-console-producer /usr/bin/
+
+# Copy necessary Java libraries for Avro support
+COPY --from=avro-tools /usr/share/java/schema-registry /usr/share/java/schema-registry
+COPY --from=avro-tools /usr/share/java/kafka-serde-tools /usr/share/java/kafka-serde-tools
+
+# Install additional tools needed for backup operations
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    curl \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set default command
+CMD ["sleep", "infinity"]

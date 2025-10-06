@@ -102,6 +102,15 @@ EOF
 
 echo "✅ PostgreSQL configuration updated for WAL archiving"
 
+# Build custom backup tools image
+echo
+echo "Building custom backup tools image with both Kafka and Avro tools..."
+docker build -f Dockerfile.backup-tools -t datapipe-backup-tools:latest .
+
+# Load image into Kind cluster
+echo "Loading backup tools image into Kind cluster..."
+kind load docker-image datapipe-backup-tools:latest --name data-ingestion
+
 # Deploy backup and recovery infrastructure
 echo
 echo "Deploying backup and recovery infrastructure..."

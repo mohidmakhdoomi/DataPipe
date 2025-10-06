@@ -112,59 +112,88 @@ metadata:
     app: kafka
     component: backup
 data:
-  # Kafka Topic Backup Script (Grok's kafka-console approach + Gemini's S3 integration)
+  # Kafka Topic Backup Script (Fixed: Avro-aware backup for CDC topics)
   backup-kafka-topics.sh: |
     #!/bin/bash
     set -e
     
     echo "Starting Kafka topics backup at $(date)"
+
+    readonly ADMIN_USER="$1"
+    readonly ADMIN_PASS="$2"
     
     BACKUP_DIR="/var/lib/kafka/backups/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$BACKUP_DIR"
     
-    # List of CDC topics to backup
-    TOPICS=(
+    # CDC topics using Avro serialization
+    AVRO_TOPICS=(
         "postgres.public.users"
         "postgres.public.products" 
         "postgres.public.orders"
         "postgres.public.order_items"
+    )
+    
+    # Internal topics using JSON/String serialization
+    INTERNAL_TOPICS=(
         "connect-configs"
         "connect-offsets"
         "connect-status"
+        "_schemas"
     )
     
-    # Backup each topic (Grok's console consumer approach)
-    for topic in "${TOPICS[@]}"; do
-        echo "Backing up topic: $topic"
+    # Backup Avro-serialized CDC topics (Gemini's recommendation)
+    for topic in "${AVRO_TOPICS[@]}"; do
+        echo "Backing up Avro topic: $topic"
         
         # Get topic metadata
         kafka-topics --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --describe --topic "$topic" > "$BACKUP_DIR/${topic}_metadata.txt"
         
-        # Backup topic data (from beginning)
+        # Backup Avro topic data as JSON (human-readable, restorable)
+        kafka-avro-console-consumer \
+            --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --topic "$topic" --from-beginning --timeout-ms 30000 \
+            --property schema.registry.url=http://schema-registry.data-ingestion.svc.cluster.local:8081 \
+            --property basic.auth.credentials.source=USER_INFO \
+            --property basic.auth.user.info=${ADMIN_USER}:${ADMIN_PASS} \
+            > "$BACKUP_DIR/${topic}_data.json" 2>/dev/null || true
+    done
+    
+    # Backup internal topics (non-Avro)
+    for topic in "${INTERNAL_TOPICS[@]}"; do
+        echo "Backing up internal topic: $topic"
+        
+        # Get topic metadata
+        kafka-topics --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --describe --topic "$topic" > "$BACKUP_DIR/${topic}_metadata.txt" 2>/dev/null || true
+        
+        # Backup internal topic data (raw format for Schema Registry state)
         kafka-console-consumer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
             --topic "$topic" --from-beginning --timeout-ms 30000 \
-            > "$BACKUP_DIR/${topic}_data.json" 2>/dev/null || true
-        
-        # Backup consumer group offsets
-        kafka-consumer-groups --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
-            --describe --group connect-cluster --offsets \
-            > "$BACKUP_DIR/consumer_offsets.txt" 2>/dev/null || true
+            > "$BACKUP_DIR/${topic}_data.txt" 2>/dev/null || true
     done
+    
+    # Backup consumer group offsets
+    kafka-consumer-groups --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+        --describe --group connect-cluster --offsets \
+        > "$BACKUP_DIR/consumer_offsets.txt" 2>/dev/null || true
     
     # Create backup manifest
     cat > "$BACKUP_DIR/manifest.json" << EOF
     {
         "backup_date": "$(date -Iseconds)",
         "kafka_version": "7.4.0",
-        "topics_backed_up": $(printf '%s\n' "${TOPICS[@]}" | jq -R . | jq -s .),
-        "backup_method": "kafka-console-consumer"
+        "avro_topics_backed_up": $(printf '%s\n' "${AVRO_TOPICS[@]}" | jq -R . | jq -s .),
+        "internal_topics_backed_up": $(printf '%s\n' "${INTERNAL_TOPICS[@]}" | jq -R . | jq -s .),
+        "backup_method": "kafka-avro-console-consumer + kafka-console-consumer",
+        "schema_registry_backed_up": true,
+        "format": "JSON for Avro topics, raw for internal topics"
     }
     EOF
     
     echo "Kafka backup completed: $BACKUP_DIR"
   
-  # Kafka Topic Restore Script
+  # Kafka Topic Restore Script (Fixed: Avro-aware restore)
   restore-kafka-topics.sh: |
     #!/bin/bash
     set -e
@@ -182,19 +211,47 @@ data:
     
     # Read manifest
     if [ ! -f "$BACKUP_DIR/manifest.json" ]; then
-        echo "ERROR: Backup manifest not found"
-        exit 1
+        echo "WARNING: Backup manifest not found, proceeding with available files"
     fi
     
-    # Restore topics data
-    for data_file in "$BACKUP_DIR"/*_data.json; do
+    # Restore Schema Registry state first (critical for Avro topics)
+    if [ -f "$BACKUP_DIR/_schemas_data.txt" ]; then
+        echo "Restoring Schema Registry state..."
+        kafka-console-producer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+            --topic "_schemas" < "$BACKUP_DIR/_schemas_data.txt"
+        
+        # Wait for Schema Registry to reload
+        echo "Waiting for Schema Registry to reload schemas..."
+        sleep 30
+    fi
+    
+    # Restore internal topics (non-Avro)
+    for data_file in "$BACKUP_DIR"/connect-*_data.txt; do
         if [ -f "$data_file" ]; then
-            topic=$(basename "$data_file" _data.json)
-            echo "Restoring topic: $topic"
+            topic=$(basename "$data_file" _data.txt)
+            echo "Restoring internal topic: $topic"
             
-            # Replay messages to topic
             kafka-console-producer --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
                 --topic "$topic" < "$data_file"
+        fi
+    done
+    
+    # Restore Avro topics (CDC data)
+    for data_file in "$BACKUP_DIR"/postgres.public.*_data.json; do
+        if [ -f "$data_file" ]; then
+            topic=$(basename "$data_file" _data.json)
+            echo "Restoring Avro topic: $topic"
+            
+            # Use kafka-avro-console-producer for JSON to Avro conversion
+            kafka-avro-console-producer \
+                --bootstrap-server kafka-headless.data-ingestion.svc.cluster.local:9092 \
+                --topic "$topic" \
+                --property schema.registry.url=http://schema-registry.data-ingestion.svc.cluster.local:8081 \
+                --property basic.auth.credentials.source=USER_INFO \
+                --property basic.auth.user.info='admin:admin-secret' \
+                --property value.schema.latest=true \
+                --property parse.key=true \
+                --property key.separator=: < "$data_file"
         fi
     done
     
@@ -324,7 +381,7 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: backup-runner
-            image: postgres:15-alpine
+            image: datapipe-backup-tools:latest
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: false
@@ -332,18 +389,15 @@ spec:
                 drop: ["ALL"]
             resources:
               requests:
-                memory: "256Mi"
+                memory: "512Mi"
                 cpu: "100m"
               limits:
-                memory: "512Mi"
+                memory: "1Gi"
                 cpu: "500m"
             command: ["/bin/bash"]
             args:
             - -c
             - |
-              # Install required tools
-              apk add --no-cache curl jq
-              
               # Run backups sequentially (Grok's off-peak scheduling)
               echo "Starting scheduled backup run at $(date)"
               
@@ -354,7 +408,7 @@ spec:
               sleep 60
               
               # Kafka backup  
-              /scripts/backup-kafka-topics.sh
+              /scripts/backup-kafka-topics.sh "$SCHEMA_AUTH_USER" "$SCHEMA_AUTH_PASS"
               
               # Wait between backups
               sleep 60
@@ -372,6 +426,17 @@ spec:
               mountPath: /var/lib/kafka/backups
             - name: cdc-backup-storage
               mountPath: /var/lib/cdc/backups
+            env:
+            - name: SCHEMA_AUTH_USER
+              valueFrom:
+                secretKeyRef:
+                  name: schema-registry-auth
+                  key: admin-user
+            - name: SCHEMA_AUTH_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: schema-registry-auth
+                  key: admin-password
           volumes:
           - name: backup-scripts
             configMap:

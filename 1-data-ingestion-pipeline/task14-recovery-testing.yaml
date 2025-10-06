@@ -29,7 +29,7 @@ spec:
       restartPolicy: Never
       containers:
       - name: recovery-tester
-        image: postgres:15-alpine
+        image: datapipe-backup-tools:latest
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -46,8 +46,7 @@ spec:
         args:
         - -c
         - |
-          # Install required tools
-          apk add --no-cache curl jq postgresql-client
+          # Tools pre-installed in custom image
           
           echo "Starting recovery testing scenarios at $(date)"
           
