@@ -85,7 +85,7 @@ Phase 4: Production (Tasks 13-16)
   - Create Kafka topics: `postgres.public.users`, `postgres.public.products`, `postgres.public.orders`, `postgres.public.order_items`
   - Configure topic settings: 6 partitions, 7-day retention, LZ4 compression
   - Test cluster health and topic creation/deletion
-  - _Requirements: 2.1, 2.2, 5.1_
+  - _Requirements: 2.1, 2.2, 2.4, 5.1_
 
   **✅ COMPLETED:** 3-broker Kafka cluster deployed with KRaft mode, 10Gi total storage (3413Mi per broker), 2Gi memory allocation, CDC topics created with 6 partitions, LZ4 compression, and 7-day retention. All specification requirements met exactly.
 
@@ -208,7 +208,7 @@ Phase 4: Production (Tasks 13-16)
   - Test backpressure handling and graceful degradation scenarios
   - Implement throughput monitoring metrics to provide actual vs target throughput rates
   - Document pipeline-specific performance characteristics and scaling procedures
-  - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - _Requirements: 2.1, 2.2, 2.3_
 
 
 
