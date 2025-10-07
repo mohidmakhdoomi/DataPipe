@@ -1,8 +1,8 @@
 # Task 8 Validation Report
 
 ## Executive Summary
-- Start Time: 2025-10-05 17:10:31
-- End Time: 2025-10-05 17:26:29
+- Start Time: 2025-10-07 15:06:13
+- End Time: 2025-10-07 15:22:10
 - Overall Status: ✅ PASS
 - Failed Phases: 0
 
@@ -10,16 +10,16 @@
 
 
 ## Resource Utilization
-[2025-10-05 17:26:17] [INFO] Total Memory: 2730Mi / 6144Mi (44%)
-[2025-10-05 17:26:17] [INFO] =======================================
-[2025-10-05 17:26:23] [INFO] Pod: kafka-0 | Memory: 513Mi | CPU: 257m
-[2025-10-05 17:26:23] [INFO] Pod: kafka-1 | Memory: 512Mi | CPU: 24m
-[2025-10-05 17:26:23] [INFO] Pod: kafka-2 | Memory: 451Mi | CPU: 87m
-[2025-10-05 17:26:23] [INFO] Pod: kafka-connect-6697c8dd97-s2fmn | Memory: 979Mi | CPU: 94m
-[2025-10-05 17:26:23] [INFO] Pod: postgresql-0 | Memory: 62Mi | CPU: 10m
-[2025-10-05 17:26:24] [INFO] Pod: schema-registry-696f9b74b5-qc95r | Memory: 256Mi | CPU: 16m
-[2025-10-05 17:26:24] [INFO] Total Memory: 2773Mi / 6144Mi (45%)
-[2025-10-05 17:26:24] [INFO] =======================================
+[2025-10-07 15:22:02] [INFO] Total Memory: 3208Mi / 6144Mi (52%)
+[2025-10-07 15:22:02] [INFO] =======================================
+[2025-10-07 15:22:08] [INFO] Pod: kafka-0 | Memory: 557Mi | CPU: 283m
+[2025-10-07 15:22:08] [INFO] Pod: kafka-1 | Memory: 590Mi | CPU: 25m
+[2025-10-07 15:22:08] [INFO] Pod: kafka-2 | Memory: 477Mi | CPU: 104m
+[2025-10-07 15:22:08] [INFO] Pod: kafka-connect-6697c8dd97-sxcbf | Memory: 1142Mi | CPU: 107m
+[2025-10-07 15:22:09] [INFO] Pod: postgresql-0 | Memory: 197Mi | CPU: 8m
+[2025-10-07 15:22:09] [INFO] Pod: schema-registry-696f9b74b5-5kz8x | Memory: 245Mi | CPU: 29m
+[2025-10-07 15:22:09] [INFO] Total Memory: 3208Mi / 6144Mi (52%)
+[2025-10-07 15:22:09] [INFO] =======================================
 
 ## Next Steps
 Ready to proceed to Phase 3 integration tasks
