@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ZEN_NAME=zen-mcp-server
-ZIP_VERSION=5.11.0
-CUSTOM_CONFIG=custom_models.json
+ZIP_VERSION=7.4.0
+CUSTOM_CONFIG=openrouter_models.json
 
 mkdir -p .kiro/settings/zen
 cd .kiro/settings/zen
