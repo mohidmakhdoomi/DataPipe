@@ -1,0 +1,102 @@
+# Test SparkApplication for Batch Analytics Layer
+# Validates Spark Operator deployment and resource allocation
+# Includes Iceberg configuration placeholders for future use
+
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: spark-batch-test
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: spark-test
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: docker.io/library/spark:4.0.0
+  sparkVersion: 4.0.0
+  mainApplicationFile: local:///opt/spark/examples/src/main/python/pi.py
+  arguments: ["1000"]
+    
+  sparkConf:
+    # Event Log Configuration for History Server
+    "spark.eventLog.enabled": "true"
+    "spark.eventLog.dir": "file:///var/spark-events"
+    
+    # Performance Configuration
+    "spark.sql.adaptive.enabled": "true"
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+    "spark.sql.adaptive.skewJoin.enabled": "true"
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
+    
+    # Iceberg Configuration (commented for initial test, uncomment for Iceberg jobs)
+    # "spark.jars.packages": "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.4.2,software.amazon.awssdk:bundle:2.17.257"
+    # "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    # "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
+    # "spark.sql.catalog.spark_catalog.type": "hive"
+    # "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
+    # "spark.sql.catalog.iceberg.type": "hadoop"
+    # "spark.sql.catalog.iceberg.warehouse": "s3://data-lake-warehouse/"
+  
+    # "spark.kubernetes.driver.annotation.prometheus.io/scrape": "true"
+    # "spark.kubernetes.driver.annotation.prometheus.io/path": "/metrics/executors/prometheus/"
+    # "spark.kubernetes.driver.annotation.prometheus.io/port": "4040"
+    # "spark.kubernetes.driver.service.annotation.prometheus.io/scrape": "true"
+    # "spark.kubernetes.driver.service.annotation.prometheus.io/path": "/metrics/driver/prometheus/"
+    # "spark.kubernetes.driver.service.annotation.prometheus.io/port": "4040"
+    # "spark.ui.prometheus.enabled": "true"
+    # "spark.executor.processTreeMetrics.enabled": "true"
+    # "spark.metrics.conf.*.sink.prometheusServlet.class": "org.apache.spark.metrics.sink.PrometheusServlet"
+    # "spark.metrics.conf.driver.sink.prometheusServlet.path": "/metrics/driver/prometheus/"
+    # "spark.metrics.conf.executor.sink.prometheusServlet.path": "/metrics/executors/prometheus/"
+
+  driver:
+    cores: 1
+    memory: "3g"  # As per design specification
+    labels:
+      version: 4.0.0
+      workload-type: batch-analytics
+    serviceAccount: spark-driver-sa
+    volumeMounts:
+      - name: event-log-volume
+        mountPath: /var/spark-events
+    env:
+      - name: SPARK_DRIVER_MEMORY
+        value: "3g"
+  
+  executor:
+    cores: 2
+    instances: 2
+    memory: "4g"  # 2 executors * 4g = 8Gi total as per design
+    labels:
+      version: 4.0.0
+      workload-type: batch-analytics
+    serviceAccount: spark-executor-sa
+    volumeMounts:
+      - name: event-log-volume
+        mountPath: /var/spark-events
+    env:
+      - name: SPARK_EXECUTOR_MEMORY
+        value: "4g"
+  
+  volumes:
+    - name: event-log-volume
+      persistentVolumeClaim:
+        claimName: spark-history-pvc
+  
+  restartPolicy:
+    type: Never
+  
+  # # Monitoring and observability
+  # monitoring:
+  #   enabled: true
+  #   prometheus:
+  #     jmxExporterJar: "/prometheus/jmx_prometheus_javaagent-0.17.2.jar"
+
+  # monitoring:
+  #   exposeDriverMetrics: true
+  #   exposeExecutorMetrics: true
+  #   prometheus:
+  #     jmxExporterJar: /prometheus/jmx_prometheus_javaagent-0.17.2.jarjmx_prometheus_javaagent-0.11.0.jar
+  #     port: 8090

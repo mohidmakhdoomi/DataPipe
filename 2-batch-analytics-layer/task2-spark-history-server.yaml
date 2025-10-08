@@ -1,0 +1,102 @@
+# Spark History Server for Batch Analytics Layer
+# Uses PVC for local development event log storage
+# Deployed in batch-analytics namespace
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spark-history-config
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: spark-history
+data:
+  spark-defaults.conf: |
+    # History Server Configuration
+    spark.history.provider            org.apache.spark.deploy.history.FsHistoryProvider
+    spark.history.fs.logDirectory     file:///var/spark-events
+    spark.history.fs.update.interval  10s
+    spark.history.ui.port             18080
+    
+    # Performance tuning for history server
+    spark.history.retainedApplications  50
+    spark.history.fs.cleaner.enabled    true
+    spark.history.fs.cleaner.interval   1d
+    spark.history.fs.cleaner.maxAge     7d
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-history-server
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: spark-history
+    app.kubernetes.io/part-of: batch-analytics-layer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-history-server
+  template:
+    metadata:
+      labels:
+        app: spark-history-server
+        app.kubernetes.io/name: batch-analytics-layer
+        app.kubernetes.io/component: spark-history
+    spec:
+      containers:
+      - name: history-server
+        image: apache/spark:4.0.0
+        command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.history.HistoryServer"]
+        ports:
+        - containerPort: 18080
+          name: http
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 250m
+          limits:
+            memory: 1Gi
+            cpu: 500m
+        volumeMounts:
+        - name: spark-config-volume
+          mountPath: /opt/spark/conf
+        - name: event-log-volume
+          mountPath: /var/spark-events
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 18080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: spark-config-volume
+        configMap:
+          name: spark-history-config
+      - name: event-log-volume
+        persistentVolumeClaim:
+          claimName: spark-history-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-history-server
+  namespace: batch-analytics
+  labels:
+    app.kubernetes.io/name: batch-analytics-layer
+    app.kubernetes.io/component: spark-history
+spec:
+  type: NodePort
+  ports:
+  - port: 18080
+    targetPort: 18080
+    nodePort: 30041  # Maps to host port 18080 via kind config
+    name: http
+  selector:
+    app: spark-history-server

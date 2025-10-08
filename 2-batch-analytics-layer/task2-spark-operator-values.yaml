@@ -1,0 +1,38 @@
+# Spark Operator Helm Values for Batch Analytics Layer
+# Resource-constrained configuration for 12Gi total allocation
+# Uses existing service accounts from Task 1
+
+
+# Use pre-existing service accounts from Task 1
+controller:
+  serviceAccount:
+    create: false
+    name: "spark-operator-sa"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+spark:
+  jobNamespaces:
+  - batch-analytics
+  
+  serviceAccount:
+    create: false
+    name: "spark-driver-sa"  # Default SA for driver pods
+
+# Webhook configuration
+webhook:
+  enable: true
+  port: 8443  # Use standard webhook port to avoid conflict with metrics
+
+# Metrics configuration
+prometheus:
+  metrics:
+    enable: true
+    port: 8080  # Metrics on 8080
+    endpoint: /metrics
