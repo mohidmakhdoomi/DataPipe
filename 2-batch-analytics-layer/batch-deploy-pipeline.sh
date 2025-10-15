@@ -82,6 +82,8 @@ main() {
         log "❌ : Namespace ${NAMESPACE} not found"
         exit_one
     fi
+    
+    bash task2-deploy-spark-operator.sh
 
     stop_monitoring
 

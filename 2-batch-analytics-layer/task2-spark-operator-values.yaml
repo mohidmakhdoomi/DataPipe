@@ -40,6 +40,16 @@ spark:
 webhook:
   enable: true
   port: 8443  # Use standard webhook port to avoid conflict with metrics
+  resourceQuotaEnforcement:
+    enable: false
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
 
 # # Metrics configuration
 # prometheus:

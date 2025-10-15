@@ -16,10 +16,10 @@ metadata:
   namespace: batch-analytics
 spec:
   hard:
-    requests.memory: "12Gi"
-    limits.memory: "12Gi"
-    requests.cpu: "6"
-    limits.cpu: "8"
+    requests.memory: "18Gi"
+    limits.memory: "18Gi"
+    requests.cpu: "12"
+    limits.cpu: "14"
     pods: "20"
     persistentvolumeclaims: "10"
     secrets: "15"

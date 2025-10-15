@@ -17,8 +17,8 @@ spec:
   image: docker.io/library/spark:4.0.0
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/examples/src/main/python/pi.py
-  # arguments: 
-  # - "1000"
+  arguments: 
+  - "1000"
   sparkVersion: 4.0.0   
   sparkConf:
     # Event Log Configuration for History Server
@@ -61,7 +61,7 @@ spec:
       emptyDir: {}
   driver:
     cores: 1
-    memory: 512m  # As per design specification
+    memory: 3g  # Reduced to fit within quota
     serviceAccount: spark-driver-sa
     securityContext:
       capabilities:
@@ -79,9 +79,9 @@ spec:
     - name: tmp
       mountPath: /tmp
   executor:
-    cores: 1
-    instances: 1
-    memory: 512m  # 2 executors * 4g = 8Gi total as per design
+    cores: 2
+    instances: 2
+    memory: 4g  # 2 executors * 2g = 4Gi total
     securityContext:
       capabilities:
         drop:

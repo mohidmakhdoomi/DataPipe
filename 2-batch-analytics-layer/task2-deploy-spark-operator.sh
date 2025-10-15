@@ -89,6 +89,10 @@ kubectl apply -f task2-spark-test-job.yaml
 echo "✓ Test SparkApplication submitted"
 echo
 
+echo "9. Waiting for SparkApplication to be completed..."
+kubectl wait --for=create --timeout=300s pod/spark-batch-test-driver -n batch-analytics >/dev/null 2>&1
+kubectl wait --for=jsonpath='{.status.phase}'=Succeeded --timeout=300s pod/spark-batch-test-driver -n batch-analytics
+
 # Display access information
 echo "=== Task 2 Deployment Complete ==="
 echo
