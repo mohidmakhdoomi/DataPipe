@@ -82,12 +82,8 @@ echo "7. Verifying Spark Operator deployment..."
 kubectl get pods -n batch-analytics | grep spark-history
 echo
 
-# # Apply CustomResourceDefinitions
-# echo "8. Apply CustomResourceDefinitions..."
-# kubectl apply -k crds/
-
 # Test basic SparkApplication submission
-echo "9. Testing basic SparkApplication submission..."
+echo "8. Testing basic SparkApplication submission..."
 kubectl apply -f task2-spark-test-job.yaml
 
 echo "✓ Test SparkApplication submitted"
