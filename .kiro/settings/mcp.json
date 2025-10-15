@@ -84,7 +84,8 @@
         "testgen",
         "secaudit",
         "docgen"
-      ]
+      ],
+      "timeout": 15000
     },
     "Context7": {
       "command": "docker",

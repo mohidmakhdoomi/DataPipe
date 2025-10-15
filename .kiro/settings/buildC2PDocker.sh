@@ -16,5 +16,5 @@ curl -L -o "${C2P_NAME}.zip" \
 unzip -q "${C2P_NAME}.zip"
 
 cd "${C2P_DIR_PREFIX}-${ZIP_VERSION}"
-
+sed -i "s/FROM python:slim/FROM python:3.13-slim/g" Dockerfile
 docker build --no-cache -t "${C2P_NAME}" .
