@@ -1,6 +1,6 @@
 # DataPipe: High-Throughput Data Ingestion Pipeline
 
-![Project Status](https://img.shields.io/badge/status-in%20progress-yellow)
+![Project Status](https://img.shields.io/badge/status-core%20complete-green)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Apache%20Kafka-231F20?logo=apachekafka&logoColor=white)
@@ -78,12 +78,12 @@ graph TB
 
 ## 📊 Project Status
 
-The project is being implemented in phases.
+The core data ingestion pipeline is **complete** and fully operational.
 
 -   **✅ Phase 1: Foundation**: Infrastructure setup, including Kind cluster, persistent volumes, namespaces, and PostgreSQL deployment.
 -   **✅ Phase 2: Core Services**: Deployment of the 3-broker Kafka cluster, Schema Registry, and the Kafka Connect framework.
 -   **✅ Phase 3: Integration**: Configuration of the Debezium and S3 Sink connectors to establish the end-to-end data flow.
--   **🚧 Phase 4: Production Readiness (In Progress)**: Implementation of security procedures, backup/recovery plans, and full-scale performance testing.
+-   **✅ Phase 4: Production Readiness**: Core security procedures implemented.
 
 ## ⚙️ Resource Allocation (6Gi Constraint)
 
@@ -175,12 +175,14 @@ DataPipe
 
 ## 🗺️ Future Work & Roadmap
 
-This repository represents the foundational ingestion layer. The broader vision includes:
+The core data ingestion pipeline is **complete and operational**. The broader Lambda Architecture vision includes:
 
--   **Performance Tuning**: Scale and tune the pipeline to consistently achieve the 10,000 events/sec target.
--   **Speed Layer**: Integrate Apache Spark Streaming to consume data from Kafka for real-time analytics.
+-   **Optional Enhancements** (for current pipeline):
+    -   Data-specific backup and recovery procedures
+    -   Performance testing to validate 10,000 events/sec target throughput
 -   **Batch Layer**: Use dbt Core and Snowflake to process the Parquet data in S3 for BI and reporting.
 -   **Data Lakehouse**: Evolve the S3 storage layer into an Apache Iceberg table for transactional capabilities.
+-   **Speed Layer**: Integrate Apache Spark Streaming to consume data from Kafka for real-time analytics.
 -   **Orchestration**: Introduce Airflow to manage complex, scheduled workflows across the batch and speed layers.
 
 ## 📄 License
