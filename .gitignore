@@ -1,7 +1,7 @@
 # Based on https://github.com/github/gitignore/blob/main/Python.gitignore
 # and https://github.com/github/gitignore/blob/main/Terraform.gitignore
 
-04-secrets.yaml
+*secrets.yaml
 test-script.sh
 .claude/
 .kiro/settings/zen/logs*
