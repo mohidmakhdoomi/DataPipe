@@ -95,7 +95,7 @@ The entire data ingestion pipeline is designed to run within a **6Gi RAM** limit
 | Kafka Cluster (3) | `2Gi` (total)  | `750m` / `1.5`    | `10Gi`   |
 | Schema Registry   | `1Gi`          | `250m` / `500m`   | -        |
 | Kafka Connect     | `2Gi`            | `500m` / `1`      | -        |
-| **Total**         | **6Gi**       | **~2 / 4**        | **15Gi** |
+| **Total**         | **`6Gi`**       | **`2 / 4`**        | **`15Gi`** |
 
 ## 🚀 Getting Started
 
