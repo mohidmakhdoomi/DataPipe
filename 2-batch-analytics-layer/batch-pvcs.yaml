@@ -9,7 +9,7 @@ metadata:
   namespace: batch-analytics
   labels:
     app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: spark-history
+    app.kubernetes.io/component: spark-history-server
     app.kubernetes.io/part-of: batch-analytics-layer
   annotations:
     volume.kubernetes.io/storage-provisioner: rancher.io/local-path

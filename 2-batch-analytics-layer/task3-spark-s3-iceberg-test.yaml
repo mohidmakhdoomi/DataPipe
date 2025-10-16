@@ -8,8 +8,8 @@ metadata:
   name: spark-s3-iceberg-test
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: spark-s3-test
+    app: spark
+    component: s3-iceberg-test
     test-type: integration
 spec:
   type: Python
@@ -150,8 +150,8 @@ metadata:
   name: s3-test-scripts
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: test-scripts
+    app: s3-test-scripts
+    component: configuration
 data:
   s3_iceberg_test.py: |
     #!/usr/bin/env python3

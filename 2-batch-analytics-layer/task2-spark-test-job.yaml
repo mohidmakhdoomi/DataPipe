@@ -8,8 +8,8 @@ metadata:
   name: spark-batch-test
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: spark-test
+    app: spark
+    component: test-job
 spec:
   type: Python
   pythonVersion: "3"

@@ -8,8 +8,8 @@ metadata:
   name: s3-connectivity-test
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: s3-test
+    app: s3-connectivity-test
+    component: test-job
     test-type: connectivity
 spec:
   template:
