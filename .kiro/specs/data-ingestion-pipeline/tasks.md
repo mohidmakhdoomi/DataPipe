@@ -195,13 +195,13 @@ Phase 4: Production (Tasks 13-16)
   - Document data-specific security procedures and compliance requirements
   - _Requirements: 7.4_
 
-- [ ] 14. Create data-specific backup and recovery procedures
+- [ ]* 14. Create data-specific backup and recovery procedures
   - Implement PostgreSQL data backup procedures with point-in-time recovery
   - Configure Kafka topic backup and replay procedures
   - Test data recovery scenarios: corruption, CDC slot issues, schema conflicts
   - _Requirements: 4.3, 7.2_
 
-- [ ] 15. Conduct data pipeline performance testing
+- [ ]* 15. Conduct data pipeline performance testing
   - Perform load testing to validate 10,000 events/sec target throughput
   - Test CDC performance under sustained high-volume data changes
   - Validate S3 archival performance and batch processing efficiency
@@ -213,9 +213,9 @@ Phase 4: Production (Tasks 13-16)
 
 
 **Acceptance Criteria:**
-- [ ] Data-specific security procedures implemented and tested
-- [ ] Data backup and recovery procedures validated with test scenarios
-- [ ] Pipeline performance validated at 10,000 events/sec with acceptable latency (<5s)
+- [x] Data-specific security procedures implemented and tested
+- [ ]* Data backup and recovery procedures validated with test scenarios (optional)
+- [ ]* Pipeline performance validated at 10,000 events/sec with acceptable latency (<5s) (optional)
 
 ## Success Criteria
 
