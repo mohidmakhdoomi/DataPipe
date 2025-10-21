@@ -15,7 +15,9 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration variables
-NAMESPACE="batch-analytics"
+readonly NAMESPACE="batch-analytics"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 BUCKET_NAME="${AWS_S3_BUCKET:-data-lake-warehouse}"
 AWS_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 
@@ -175,6 +177,8 @@ fi
 
 # Step 6: Apply Spark S3 Iceberg test (optional)
 echo -e "\n${YELLOW}Step 6: Preparing Spark S3 Iceberg integration test...${NC}"
+docker build  -t spark:4.0.1-hadoop-aws-iceberg -f "Dockerfile" .
+kind load docker-image spark:4.0.1-hadoop-aws-iceberg -n batch-analytics
 kubectl apply -f task3-spark-s3-iceberg-test.yaml
 
 echo -e "\n${BLUE}=== Setup Complete ===${NC}"
