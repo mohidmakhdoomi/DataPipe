@@ -242,7 +242,7 @@ The S3 lifecycle policy includes:
 4. **Iceberg Table Creation Fails**
    ```bash
    # Check S3 permissions for warehouse path
-   aws s3 ls s3://your-bucket-name/iceberg/
+   aws s3 ls s3://your-bucket-name/iceberg-warehouse/
    
    # Verify Iceberg dependencies are loaded
    kubectl describe sparkapplication spark-s3-iceberg-test -n batch-analytics

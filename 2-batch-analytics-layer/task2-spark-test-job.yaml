@@ -14,12 +14,12 @@ spec:
   type: Python
   pythonVersion: "3"
   mode: cluster
-  image: docker.io/library/spark:4.0.0
-  imagePullPolicy: IfNotPresent
+  image: spark:4.0.1-hadoop-aws-iceberg
+  imagePullPolicy: Never
   mainApplicationFile: local:///opt/spark/examples/src/main/python/pi.py
   arguments: 
   - "1000"
-  sparkVersion: 4.0.0   
+  sparkVersion: 4.0.1
   sparkConf:
     # Event Log Configuration for History Server
     "spark.eventLog.enabled": "true"
@@ -30,16 +30,7 @@ spec:
     "spark.sql.adaptive.coalescePartitions.enabled": "true"
     "spark.sql.adaptive.skewJoin.enabled": "true"
     "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
-    
-    # Iceberg Configuration (commented for initial test, uncomment for Iceberg jobs)
-    # "spark.jars.packages": "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.4.2,software.amazon.awssdk:bundle:2.17.257"
-    # "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
-    # "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
-    # "spark.sql.catalog.spark_catalog.type": "hive"
-    # "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
-    # "spark.sql.catalog.iceberg.type": "hadoop"
-    # "spark.sql.catalog.iceberg.warehouse": "s3://data-lake-warehouse/"
-  
+      
     # "spark.kubernetes.driver.annotation.prometheus.io/scrape": "true"
     # "spark.kubernetes.driver.annotation.prometheus.io/path": "/metrics/executors/prometheus/"
     # "spark.kubernetes.driver.annotation.prometheus.io/port": "4040"
@@ -57,8 +48,6 @@ spec:
     - name: event-log-volume
       persistentVolumeClaim:
         claimName: spark-history-pvc
-    - name: tmp
-      emptyDir: {}
   driver:
     cores: 1
     memory: 3g  # Reduced to fit within quota
@@ -76,8 +65,6 @@ spec:
     volumeMounts:
     - name: event-log-volume
       mountPath: /var/spark-events
-    - name: tmp
-      mountPath: /tmp
   executor:
     cores: 2
     instances: 2
@@ -95,8 +82,6 @@ spec:
     volumeMounts:
       - name: event-log-volume
         mountPath: /var/spark-events
-      - name: tmp
-        mountPath: /tmp
 # # Monitoring and observability
 # monitoring:
 #   enabled: true

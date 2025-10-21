@@ -177,8 +177,6 @@ fi
 
 # Step 6: Apply Spark S3 Iceberg test (optional)
 echo -e "\n${YELLOW}Step 6: Preparing Spark S3 Iceberg integration test...${NC}"
-docker build  -t spark:4.0.1-hadoop-aws-iceberg -f "Dockerfile" .
-kind load docker-image spark:4.0.1-hadoop-aws-iceberg -n batch-analytics
 kubectl apply -f task3-spark-s3-iceberg-test.yaml
 
 echo -e "\n${BLUE}=== Setup Complete ===${NC}"

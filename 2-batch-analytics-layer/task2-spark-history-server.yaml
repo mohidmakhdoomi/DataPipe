@@ -44,7 +44,8 @@ spec:
     spec:
       containers:
       - name: history-server
-        image: apache/spark:4.0.0
+        image: spark:4.0.1-hadoop-aws-iceberg
+        imagePullPolicy: Never
         command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.history.HistoryServer"]
         ports:
         - containerPort: 18080

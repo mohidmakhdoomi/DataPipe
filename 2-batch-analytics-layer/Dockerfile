@@ -1,5 +1,5 @@
 # Custom Spark Docker Image with S3 and Iceberg Support
-# Based on official Spark 4.0.0 image with pre-installed jars for hadoop-aws + dependencies and iceberg
+# Based on official Spark 4.0.1 image with jars for hadoop-aws + dependencies and iceberg
 
 FROM apache/spark:4.0.1-scala2.13-java17-python3-ubuntu
 

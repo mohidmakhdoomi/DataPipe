@@ -70,7 +70,7 @@ spec:
           
           # Test Iceberg warehouse path
           echo "8. Testing Iceberg warehouse path..."
-          aws s3 ls s3://$BUCKET_NAME/iceberg/ || echo "Iceberg path doesn't exist yet - will be created by Spark jobs"
+          aws s3 ls s3://$BUCKET_NAME/iceberg-warehouse/ || echo "Iceberg path doesn't exist yet - will be created by Spark jobs"
           
           echo "=== S3 Connectivity Test Complete ==="
           echo "Check the logs above for any errors or warnings"

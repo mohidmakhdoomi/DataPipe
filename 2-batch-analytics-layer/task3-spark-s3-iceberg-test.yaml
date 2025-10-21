@@ -18,7 +18,7 @@ spec:
   image: spark:4.0.1-hadoop-aws-iceberg
   imagePullPolicy: Never
   mainApplicationFile: local:///opt/spark/scripts/s3_iceberg_test.py
-  sparkVersion: 4.0.0
+  sparkVersion: 4.0.1
   
   # Spark Configuration for S3 and Iceberg
   sparkConf:
