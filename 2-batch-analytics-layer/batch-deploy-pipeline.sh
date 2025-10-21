@@ -54,6 +54,9 @@ main() {
     fi
 
     start_resource_monitor
+
+    docker build  -t spark:4.0.1-hadoop-aws-iceberg -f "Dockerfile" .
+    kind load docker-image spark:4.0.1-hadoop-aws-iceberg -n batch-analytics
     
     for current_record in "${CONFIG_FILES[@]}"; do
         IFS=':' read -r current_file status_to_check waiting_identifier timeout_in_seconds number_of_items <<< "$current_record"
@@ -84,6 +87,8 @@ main() {
     fi
     
     bash task2-deploy-spark-operator.sh
+
+    bash task3-setup-s3-access.sh
 
     stop_monitoring
 

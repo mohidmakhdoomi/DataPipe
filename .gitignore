@@ -1,7 +1,16 @@
 # Based on https://github.com/github/gitignore/blob/main/Python.gitignore
 # and https://github.com/github/gitignore/blob/main/Terraform.gitignore
 
-04-secrets.yaml
+sparkoperator.k8s.io_sparkapplications.yaml
+kafka-connect-order-items-deployment.yaml
+kafka-connect-orders-deployment.yaml
+kafka-connect-products-deployment.yaml
+kafka-connect-users-deployment.yaml
+verify-multi-instance.sh
+deploy-multi-instance.sh
+MULTI-INSTANCE-ARCHITECTURE.md
+
+*secrets.yaml
 test-script.sh
 .claude/
 .kiro/settings/zen/logs*

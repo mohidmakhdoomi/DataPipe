@@ -7,8 +7,8 @@ metadata:
   name: spark-history-config
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: spark-history
+    app: spark-history-server
+    component: configuration
 data:
   spark-defaults.conf: |
     # History Server Configuration
@@ -29,9 +29,8 @@ metadata:
   name: spark-history-server
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: spark-history
-    app.kubernetes.io/part-of: batch-analytics-layer
+    app: spark-history-server
+    component: history-server
 spec:
   replicas: 1
   selector:
@@ -41,12 +40,12 @@ spec:
     metadata:
       labels:
         app: spark-history-server
-        app.kubernetes.io/name: batch-analytics-layer
-        app.kubernetes.io/component: spark-history
+        component: history-server
     spec:
       containers:
       - name: history-server
-        image: apache/spark:4.0.0
+        image: spark:4.0.1-hadoop-aws-iceberg
+        imagePullPolicy: Never
         command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.history.HistoryServer"]
         ports:
         - containerPort: 18080
@@ -89,8 +88,8 @@ metadata:
   name: spark-history-server
   namespace: batch-analytics
   labels:
-    app.kubernetes.io/name: batch-analytics-layer
-    app.kubernetes.io/component: spark-history
+    app: spark-history-server
+    component: service
 spec:
   type: NodePort
   ports:
