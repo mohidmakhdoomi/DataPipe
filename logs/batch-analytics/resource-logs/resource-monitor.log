@@ -1,1 +1,239 @@
-[2025-10-07 12:50:56] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:14] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:19] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:25] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:30] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:35] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:40] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:45] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:51] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:31:56] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:01] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:06] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:11] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:17] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:22] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:27] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:32] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:37] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:43] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:48] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:53] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:32:58] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:03] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:08] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:14] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:19] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:24] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:29] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:34] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:40] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:45] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:50] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:33:55] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:34:00] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:34:05] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:34:11] [INFO] ⚠️   Unable to retrieve pod metrics
+[2025-10-21 14:34:16] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 14Mi | CPU: 12m
+[2025-10-21 14:34:16] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 12Mi | CPU: 23m
+[2025-10-21 14:34:16] [INFO] Total Memory: 26Mi / 18432Mi (0%)
+[2025-10-21 14:34:16] [INFO] =======================================
+[2025-10-21 14:34:22] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 14Mi | CPU: 12m
+[2025-10-21 14:34:22] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 12Mi | CPU: 23m
+[2025-10-21 14:34:22] [INFO] Total Memory: 26Mi / 18432Mi (0%)
+[2025-10-21 14:34:22] [INFO] =======================================
+[2025-10-21 14:34:27] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 14Mi | CPU: 12m
+[2025-10-21 14:34:28] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 13Mi | CPU: 3m
+[2025-10-21 14:34:28] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 184Mi | CPU: 241m
+[2025-10-21 14:34:28] [INFO] Total Memory: 211Mi / 18432Mi (1%)
+[2025-10-21 14:34:28] [INFO] =======================================
+[2025-10-21 14:34:33] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 14Mi | CPU: 12m
+[2025-10-21 14:34:33] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 13Mi | CPU: 3m
+[2025-10-21 14:34:34] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 184Mi | CPU: 241m
+[2025-10-21 14:34:34] [INFO] Total Memory: 211Mi / 18432Mi (1%)
+[2025-10-21 14:34:34] [INFO] =======================================
+[2025-10-21 14:34:39] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 14Mi | CPU: 12m
+[2025-10-21 14:34:39] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 13Mi | CPU: 3m
+[2025-10-21 14:34:40] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 184Mi | CPU: 241m
+[2025-10-21 14:34:40] [INFO] Total Memory: 211Mi / 18432Mi (1%)
+[2025-10-21 14:34:40] [INFO] =======================================
+[2025-10-21 14:34:45] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 191Mi | CPU: 251m
+[2025-10-21 14:34:45] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 14Mi | CPU: 3m
+[2025-10-21 14:34:45] [INFO] Pod: spark-batch-test-driver | Memory: 486Mi | CPU: 946m
+[2025-10-21 14:34:46] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 203Mi | CPU: 18m
+[2025-10-21 14:34:46] [INFO] Total Memory: 894Mi / 18432Mi (4%)
+[2025-10-21 14:34:46] [INFO] =======================================
+[2025-10-21 14:34:51] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 191Mi | CPU: 251m
+[2025-10-21 14:34:51] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 14Mi | CPU: 3m
+[2025-10-21 14:34:52] [INFO] Pod: spark-batch-test-driver | Memory: 486Mi | CPU: 946m
+[2025-10-21 14:34:52] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 203Mi | CPU: 18m
+[2025-10-21 14:34:52] [INFO] Total Memory: 894Mi / 18432Mi (4%)
+[2025-10-21 14:34:52] [INFO] =======================================
+[2025-10-21 14:34:57] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 17Mi | CPU: 16m
+[2025-10-21 14:34:58] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 14Mi | CPU: 2m
+[2025-10-21 14:34:58] [INFO] Pod: pythonpi-5a99559a080d2896-exec-1 | Memory: 769Mi | CPU: 2001m
+[2025-10-21 14:34:58] [INFO] Pod: pythonpi-5a99559a080d2896-exec-2 | Memory: 699Mi | CPU: 1690m
+[2025-10-21 14:34:58] [INFO] Pod: spark-batch-test-driver | Memory: 498Mi | CPU: 304m
+[2025-10-21 14:34:59] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 221Mi | CPU: 36m
+[2025-10-21 14:34:59] [INFO] Total Memory: 2218Mi / 18432Mi (12%)
+[2025-10-21 14:34:59] [INFO] =======================================
+[2025-10-21 14:35:04] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 17Mi | CPU: 16m
+[2025-10-21 14:35:04] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 14Mi | CPU: 2m
+[2025-10-21 14:35:04] [INFO] Pod: pythonpi-5a99559a080d2896-exec-1 | Memory: 769Mi | CPU: 2001m
+[2025-10-21 14:35:05] [INFO] Pod: pythonpi-5a99559a080d2896-exec-2 | Memory: 699Mi | CPU: 1690m
+[2025-10-21 14:35:05] [INFO] Pod: spark-batch-test-driver | Memory: 498Mi | CPU: 304m
+[2025-10-21 14:35:05] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 221Mi | CPU: 36m
+[2025-10-21 14:35:05] [INFO] Total Memory: 2218Mi / 18432Mi (12%)
+[2025-10-21 14:35:05] [INFO] =======================================
+[2025-10-21 14:35:11] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 17Mi | CPU: 16m
+[2025-10-21 14:35:11] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 14Mi | CPU: 2m
+[2025-10-21 14:35:11] [INFO] Pod: pythonpi-5a99559a080d2896-exec-1 | Memory: 769Mi | CPU: 2001m
+[2025-10-21 14:35:11] [INFO] Pod: pythonpi-5a99559a080d2896-exec-2 | Memory: 699Mi | CPU: 1690m
+[2025-10-21 14:35:11] [INFO] Pod: spark-batch-test-driver | Memory: 498Mi | CPU: 304m
+[2025-10-21 14:35:12] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 221Mi | CPU: 36m
+[2025-10-21 14:35:12] [INFO] Total Memory: 2218Mi / 18432Mi (12%)
+[2025-10-21 14:35:12] [INFO] =======================================
+[2025-10-21 14:35:17] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:35:17] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 15Mi | CPU: 2m
+[2025-10-21 14:35:17] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 221Mi | CPU: 6m
+[2025-10-21 14:35:17] [INFO] Total Memory: 253Mi / 18432Mi (1%)
+[2025-10-21 14:35:17] [INFO] =======================================
+[2025-10-21 14:35:23] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:35:23] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 15Mi | CPU: 2m
+[2025-10-21 14:35:23] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 221Mi | CPU: 6m
+[2025-10-21 14:35:23] [INFO] Total Memory: 253Mi / 18432Mi (1%)
+[2025-10-21 14:35:23] [INFO] =======================================
+[2025-10-21 14:35:29] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 18Mi | CPU: 3m
+[2025-10-21 14:35:29] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 15Mi | CPU: 2m
+[2025-10-21 14:35:29] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 223Mi | CPU: 5m
+[2025-10-21 14:35:29] [INFO] Total Memory: 256Mi / 18432Mi (1%)
+[2025-10-21 14:35:29] [INFO] =======================================
+[2025-10-21 14:35:35] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 18Mi | CPU: 3m
+[2025-10-21 14:35:35] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 15Mi | CPU: 2m
+[2025-10-21 14:35:35] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 223Mi | CPU: 5m
+[2025-10-21 14:35:35] [INFO] Total Memory: 256Mi / 18432Mi (1%)
+[2025-10-21 14:35:35] [INFO] =======================================
+[2025-10-21 14:35:41] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 18Mi | CPU: 3m
+[2025-10-21 14:35:41] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 15Mi | CPU: 2m
+[2025-10-21 14:35:41] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 223Mi | CPU: 5m
+[2025-10-21 14:35:41] [INFO] Total Memory: 256Mi / 18432Mi (1%)
+[2025-10-21 14:35:41] [INFO] =======================================
+[2025-10-21 14:35:46] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 18Mi | CPU: 2m
+[2025-10-21 14:35:47] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 18Mi | CPU: 2m
+[2025-10-21 14:35:47] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 223Mi | CPU: 5m
+[2025-10-21 14:35:47] [INFO] Total Memory: 259Mi / 18432Mi (1%)
+[2025-10-21 14:35:47] [INFO] =======================================
+[2025-10-21 14:35:52] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 18Mi | CPU: 2m
+[2025-10-21 14:35:53] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 18Mi | CPU: 2m
+[2025-10-21 14:35:53] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 223Mi | CPU: 5m
+[2025-10-21 14:35:53] [INFO] Total Memory: 259Mi / 18432Mi (1%)
+[2025-10-21 14:35:53] [INFO] =======================================
+[2025-10-21 14:35:58] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 172Mi | CPU: 254m
+[2025-10-21 14:35:58] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:35:59] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 176m
+[2025-10-21 14:35:59] [INFO] Total Memory: 475Mi / 18432Mi (2%)
+[2025-10-21 14:35:59] [INFO] =======================================
+[2025-10-21 14:36:04] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 172Mi | CPU: 254m
+[2025-10-21 14:36:04] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:05] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 176m
+[2025-10-21 14:36:05] [INFO] Total Memory: 475Mi / 18432Mi (2%)
+[2025-10-21 14:36:05] [INFO] =======================================
+[2025-10-21 14:36:10] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 172Mi | CPU: 254m
+[2025-10-21 14:36:10] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:10] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 176m
+[2025-10-21 14:36:10] [INFO] Total Memory: 475Mi / 18432Mi (2%)
+[2025-10-21 14:36:10] [INFO] =======================================
+[2025-10-21 14:36:16] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 67m
+[2025-10-21 14:36:16] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:16] [INFO] Pod: s3icebergintegrationtest-20774f9a080e65ed-exec-1 | Memory: 526Mi | CPU: 636m
+[2025-10-21 14:36:16] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 3m
+[2025-10-21 14:36:17] [INFO] Pod: spark-s3-iceberg-test-driver | Memory: 557Mi | CPU: 1185m
+[2025-10-21 14:36:17] [INFO] Total Memory: 1405Mi / 18432Mi (7%)
+[2025-10-21 14:36:17] [INFO] =======================================
+[2025-10-21 14:36:22] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 67m
+[2025-10-21 14:36:22] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:23] [INFO] Pod: s3icebergintegrationtest-20774f9a080e65ed-exec-1 | Memory: 526Mi | CPU: 636m
+[2025-10-21 14:36:23] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 3m
+[2025-10-21 14:36:23] [INFO] Pod: spark-s3-iceberg-test-driver | Memory: 557Mi | CPU: 1185m
+[2025-10-21 14:36:23] [INFO] Total Memory: 1405Mi / 18432Mi (7%)
+[2025-10-21 14:36:23] [INFO] =======================================
+[2025-10-21 14:36:28] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:36:29] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:29] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 4m
+[2025-10-21 14:36:29] [INFO] Pod: spark-s3-iceberg-test-driver | Memory: 670Mi | CPU: 450m
+[2025-10-21 14:36:29] [INFO] Total Memory: 992Mi / 18432Mi (5%)
+[2025-10-21 14:36:29] [INFO] =======================================
+[2025-10-21 14:36:34] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:36:35] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:35] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 4m
+[2025-10-21 14:36:35] [INFO] Total Memory: 322Mi / 18432Mi (1%)
+[2025-10-21 14:36:35] [INFO] =======================================
+[2025-10-21 14:36:40] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:36:40] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:41] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 4m
+[2025-10-21 14:36:41] [INFO] Total Memory: 322Mi / 18432Mi (1%)
+[2025-10-21 14:36:41] [INFO] =======================================
+[2025-10-21 14:36:46] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:36:46] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:47] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 2m
+[2025-10-21 14:36:47] [INFO] Total Memory: 322Mi / 18432Mi (1%)
+[2025-10-21 14:36:47] [INFO] =======================================
+[2025-10-21 14:36:52] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:36:52] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 16Mi | CPU: 2m
+[2025-10-21 14:36:52] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 287Mi | CPU: 2m
+[2025-10-21 14:36:52] [INFO] Total Memory: 322Mi / 18432Mi (1%)
+[2025-10-21 14:36:52] [INFO] =======================================
+[2025-10-21 14:36:58] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:36:58] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:36:58] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 292Mi | CPU: 77m
+[2025-10-21 14:36:58] [INFO] Total Memory: 328Mi / 18432Mi (1%)
+[2025-10-21 14:36:58] [INFO] =======================================
+[2025-10-21 14:37:04] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:37:04] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:04] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 292Mi | CPU: 77m
+[2025-10-21 14:37:04] [INFO] Total Memory: 328Mi / 18432Mi (1%)
+[2025-10-21 14:37:04] [INFO] =======================================
+[2025-10-21 14:37:10] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:37:10] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:10] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 292Mi | CPU: 77m
+[2025-10-21 14:37:10] [INFO] Total Memory: 328Mi / 18432Mi (1%)
+[2025-10-21 14:37:10] [INFO] =======================================
+[2025-10-21 14:37:15] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:37:16] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:16] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 23m
+[2025-10-21 14:37:16] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:16] [INFO] =======================================
+[2025-10-21 14:37:21] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:37:21] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:22] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 23m
+[2025-10-21 14:37:22] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:22] [INFO] =======================================
+[2025-10-21 14:37:27] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:37:27] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:28] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 35m
+[2025-10-21 14:37:28] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:28] [INFO] =======================================
+[2025-10-21 14:37:33] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:37:33] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:33] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 35m
+[2025-10-21 14:37:33] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:33] [INFO] =======================================
+[2025-10-21 14:37:39] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 1m
+[2025-10-21 14:37:39] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:39] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 35m
+[2025-10-21 14:37:39] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:39] [INFO] =======================================
+[2025-10-21 14:37:45] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:37:45] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:45] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 10m
+[2025-10-21 14:37:45] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:45] [INFO] =======================================
+[2025-10-21 14:37:50] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:37:51] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:51] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 10m
+[2025-10-21 14:37:51] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:51] [INFO] =======================================
+[2025-10-21 14:37:56] [INFO] Pod: batch-analytics-spark-operator-controller-5b989ddb4d-bvxz6 | Memory: 19Mi | CPU: 2m
+[2025-10-21 14:37:57] [INFO] Pod: batch-analytics-spark-operator-webhook-8447fb4b4-g76mn | Memory: 17Mi | CPU: 2m
+[2025-10-21 14:37:57] [INFO] Pod: spark-history-server-694b9f55bd-9rvxk | Memory: 297Mi | CPU: 10m
+[2025-10-21 14:37:57] [INFO] Total Memory: 333Mi / 18432Mi (1%)
+[2025-10-21 14:37:57] [INFO] =======================================

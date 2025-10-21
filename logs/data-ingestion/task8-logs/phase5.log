@@ -1,23 +1,23 @@
-[2025-10-07 15:14:49] [INFO] Phase 5: === Starting Phase 5: Performance Benchmarking ===
-[2025-10-07 15:14:49] [INFO] Phase 5: Executing performance benchmark...
-[2025-10-07 15:14:49] Phase 5: === Starting Phase 5: Performance Benchmarking ===
-[2025-10-07 15:14:49] Phase 5: Starting performance benchmark: 1000 events/sec for 60 seconds
-[2025-10-07 15:14:49] Phase 5: Setting up performance test database...
-[2025-10-07 15:14:51] Phase 5: ✅ Performance test table ready
-[2025-10-07 15:14:51] Phase 5: Starting load generation...
-[2025-10-07 15:15:51] Phase 5: Waiting for all batches to complete...
-[2025-10-07 15:15:56] Phase 5: 
+[2025-10-21 13:53:28] [INFO] Phase 5: === Starting Phase 5: Performance Benchmarking ===
+[2025-10-21 13:53:29] [INFO] Phase 5: Executing performance benchmark...
+[2025-10-21 13:53:29] Phase 5: === Starting Phase 5: Performance Benchmarking ===
+[2025-10-21 13:53:29] Phase 5: Starting performance benchmark: 1000 events/sec for 60 seconds
+[2025-10-21 13:53:29] Phase 5: Setting up performance test database...
+[2025-10-21 13:53:31] Phase 5: ✅ Performance test table ready
+[2025-10-21 13:53:31] Phase 5: Starting load generation...
+[2025-10-21 13:54:31] Phase 5: Waiting for all batches to complete...
+[2025-10-21 13:54:36] Phase 5: 
 === Performance Benchmark Results ===
-[2025-10-07 15:15:56] Phase 5: Events sent: 65800
-[2025-10-07 15:15:56] Phase 5: Duration: 65.04 seconds
-[2025-10-07 15:15:56] Phase 5: Actual rate: 1011.68 events/sec
-[2025-10-07 15:15:56] Phase 5: Target achieved: ✅ YES
-[2025-10-07 15:15:56] Phase 5: Errors: 0
-[2025-10-07 15:15:56] Phase 5: Average batch latency: 66.22ms
-[2025-10-07 15:15:56] Phase 5: P50 batch latency: 65.41ms
-[2025-10-07 15:15:56] Phase 5: P95 batch latency: 73.72ms
-[2025-10-07 15:15:56] Phase 5: P99 batch latency: 83.44ms
-[2025-10-07 15:15:56] Phase 5: Latency target (<500ms avg): ✅ YES
-[2025-10-07 15:15:56] Phase 5: Detailed results written to: E:/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/task8-logs/performance-results.txt
-[2025-10-07 15:15:56] Phase 5: ✅ Phase 5 completed successfully - performance targets achieved
-[2025-10-07 15:15:56] [INFO] Phase 5: ✅ Performance benchmark completed successfully
+[2025-10-21 13:54:36] Phase 5: Events sent: 65800
+[2025-10-21 13:54:36] Phase 5: Duration: 65.03 seconds
+[2025-10-21 13:54:36] Phase 5: Actual rate: 1011.79 events/sec
+[2025-10-21 13:54:36] Phase 5: Target achieved: ✅ YES
+[2025-10-21 13:54:36] Phase 5: Errors: 0
+[2025-10-21 13:54:36] Phase 5: Average batch latency: 37.19ms
+[2025-10-21 13:54:36] Phase 5: P50 batch latency: 35.77ms
+[2025-10-21 13:54:36] Phase 5: P95 batch latency: 47.23ms
+[2025-10-21 13:54:36] Phase 5: P99 batch latency: 52.77ms
+[2025-10-21 13:54:36] Phase 5: Latency target (<500ms avg): ✅ YES
+[2025-10-21 13:54:36] Phase 5: Detailed results written to: E:/Projects/DataPipe/1-data-ingestion-pipeline/../logs/data-ingestion/task8-logs/performance-results.txt
+[2025-10-21 13:54:36] Phase 5: ✅ Phase 5 completed successfully - performance targets achieved
+[2025-10-21 13:54:36] [INFO] Phase 5: ✅ Performance benchmark completed successfully
