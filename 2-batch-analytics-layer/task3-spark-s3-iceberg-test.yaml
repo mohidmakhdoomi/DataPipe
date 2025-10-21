@@ -261,9 +261,14 @@ data:
             print("Checking table metadata...")
             spark.sql(f"DESCRIBE TABLE {table_name}").show()
             
-            # Test partitioning
-            print("Checking partitions...")
-            spark.sql(f"SHOW PARTITIONS {table_name}").show()
+            # Test partitioning with Iceberg-specific commands
+            print("Checking Iceberg table partitions...")
+            # Use Iceberg metadata tables to inspect partitions
+            spark.sql(f"SELECT * FROM {table_name}.partitions").show()
+            
+            # Alternative: Check data files and their partition values
+            print("Checking data files and partition info...")
+            spark.sql(f"SELECT file_path, partition FROM {table_name}.files").show()
             
             # Test append operation
             print("Testing append operation...")
@@ -279,15 +284,28 @@ data:
             print(f"Total records after append: {final_df.count()}")
             final_df.show()
             
-            print("✓ Iceberg table operations successful")
+
+            
+            # Test partition filtering
+            print("Testing partition filtering...")
+            partition_filtered_df = spark.sql(f"""
+                SELECT * FROM {table_name} 
+                WHERE date = '2024-01-01' AND hour = 10
+            """)
+            print(f"Records for date=2024-01-01, hour=10: {partition_filtered_df.count()}")
+            partition_filtered_df.show()
+            
+            print("✓ Iceberg table operations and partitioning successful")
             
             # Test 4: Time travel (if supported)
             print("\n4. Testing Iceberg time travel...")
             try:
                 # Get table history
+                print("Table history:")
                 spark.sql(f"SELECT * FROM {table_name}.history").show()
                 
                 # Get snapshots
+                print("Table snapshots:")
                 spark.sql(f"SELECT * FROM {table_name}.snapshots").show()
                 
                 print("✓ Iceberg time travel features working")
