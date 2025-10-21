@@ -1,0 +1,79 @@
+{
+  "Rules": [
+    {
+      "ID": "BatchAnalyticsDataLakeLifecycle",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "iceberg/"
+      },
+      "Transitions": [
+        {
+          "Days": 30,
+          "StorageClass": "STANDARD_IA"
+        },
+        {
+          "Days": 90,
+          "StorageClass": "GLACIER"
+        },
+        {
+          "Days": 365,
+          "StorageClass": "DEEP_ARCHIVE"
+        }
+      ],
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 7
+      }
+    },
+    {
+      "ID": "TestDataCleanup",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "test/"
+      },
+      "Expiration": {
+        "Days": 7
+      },
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 1
+      }
+    },
+    {
+      "ID": "SparkCheckpointsCleanup",
+      "Status": "Enabled",
+      "Filter": {
+        "Prefix": "spark-checkpoints/"
+      },
+      "Expiration": {
+        "Days": 30
+      },
+      "AbortIncompleteMultipartUpload": {
+        "DaysAfterInitiation": 3
+      }
+    },
+    {
+      "ID": "IcebergMetadataOptimization",
+      "Status": "Enabled",
+      "Filter": {
+        "And": {
+          "Prefix": "iceberg/",
+          "Tags": [
+            {
+              "Key": "DataType",
+              "Value": "metadata"
+            }
+          ]
+        }
+      },
+      "Transitions": [
+        {
+          "Days": 30,
+          "StorageClass": "STANDARD_IA"
+        },
+        {
+          "Days": 60,
+          "StorageClass": "GLACIER"
+        }
+      ]
+    }
+  ]
+}

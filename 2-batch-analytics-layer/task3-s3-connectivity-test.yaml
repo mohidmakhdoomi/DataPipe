@@ -1,0 +1,116 @@
+# S3 Connectivity Test Job for Batch Analytics Layer
+# Tests S3 access, read/write permissions, and Iceberg integration
+# Run this job to validate S3 configuration before proceeding
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: s3-connectivity-test
+  namespace: batch-analytics
+  labels:
+    app: s3-connectivity-test
+    component: test-job
+    test-type: connectivity
+spec:
+  template:
+    metadata:
+      labels:
+        app: s3-connectivity-test
+    spec:
+      serviceAccountName: s3-access-sa
+      restartPolicy: Never
+      containers:
+      - name: s3-test
+        image: amazon/aws-cli:2.13.25
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          set -e
+          echo "=== AWS S3 Connectivity Test ==="
+          echo "Testing S3 access for batch analytics layer..."
+          
+          # Test AWS CLI configuration
+          echo "1. Testing AWS CLI configuration..."
+          aws --version
+          aws sts get-caller-identity || echo "Warning: STS call failed, but S3 might still work"
+          
+          # Test S3 bucket access
+          echo "2. Testing S3 bucket access..."
+          BUCKET_NAME=$(echo $AWS_S3_BUCKET)
+          echo "Target bucket: $BUCKET_NAME"
+          
+          # List bucket contents (should work if bucket exists and we have permissions)
+          echo "3. Testing bucket listing..."
+          aws s3 ls s3://$BUCKET_NAME/ || echo "Bucket listing failed - bucket may not exist or no permissions"
+          
+          # Test write permissions
+          echo "4. Testing write permissions..."
+          TEST_FILE="test-connectivity-$(date +%s).txt"
+          echo "Batch analytics layer connectivity test - $(date)" > /tmp/$TEST_FILE
+          aws s3 cp /tmp/$TEST_FILE s3://$BUCKET_NAME/test/$TEST_FILE || echo "Write test failed"
+          
+          # Test read permissions
+          echo "5. Testing read permissions..."
+          aws s3 cp s3://$BUCKET_NAME/test/$TEST_FILE /tmp/downloaded-$TEST_FILE || echo "Read test failed"
+          
+          # Compare files
+          if [ -f "/tmp/downloaded-$TEST_FILE" ]; then
+            echo "6. Verifying file integrity..."
+            if cmp -s /tmp/$TEST_FILE /tmp/downloaded-$TEST_FILE; then
+              echo "✓ File integrity verified - S3 read/write working correctly"
+            else
+              echo "✗ File integrity check failed"
+            fi
+          fi
+          
+          # Cleanup test file
+          echo "7. Cleaning up test files..."
+          aws s3 rm s3://$BUCKET_NAME/test/$TEST_FILE || echo "Cleanup failed"
+          
+          # Test Iceberg warehouse path
+          echo "8. Testing Iceberg warehouse path..."
+          aws s3 ls s3://$BUCKET_NAME/iceberg-warehouse/ || echo "Iceberg path doesn't exist yet - will be created by Spark jobs"
+          
+          echo "=== S3 Connectivity Test Complete ==="
+          echo "Check the logs above for any errors or warnings"
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: aws-s3-credentials
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: aws-s3-credentials
+              key: AWS_SECRET_ACCESS_KEY
+        - name: AWS_DEFAULT_REGION
+          valueFrom:
+            secretKeyRef:
+              name: aws-s3-credentials
+              key: AWS_DEFAULT_REGION
+        - name: AWS_S3_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: aws-s3-credentials
+              key: AWS_S3_BUCKET
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 250m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+  backoffLimit: 3
+  activeDeadlineSeconds: 300

@@ -1,0 +1,59 @@
+# Spark Operator Helm Values for Batch Analytics Layer
+# Resource-constrained configuration for 12Gi total allocation
+# Uses existing service accounts from Task 1
+
+
+# Use pre-existing service accounts from Task 1
+controller:
+  # serviceAccount:
+  #   create: false
+  #   name: "spark-operator-sa"
+  volumes:
+  # - name: event-log-volume
+  #   persistentVolumeClaim:
+  #     claimName: spark-history-pvc
+  - name: tmp
+    emptyDir: {}
+  volumeMounts:
+  # - name: event-log-volume
+  #   mountPath: /var/spark-events
+  - name: tmp
+    mountPath: /tmp
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+spark:
+  jobNamespaces:
+  - batch-analytics
+  - default
+  
+  # serviceAccount:
+  #   create: false
+  #   name: "spark-driver-sa"  # Default SA for driver pods
+
+# Webhook configuration
+webhook:
+  enable: true
+  port: 8443  # Use standard webhook port to avoid conflict with metrics
+  resourceQuotaEnforcement:
+    enable: false
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# # Metrics configuration
+# prometheus:
+#   metrics:
+#     enable: true
+#     port: 8080  # Metrics on 8080
+#     endpoint: /metrics

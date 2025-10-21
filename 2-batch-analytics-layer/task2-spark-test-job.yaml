@@ -1,0 +1,96 @@
+# Test SparkApplication for Batch Analytics Layer
+# Validates Spark Operator deployment and resource allocation
+# Includes Iceberg configuration placeholders for future use
+
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: spark-batch-test
+  namespace: batch-analytics
+  labels:
+    app: spark
+    component: test-job
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: spark:4.0.1-hadoop-aws-iceberg
+  imagePullPolicy: Never
+  mainApplicationFile: local:///opt/spark/examples/src/main/python/pi.py
+  arguments: 
+  - "1000"
+  sparkVersion: 4.0.1
+  sparkConf:
+    # Event Log Configuration for History Server
+    "spark.eventLog.enabled": "true"
+    "spark.eventLog.dir": "file:///var/spark-events"
+    
+    # Performance Configuration
+    "spark.sql.adaptive.enabled": "true"
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+    "spark.sql.adaptive.skewJoin.enabled": "true"
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
+      
+    # "spark.kubernetes.driver.annotation.prometheus.io/scrape": "true"
+    # "spark.kubernetes.driver.annotation.prometheus.io/path": "/metrics/executors/prometheus/"
+    # "spark.kubernetes.driver.annotation.prometheus.io/port": "4040"
+    # "spark.kubernetes.driver.service.annotation.prometheus.io/scrape": "true"
+    # "spark.kubernetes.driver.service.annotation.prometheus.io/path": "/metrics/driver/prometheus/"
+    # "spark.kubernetes.driver.service.annotation.prometheus.io/port": "4040"
+    # "spark.ui.prometheus.enabled": "true"
+    # "spark.executor.processTreeMetrics.enabled": "true"
+    # "spark.metrics.conf.*.sink.prometheusServlet.class": "org.apache.spark.metrics.sink.PrometheusServlet"
+    # "spark.metrics.conf.driver.sink.prometheusServlet.path": "/metrics/driver/prometheus/"
+    # "spark.metrics.conf.executor.sink.prometheusServlet.path": "/metrics/executors/prometheus/"
+  restartPolicy:
+    type: Never
+  volumes:
+    - name: event-log-volume
+      persistentVolumeClaim:
+        claimName: spark-history-pvc
+  driver:
+    cores: 1
+    memory: 3g  # Reduced to fit within quota
+    serviceAccount: spark-driver-sa
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsGroup: 185
+      runAsUser: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+    - name: event-log-volume
+      mountPath: /var/spark-events
+  executor:
+    cores: 2
+    instances: 2
+    memory: 4g  # 2 executors * 2g = 4Gi total
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsGroup: 185
+      runAsUser: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+      - name: event-log-volume
+        mountPath: /var/spark-events
+# # Monitoring and observability
+# monitoring:
+#   enabled: true
+#   prometheus:
+#     jmxExporterJar: "/prometheus/jmx_prometheus_javaagent-0.17.2.jar"
+
+# monitoring:
+#   exposeDriverMetrics: true
+#   exposeExecutorMetrics: true
+#   prometheus:
+#     jmxExporterJar: /prometheus/jmx_prometheus_javaagent-0.17.2.jarjmx_prometheus_javaagent-0.11.0.jar
+#     port: 8090
