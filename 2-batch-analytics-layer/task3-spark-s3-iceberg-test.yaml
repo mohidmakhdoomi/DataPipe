@@ -15,9 +15,9 @@ spec:
   type: Python
   pythonVersion: "3"
   mode: cluster
-  image: apache/spark:4.0.0
-  imagePullPolicy: IfNotPresent
-  mainApplicationFile: local:///opt/spark/work-dir/s3_iceberg_test.py
+  image: spark:4.0.1-hadoop-aws-iceberg
+  imagePullPolicy: Never
+  mainApplicationFile: local:///opt/spark/scripts/s3_iceberg_test.py
   sparkVersion: 4.0.0
   
   # Spark Configuration for S3 and Iceberg
@@ -26,9 +26,12 @@ spec:
     "spark.eventLog.enabled": "true"
     "spark.eventLog.dir": "file:///var/spark-events"
     
+    "spark.kubernetes.executor.securityContext.fsGroup": "185"
+    "spark.kubernetes.driver.securityContext.fsGroup": "185"
+
     # S3 Configuration
     "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    "spark.hadoop.fs.s3a.aws.credentials.provider": "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider"
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider"
     "spark.hadoop.fs.s3a.endpoint": "s3.amazonaws.com"
     "spark.hadoop.fs.s3a.path.style.access": "false"
     "spark.hadoop.fs.s3a.connection.maximum": "200"
@@ -37,13 +40,11 @@ spec:
     "spark.hadoop.fs.s3a.server-side-encryption-algorithm": "AES256"
     
     # Iceberg Configuration
-    "spark.jars.packages": "org.apache.iceberg:iceberg-spark-runtime-3.4_2.12:1.4.2,software.amazon.awssdk:bundle:2.17.257,org.apache.hadoop:hadoop-aws:3.3.4"
     "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
     "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
     "spark.sql.catalog.spark_catalog.type": "hive"
     "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
     "spark.sql.catalog.iceberg.type": "hadoop"
-    "spark.sql.catalog.iceberg.warehouse": "s3://data-lake-warehouse/"
     
     # Performance Configuration
     "spark.sql.adaptive.enabled": "true"
@@ -63,11 +64,13 @@ spec:
   - name: test-script-volume
     configMap:
       name: s3-test-scripts
-  
   driver:
     cores: 1
     memory: 2g
-    serviceAccount: s3-access-sa
+    serviceAccount: spark-driver-sa
+    podSecurityContext:
+      fsGroup: 185
+      fsGroupChangePolicy: "OnRootMismatch"
     env:
     - name: AWS_ACCESS_KEY_ID
       valueFrom:
@@ -105,12 +108,16 @@ spec:
     - name: s3-config-volume
       mountPath: /opt/spark/conf/s3-config
     - name: test-script-volume
-      mountPath: /opt/spark/work-dir
-  
+      mountPath: /opt/spark/scripts
+      readOnly: true
   executor:
     cores: 1
     instances: 1
     memory: 2g
+    podSecurityContext:
+      fsGroup: 185
+      fsGroupChangePolicy: "OnRootMismatch"
+    deleteOnTermination: false
     env:
     - name: AWS_ACCESS_KEY_ID
       valueFrom:
@@ -177,7 +184,7 @@ data:
             .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
             .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog") \
             .config("spark.sql.catalog.iceberg.type", "hadoop") \
-            .config("spark.sql.catalog.iceberg.warehouse", f"s3://{os.getenv('AWS_S3_BUCKET')}/") \
+            .config("spark.sql.catalog.iceberg.warehouse", f"s3a://{os.getenv('AWS_S3_BUCKET')}/iceberg-warehouse/") \
             .getOrCreate()
         
         try:

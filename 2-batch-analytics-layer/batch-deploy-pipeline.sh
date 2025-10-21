@@ -85,6 +85,8 @@ main() {
     
     bash task2-deploy-spark-operator.sh
 
+    bash task3-setup-s3-access.sh
+
     stop_monitoring
 
     log "========== SUCCESS - Batch Analytics Pipeline deployment completed =========="
