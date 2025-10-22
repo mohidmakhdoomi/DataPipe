@@ -14,12 +14,12 @@ spec:
   type: Python
   pythonVersion: "3"
   mode: cluster
-  image: spark:4.0.1-hadoop-aws-iceberg
+  image: spark:3.5.7-hadoop-aws-iceberg-snowflake
   imagePullPolicy: Never
   mainApplicationFile: local:///opt/spark/examples/src/main/python/pi.py
   arguments: 
   - "1000"
-  sparkVersion: 4.0.1
+  sparkVersion: 3.5.7
   sparkConf:
     # Event Log Configuration for History Server
     "spark.eventLog.enabled": "true"

@@ -15,10 +15,10 @@ spec:
   type: Python
   pythonVersion: "3"
   mode: cluster
-  image: spark:4.0.1-hadoop-aws-iceberg
+  image: spark:3.5.7-hadoop-aws-iceberg-snowflake
   imagePullPolicy: Never
   mainApplicationFile: local:///opt/spark/scripts/s3_iceberg_test.py
-  sparkVersion: 4.0.1
+  sparkVersion: 3.5.7
   
   # Spark Configuration for S3 and Iceberg
   sparkConf:
@@ -31,7 +31,8 @@ spec:
 
     # S3 Configuration
     "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider"
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.EnvironmentVariableCredentialsProvider"
+    # "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider"
     "spark.hadoop.fs.s3a.endpoint": "s3.amazonaws.com"
     "spark.hadoop.fs.s3a.path.style.access": "false"
     "spark.hadoop.fs.s3a.connection.maximum": "200"
