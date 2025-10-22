@@ -28,8 +28,8 @@
    - Set up monitoring and logging for test execution
 
 4. **Successful Connection Validation**
-   - ✅ **Connection established** to real Snowflake account (WYC17911)
-   - ✅ **Authentication successful** with user MOHIDHM
+   - ✅ **Connection established** to real Snowflake account
+   - ✅ **Authentication successful** with user BATCH_ANALYTICS_USER
    - ✅ **Warehouse accessible** (COMPUTE_WH)
    - ✅ **Spark-Snowflake connector operational**
 
@@ -39,9 +39,9 @@
 🚀 Snowflake Connectivity Test Results:
 ==================================
 ✅ Connection Test: PASSED
-   - Account: WYC17911
-   - User: MOHIDHM  
-   - Role: ACCOUNTADMIN
+   - Account: *REDACTED*
+   - User: BATCH_ANALYTICS_USER  
+   - Role: TRANSFORMER
    - Warehouse: COMPUTE_WH
    - Connection Time: ~3 seconds
 
@@ -82,7 +82,7 @@ kubectl get sparkapplication snowflake-test-job -n batch-analytics
 ## 🔧 Technical Implementation Details
 
 ### Connection Configuration
-- **Account**: Real Snowflake account (WYC17911.snowflakecomputing.com)
+- **Account**: Real Snowflake account
 - **Authentication**: Username/password with role-based access
 - **Warehouse**: COMPUTE_WH with auto-suspend (5 minutes)
 - **SSL/TLS**: Enabled for secure connections
@@ -98,7 +98,7 @@ kubectl get sparkapplication snowflake-test-job -n batch-analytics
 - **Credential Storage**: Kubernetes secrets with base64 encoding
 - **Access Control**: Service account-based RBAC
 - **Network Security**: HTTPS-only connections
-- **Role Management**: ACCOUNTADMIN role with appropriate permissions
+- **Role Management**: TRANSFORMER role with appropriate permissions
 
 ## 📈 Performance Metrics
 
