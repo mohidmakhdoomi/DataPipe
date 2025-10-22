@@ -28,7 +28,6 @@ This task sets up Snowflake connection and authentication for the batch analytic
 ### Configuration Files
 - `task4-snowflake-secrets.yaml.example` - Template for Snowflake credentials
 - `task4-snowflake-secrets.yaml` - Actual secrets (with placeholder values)
-- `task4-snowflake-connectivity-test.yaml` - Basic connectivity test
 - `task4-snowflake-test-job.yaml` - Comprehensive test job with Python script
 
 ### Scripts
