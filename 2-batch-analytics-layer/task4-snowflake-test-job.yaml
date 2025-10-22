@@ -1,0 +1,348 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: snowflake-test-script
+  namespace: batch-analytics
+  labels:
+    app: snowflake-test
+    component: test-script
+data:
+  test-snowflake-connection.py: |
+    from pyspark.sql import SparkSession
+    import os
+    import sys
+    
+    def test_snowflake_connection():
+        """Test Snowflake connectivity and basic operations"""
+        
+        print("🔧 Initializing Spark session with Snowflake connector...")
+        
+        # Initialize Spark session with Snowflake connector
+        spark = SparkSession.builder \
+            .appName("SnowflakeConnectivityTest") \
+            .config("spark.sql.adaptive.enabled", "true") \
+            .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
+            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
+            .getOrCreate()
+        # spark = SparkSession.builder \
+        #     .appName("SnowflakeConnectivityTest") \
+        #     .config("spark.jars.packages", "net.snowflake:spark-snowflake_2.12:3.1.5") \
+        #     .config("spark.sql.adaptive.enabled", "true") \
+        #     .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
+        #     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
+        #     .getOrCreate()
+        
+        # Get Snowflake connection parameters from environment
+        snowflake_options = {
+            "sfURL": os.getenv("SNOWFLAKE_ACCOUNT", ""),
+            "sfUser": os.getenv("SNOWFLAKE_USER", ""),
+            "sfPassword": os.getenv("SNOWFLAKE_PASSWORD", ""),
+            "sfRole": os.getenv("SNOWFLAKE_ROLE", "TRANSFORMER"),
+            "sfWarehouse": os.getenv("SNOWFLAKE_WAREHOUSE", "COMPUTE_WH"),
+            "sfDatabase": os.getenv("SNOWFLAKE_DATABASE", "ECOMMERCE_DW"),
+            "sfSchema": os.getenv("SNOWFLAKE_SCHEMA", "RAW")
+        }
+        
+        print(f"📊 Testing connection to Snowflake account: {snowflake_options['sfURL']}")
+        print(f"🏢 Database: {snowflake_options['sfDatabase']}")
+        print(f"📁 Schema: {snowflake_options['sfSchema']}")
+        print(f"🏭 Warehouse: {snowflake_options['sfWarehouse']}")
+        
+        try:
+            # Test 1: Basic connection test
+            print("\n🧪 Test 1: Basic connection and warehouse validation...")
+            
+            test_query = """
+            SELECT 
+                CURRENT_ACCOUNT() as account,
+                CURRENT_USER() as user,
+                CURRENT_ROLE() as role,
+                CURRENT_WAREHOUSE() as warehouse,
+                CURRENT_DATABASE() as database,
+                CURRENT_SCHEMA() as schema,
+                CURRENT_TIMESTAMP() as timestamp
+            """
+            
+            df = spark.read \
+                .format("snowflake") \
+                .options(**snowflake_options) \
+                .option("query", test_query) \
+                .load()
+            
+            print("✅ Connection successful! Current session details:")
+            df.show(truncate=False)
+            
+            # Test 2: Database and schema validation
+            print("\n🧪 Test 2: Database and schema structure validation...")
+            
+            schema_query = """
+            SELECT 
+                SCHEMA_NAME,
+                CREATED,
+                COMMENT
+            FROM INFORMATION_SCHEMA.SCHEMATA 
+            WHERE CATALOG_NAME = CURRENT_DATABASE()
+            ORDER BY SCHEMA_NAME
+            """
+            
+            schema_df = spark.read \
+                .format("snowflake") \
+                .options(**snowflake_options) \
+                .option("query", schema_query) \
+                .load()
+            
+            print("📁 Available schemas in database:")
+            schema_df.show(truncate=False)
+            
+            # Test 3: Warehouse information
+            print("\n🧪 Test 3: Warehouse configuration validation...")
+            
+            warehouse_query = """
+            SHOW WAREHOUSES LIKE 'COMPUTE_WH'
+            """
+            
+            try:
+                warehouse_df = spark.read \
+                    .format("snowflake") \
+                    .options(**snowflake_options) \
+                    .option("query", warehouse_query) \
+                    .load()
+                
+                print("🏭 Warehouse configuration:")
+                warehouse_df.show(truncate=False)
+            except Exception as e:
+                print(f"⚠️  Warehouse query failed (may be permission issue): {str(e)}")
+            
+            # Test 4: Create test table and insert data
+            print("\n🧪 Test 4: Table creation and data insertion test...")
+            
+            # Create test data
+            test_data = [
+                ("test_1", "2024-01-01", 100.50, "bronze"),
+                ("test_2", "2024-01-02", 250.75, "silver"),
+                ("test_3", "2024-01-03", 500.00, "gold")
+            ]
+            
+            columns = ["id", "date", "amount", "tier"]
+            test_df = spark.createDataFrame(test_data, columns)
+            
+            print("📝 Test data to insert:")
+            test_df.show()
+            
+            # Write test data to Snowflake
+            test_df.write \
+                .format("snowflake") \
+                .options(**snowflake_options) \
+                .option("dbtable", "CONNECTIVITY_TEST") \
+                .mode("overwrite") \
+                .save()
+            
+            print("✅ Test table created and data inserted successfully!")
+            
+            # Test 5: Read back the data
+            print("\n🧪 Test 5: Data retrieval validation...")
+            
+            read_df = spark.read \
+                .format("snowflake") \
+                .options(**snowflake_options) \
+                .option("dbtable", "CONNECTIVITY_TEST") \
+                .load()
+            
+            print("📖 Data read back from Snowflake:")
+            read_df.show()
+            
+            # Test 6: Aggregation query
+            print("\n🧪 Test 6: Aggregation query test...")
+            
+            agg_query = """
+            SELECT 
+                tier,
+                COUNT(*) as record_count,
+                SUM(amount) as total_amount,
+                AVG(amount) as avg_amount
+            FROM CONNECTIVITY_TEST
+            GROUP BY tier
+            ORDER BY tier
+            """
+            
+            agg_df = spark.read \
+                .format("snowflake") \
+                .options(**snowflake_options) \
+                .option("query", agg_query) \
+                .load()
+            
+            print("📊 Aggregation results:")
+            agg_df.show()
+            
+            # Cleanup: Drop test table
+            print("\n🧹 Cleaning up test table...")
+            
+            cleanup_query = "DROP TABLE IF EXISTS CONNECTIVITY_TEST"
+            
+            spark.read \
+                .format("snowflake") \
+                .options(**snowflake_options) \
+                .option("query", cleanup_query) \
+                .load()
+            
+            print("✅ Test table cleaned up successfully!")
+            
+            print("\n🎉 All Snowflake connectivity tests passed successfully!")
+            print("✅ Connection established")
+            print("✅ Database and schema accessible")
+            print("✅ Table creation and data insertion working")
+            print("✅ Data retrieval and aggregation working")
+            print("✅ Cleanup operations working")
+            
+            return True
+            
+        except Exception as e:
+            print(f"\n❌ Snowflake connectivity test failed: {str(e)}")
+            print(f"🔍 Error type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            return False
+            
+        finally:
+            spark.stop()
+    
+    if __name__ == "__main__":
+        print("🚀 Starting Snowflake connectivity test...")
+        print("=" * 60)
+        
+        success = test_snowflake_connection()
+        
+        print("=" * 60)
+        if success:
+            print("✅ Snowflake connectivity test completed successfully!")
+            sys.exit(0)
+        else:
+            print("❌ Snowflake connectivity test failed!")
+            sys.exit(1)
+---
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: snowflake-test-job
+  namespace: batch-analytics
+  labels:
+    app: snowflake-test
+    component: connectivity-test
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: spark:3.5.7-hadoop-aws-iceberg-snowflake
+  imagePullPolicy: Never
+  mainApplicationFile: local:///opt/spark/scripts/test-snowflake-connection.py
+  sparkVersion: 3.5.7
+  restartPolicy:
+    type: Never
+  
+  # Resource allocation for connectivity test
+  driver:
+    cores: 1
+    coreLimit: "1200m"
+    memory: "2g"
+    memoryOverhead: "512m"
+    serviceAccount: spark-driver-sa
+    podSecurityContext:
+      fsGroup: 185
+      fsGroupChangePolicy: "OnRootMismatch"
+    env:
+    - name: SNOWFLAKE_ACCOUNT
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_ACCOUNT
+    - name: SNOWFLAKE_USER
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_USER
+    - name: SNOWFLAKE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_PASSWORD
+    - name: SNOWFLAKE_ROLE
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_ROLE
+    - name: SNOWFLAKE_WAREHOUSE
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_WAREHOUSE
+    - name: SNOWFLAKE_DATABASE
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_DATABASE
+    - name: SNOWFLAKE_SCHEMA
+      valueFrom:
+        secretKeyRef:
+          name: snowflake-credentials
+          key: SNOWFLAKE_SCHEMA
+    volumeMounts:
+    - name: event-log-volume
+      mountPath: /var/spark-events
+    - name: test-script
+      mountPath: /opt/spark/scripts
+      readOnly: true
+    - name: snowflake-config
+      mountPath: /opt/spark/conf/snowflake
+      readOnly: true
+  
+  executor:
+    cores: 1
+    instances: 1
+    memory: "2g"
+    memoryOverhead: "512m"
+    serviceAccount: spark-executor-sa
+    podSecurityContext:
+      fsGroup: 185
+      fsGroupChangePolicy: "OnRootMismatch"
+    deleteOnTermination: false
+    volumeMounts:
+    - name: event-log-volume
+      mountPath: /var/spark-events
+  
+  # Spark configuration for Snowflake connectivity
+  sparkConf:
+    "spark.eventLog.enabled": "true"
+    "spark.eventLog.dir": "file:///var/spark-events"
+
+    "spark.kubernetes.executor.securityContext.fsGroup": "185"
+    "spark.kubernetes.driver.securityContext.fsGroup": "185"
+
+    # "spark.jars.packages": "net.snowflake:spark-snowflake_2.12:3.1.5"
+    "spark.sql.adaptive.enabled": "true"
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
+    "spark.executor.extraJavaOptions": "-Dcom.amazonaws.services.s3.enableV4=true"
+    "spark.driver.extraJavaOptions": "-Dcom.amazonaws.services.s3.enableV4=true"
+  
+  volumes:
+  - name: event-log-volume
+    persistentVolumeClaim:
+      claimName: spark-history-pvc
+  - name: test-script
+    configMap:
+      name: snowflake-test-script
+  - name: snowflake-config
+    configMap:
+      name: snowflake-config
+  
+  # # Monitoring and debugging
+  # monitoring:
+  #   exposeDriverMetrics: true
+  #   exposeExecutorMetrics: true
+  #   prometheus:
+  #     jmxExporterJar: "/prometheus/jmx_prometheus_javaagent-0.17.2.jar"
+  #     port: 8090
+  
+  # # Node selector for batch processing
+  # nodeSelector:
+  #   kubernetes.io/os: linux
