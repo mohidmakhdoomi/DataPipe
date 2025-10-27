@@ -85,7 +85,10 @@ Phase 4: Production (Tasks 13-16)
   - Test basic Iceberg operations: create, read, update, delete
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 6. Create Iceberg tables for e-commerce data
+- [x] 6. Create Iceberg tables for e-commerce data
+
+
+
   - Create `user_events` table with date and hour partitioning
   - Create `transactions` table with date partitioning
   - Configure proper data types: strings for UUIDs, decimals for pricing
