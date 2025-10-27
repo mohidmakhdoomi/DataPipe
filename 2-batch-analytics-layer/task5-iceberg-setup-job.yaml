@@ -266,6 +266,8 @@ data:
         logger.info("Creating user_events table...")
         
         try:
+            spark.sql("DROP TABLE IF EXISTS iceberg.ecommerce.user_events")
+
             create_table_sql = """
             CREATE TABLE IF NOT EXISTS iceberg.ecommerce.user_events (
                 event_id string,
@@ -314,6 +316,8 @@ data:
         logger.info("Creating transactions table...")
         
         try:
+            spark.sql("DROP TABLE IF EXISTS iceberg.ecommerce.transactions")
+            
             create_table_sql = """
             CREATE TABLE IF NOT EXISTS iceberg.ecommerce.transactions (
                 transaction_id string,
@@ -358,6 +362,8 @@ data:
         logger.info("Creating products table...")
         
         try:
+            spark.sql("DROP TABLE IF EXISTS iceberg.ecommerce.products")
+
             create_table_sql = """
             CREATE TABLE IF NOT EXISTS iceberg.ecommerce.products (
                 product_id string,
@@ -548,6 +554,10 @@ data:
             new_df = spark.createDataFrame(new_event_data, new_schema)
             new_df.writeTo("iceberg.ecommerce.user_events").append()
             logger.info("✅ Insert with new schema successful")
+
+            logger.info("Dropping newly added column from user_events table...")
+            spark.sql("ALTER TABLE iceberg.ecommerce.user_events DROP COLUMN user_segment")
+            logger.info("✅ Schema evolution (DROP COLUMN) successful")
             
             return True
             
