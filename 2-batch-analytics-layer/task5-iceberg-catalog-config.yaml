@@ -1,0 +1,161 @@
+# Apache Iceberg Catalog Configuration for Batch Analytics Layer
+# This configures Iceberg with S3 backend for ACID transactions and schema evolution
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iceberg-catalog-config
+  namespace: batch-analytics
+  labels:
+    app: iceberg
+    component: catalog
+data:
+  # Iceberg Catalog Configuration
+  catalog.properties: |
+    # Hadoop Catalog Configuration
+    catalog-impl=org.apache.iceberg.hadoop.HadoopCatalog
+    # warehouse=s3://<s3_bucket>/iceberg-warehouse/
+    
+    # File Format Configuration
+    write.format.default=parquet
+    write.parquet.compression-codec=snappy
+    write.metadata.compression-codec=gzip
+    write.target-file-size-bytes=134217728  # 128MB
+    
+    # Table Properties
+    commit.retry.num-retries=4
+    commit.retry.min-wait-ms=100
+    commit.retry.max-wait-ms=60000
+    
+    # Snapshot Management
+    history.expire.max-snapshot-age-ms=432000000  # 5 days
+    history.expire.min-snapshots-to-keep=100
+    
+    # Compaction Settings
+    write.merge.mode=copy-on-write
+    write.delete.mode=copy-on-write
+    write.update.mode=copy-on-write
+    
+  # Spark Iceberg Configuration
+  spark-iceberg.conf: |
+    # Iceberg Spark Extensions
+    spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+    spark.sql.catalog.spark_catalog=org.apache.iceberg.spark.SparkSessionCatalog
+    spark.sql.catalog.spark_catalog.type=hive
+    spark.sql.catalog.iceberg=org.apache.iceberg.spark.SparkCatalog
+    spark.sql.catalog.iceberg.type=hadoop
+    # spark.sql.catalog.iceberg.warehouse=s3://<s3_bucket>/iceberg-warehouse/
+    
+    # S3 Configuration for Iceberg
+    spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+    spark.hadoop.fs.s3a.aws.credentials.provider=org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
+    spark.hadoop.fs.s3a.endpoint=s3.amazonaws.com
+    spark.hadoop.fs.s3a.path.style.access=false
+    
+    # Performance Optimization
+    spark.hadoop.fs.s3a.connection.maximum=200
+    spark.hadoop.fs.s3a.threads.max=64
+    spark.hadoop.fs.s3a.multipart.size=104857600
+    spark.hadoop.fs.s3a.multipart.threshold=134217728
+    spark.hadoop.fs.s3a.fast.upload=true
+    spark.hadoop.fs.s3a.fast.upload.buffer=disk
+    
+    # Iceberg Performance Settings
+    spark.sql.adaptive.enabled=true
+    spark.sql.adaptive.coalescePartitions.enabled=true
+    spark.sql.adaptive.skewJoin.enabled=true
+    
+  # Table Schema Definitions
+  table-schemas.sql: |
+    -- User Events Table with Proper Partitioning
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.user_events (
+        event_id string,
+        user_id string,
+        session_id string,
+        event_type string,
+        timestamp timestamp,
+        device_type string,
+        browser string,
+        ip_address string,
+        page_url string,
+        product_id string,
+        search_query string,
+        transaction_id string,
+        user_tier string,
+        properties string,
+        processing_time timestamp,
+        date date,
+        hour int
+    ) USING iceberg
+    PARTITIONED BY (date, hour)
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip',
+        'commit.retry.num-retries'='4',
+        'history.expire.max-snapshot-age-ms'='432000000',
+        'history.expire.min-snapshots-to-keep'='100'
+    );
+    
+    -- Transactions Table
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.transactions (
+        transaction_id string,
+        user_id string,
+        product_id string,
+        quantity int,
+        unit_price decimal(10,2),
+        total_amount decimal(10,2),
+        discount_amount decimal(10,2),
+        tax_amount decimal(10,2),
+        status string,
+        payment_method string,
+        user_tier string,
+        created_at timestamp,
+        date date
+    ) USING iceberg
+    PARTITIONED BY (date)
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip',
+        'commit.retry.num-retries'='4',
+        'history.expire.max-snapshot-age-ms'='432000000',
+        'history.expire.min-snapshots-to-keep'='100'
+    );
+    
+    -- Products Table for Reference Data
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.products (
+        product_id string,
+        name string,
+        category string,
+        subcategory string,
+        brand string,
+        price decimal(10,2),
+        description string,
+        created_at timestamp,
+        updated_at timestamp
+    ) USING iceberg
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip'
+    );
+---
+# Service for Iceberg operations
+apiVersion: v1
+kind: Service
+metadata:
+  name: iceberg-catalog-service
+  namespace: batch-analytics
+  labels:
+    app: iceberg
+    component: catalog
+spec:
+  selector:
+    app: iceberg
+    component: catalog
+  ports:
+  - name: catalog
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
