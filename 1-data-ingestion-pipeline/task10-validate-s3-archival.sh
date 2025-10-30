@@ -37,7 +37,7 @@ get_pod_names() {
     fi
     
     log "Using pods:"
-    log "  Kafka Connect S3: $connect_s3_pod"
+    log "  Kafka Connect: $connect_s3_pod"
     log "  PostgreSQL: $postgres_pod"
     log "  Kafka: $kafka_pod"
     
@@ -121,7 +121,7 @@ test_s3_data_flow() {
         local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
         
         log "Checking S3 path: $(echo "$s3_path" | awk -F "${S3_BUCKET}/" '{print $2}')"
-        local aws_out=$(aws s3 ls "$s3_path" --region us-east-1)
+        local aws_out=$(aws s3 ls "$s3_path" --recursive --region us-east-1)
         if echo "$aws_out" | grep -q ".parquet"; then
             log "✅ Parquet files found in S3"
             
@@ -151,23 +151,23 @@ validate_parquet_structure() {
     local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
     
     # List files and get the first Parquet file
-    local parquet_file=$(aws s3 ls "$s3_path" 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
+    local parquet_file=$(aws s3 ls "$s3_path" --recursive 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
 
     if [[ -z "$parquet_file" ]]; then
         previous_hour=$(printf "%02g\n" $((hour - 1)))
         s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${previous_hour}/"
-        parquet_file=$(aws s3 ls "$s3_path" 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
+        parquet_file=$(aws s3 ls "$s3_path" --recursive 2>/dev/null | grep ".parquet" | head -1 | awk '{print $4}')
     fi
     
     if [[ -n "$parquet_file" ]]; then
         log "Found Parquet file: $parquet_file"
         
         # Download and inspect the file (basic validation)
-        local full_s3_path="${s3_path}${parquet_file}"
+        local full_s3_path="s3://${S3_BUCKET}/${parquet_file}"
         log "Parquet file location: $(echo "$full_s3_path" | awk -F "${S3_BUCKET}" '{print $2}')"
         
         # Check file size
-        local file_size=$(aws s3 ls "$full_s3_path" --region us-east-1 2>/dev/null | awk '{print $3}')
+        local file_size=$(aws s3 ls "$full_s3_path" --recursive --region us-east-1 2>/dev/null | awk '{print $3}')
         
         if [[ -n "$file_size" && "$file_size" -gt "0" ]]; then
             log "✅ Parquet file has valid size: $file_size bytes"
