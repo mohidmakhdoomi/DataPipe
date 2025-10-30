@@ -14,11 +14,11 @@
    - ✅ Fixed AWS S3 bucket environment variable issue
    - ✅ Successfully wrote and read test data to/from S3
    - ✅ Validated S3 permissions and access
-   - ✅ Confirmed S3 path: `s3a://<s3_bucket>/iceberg-test/`
+   - ✅ Confirmed S3 path: `s3a://data-s3-bucket/iceberg-test/`
 
 2. **Iceberg Catalog Configuration**
    - ✅ Created Hadoop-based Iceberg catalog with S3 backend
-   - ✅ Configured warehouse path: `s3a://<s3_bucket>/iceberg-warehouse/`
+   - ✅ Configured warehouse path: `s3a://data-s3-bucket/iceberg-warehouse/`
    - ✅ Set up proper file format (Parquet) and compression (Snappy)
    - ✅ Established namespace: `iceberg.ecommerce`
 
@@ -59,7 +59,7 @@ Core Iceberg functionality: 100% operational
 
 ### S3 Iceberg Warehouse Structure
 ```
-s3://<s3_bucket>/iceberg-warehouse/
+s3://data-s3-bucket/iceberg-warehouse/
 ├── ecommerce/
 │   ├── user_events/
 │   │   └── metadata/
@@ -85,7 +85,7 @@ s3://<s3_bucket>/iceberg-warehouse/
 ```properties
 # Catalog Settings
 catalog-impl=org.apache.iceberg.hadoop.HadoopCatalog
-warehouse=s3a://<s3_bucket>/iceberg-warehouse/
+warehouse=s3a://data-s3-bucket/iceberg-warehouse/
 
 # Performance Optimization  
 write.format.default=parquet
@@ -199,7 +199,7 @@ CREATE TABLE iceberg.ecommerce.transactions (
 ### Verify Iceberg Setup
 ```bash
 # Check S3 warehouse structure
-aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ --recursive
+aws s3 ls s3://data-s3-bucket/iceberg-warehouse/ --recursive
 
 # Verify Kubernetes resources
 kubectl get configmaps,services -n batch-analytics | grep iceberg

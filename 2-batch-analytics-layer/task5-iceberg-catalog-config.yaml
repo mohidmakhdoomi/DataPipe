@@ -14,7 +14,7 @@ data:
   catalog.properties: |
     # Hadoop Catalog Configuration
     catalog-impl=org.apache.iceberg.hadoop.HadoopCatalog
-    # warehouse=s3://<s3_bucket>/iceberg-warehouse/
+    # warehouse=s3://data-s3-bucket/iceberg-warehouse/
     
     # File Format Configuration
     write.format.default=parquet
@@ -44,7 +44,7 @@ data:
     spark.sql.catalog.spark_catalog.type=hive
     spark.sql.catalog.iceberg=org.apache.iceberg.spark.SparkCatalog
     spark.sql.catalog.iceberg.type=hadoop
-    # spark.sql.catalog.iceberg.warehouse=s3://<s3_bucket>/iceberg-warehouse/
+    # spark.sql.catalog.iceberg.warehouse=s3://data-s3-bucket/iceberg-warehouse/
     
     # S3 Configuration for Iceberg
     spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem

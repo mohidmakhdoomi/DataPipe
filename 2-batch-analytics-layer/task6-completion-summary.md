@@ -217,7 +217,7 @@ write.update.mode=copy-on-write
 
 ### S3 Warehouse Structure
 ```
-s3://<s3_bucket>/iceberg-warehouse/ecommerce/
+s3://data-s3-bucket/iceberg-warehouse/ecommerce/
 ├── user_events/
 │   └── metadata/
 │       ├── v1.gz.metadata.json
@@ -300,7 +300,7 @@ The tables are fully operational and ready for production use. Sample data can b
 ### Verify Table Creation
 ```bash
 # Check S3 warehouse structure
-aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ecommerce/ --recursive
+aws s3 ls s3://data-s3-bucket/iceberg-warehouse/ecommerce/ --recursive
 
 # Verify Kubernetes resources
 kubectl get configmaps,services,sparkapplications -n batch-analytics | grep ecommerce

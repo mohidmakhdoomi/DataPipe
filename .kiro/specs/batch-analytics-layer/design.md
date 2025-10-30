@@ -101,7 +101,7 @@ spark:
     spark.sql.catalog.spark_catalog.type: "hive"
     spark.sql.catalog.iceberg: "org.apache.iceberg.spark.SparkCatalog"
     spark.sql.catalog.iceberg.type: "hadoop"
-    spark.sql.catalog.iceberg.warehouse: "s3://data-lake-warehouse/"
+    spark.sql.catalog.iceberg.warehouse: "s3://data-s3-bucket/"
 ```
 
 **Batch Job Structure**:
@@ -112,7 +112,7 @@ object BatchAnalyticsApp extends App {
     .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
     .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
     .config("spark.sql.catalog.iceberg.type", "hadoop")
-    .config("spark.sql.catalog.iceberg.warehouse", "s3://data-lake-warehouse/")
+    .config("spark.sql.catalog.iceberg.warehouse", "s3://data-s3-bucket/")
     .getOrCreate()
   
   import spark.implicits._
@@ -173,7 +173,7 @@ def calculateUserSessions(events: DataFrame): DataFrame = {
 ```yaml
 iceberg:
   catalog_type: "hadoop"
-  warehouse_location: "s3://data-lake-warehouse/"
+  warehouse_location: "s3://data-s3-bucket/"
   file_format: "parquet"
   compression: "snappy"
   table_properties:

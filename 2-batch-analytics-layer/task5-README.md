@@ -74,10 +74,10 @@ After successful completion, verify the Iceberg warehouse structure:
 
 ```bash
 # List Iceberg warehouse contents
-aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ --recursive
+aws s3 ls s3://data-s3-bucket/iceberg-warehouse/ --recursive
 
 # Check namespace structure
-aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ecommerce/
+aws s3 ls s3://data-s3-bucket/iceberg-warehouse/ecommerce/
 ```
 
 ## Configuration Details
@@ -87,7 +87,7 @@ aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ecommerce/
 ```properties
 # Hadoop Catalog Settings
 catalog-impl=org.apache.iceberg.hadoop.HadoopCatalog
-warehouse=s3://<s3_bucket>/iceberg-warehouse/
+warehouse=s3://data-s3-bucket/iceberg-warehouse/
 
 # File Format Optimization
 write.format.default=parquet
@@ -221,7 +221,7 @@ spark.hadoop.fs.s3a.fast.upload=true
    kubectl get secret aws-s3-credentials -n batch-analytics -o yaml
    
    # Test S3 access manually
-   aws s3 ls s3://<s3_bucket>/
+   aws s3 ls s3://data-s3-bucket/
    ```
 
 2. **Spark Job Fails to Start**
@@ -236,7 +236,7 @@ spark.hadoop.fs.s3a.fast.upload=true
 3. **Iceberg Catalog Issues**
    ```bash
    # Check warehouse path accessibility
-   aws s3 ls s3://<s3_bucket>/iceberg-warehouse/
+   aws s3 ls s3://data-s3-bucket/iceberg-warehouse/
    
    # Verify Iceberg dependencies
    kubectl logs <driver-pod-name> -n batch-analytics | grep -i iceberg

@@ -257,7 +257,7 @@ show_next_steps() {
     echo "   kubectl logs <driver-pod-name> -n $NAMESPACE"
     echo
     echo "2. Check S3 warehouse structure:"
-    echo "   aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ecommerce/ --recursive"
+    echo "   aws s3 ls s3://data-s3-bucket/iceberg-warehouse/ecommerce/ --recursive"
     echo
     echo "3. Proceed to Task 7:"
     echo "   Implement Spark batch processing jobs"

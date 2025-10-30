@@ -66,7 +66,7 @@ Your AWS credentials need the following permissions:
 export AWS_ACCESS_KEY_ID="your-access-key-id"
 export AWS_SECRET_ACCESS_KEY="your-secret-access-key"
 export AWS_DEFAULT_REGION="us-east-1"
-export AWS_S3_BUCKET="data-lake-warehouse"
+export AWS_S3_BUCKET="data-s3-bucket"
 ```
 
 ### 2. Run the Setup Script
@@ -225,7 +225,7 @@ The S3 lifecycle policy includes:
 2. **S3 Bucket Access Denied**
    ```bash
    # Check bucket permissions
-   aws s3 ls s3://your-bucket-name/
+   aws s3 ls s3://data-s3-bucket/
    
    # Verify bucket policy and IAM permissions
    ```
@@ -242,7 +242,7 @@ The S3 lifecycle policy includes:
 4. **Iceberg Table Creation Fails**
    ```bash
    # Check S3 permissions for warehouse path
-   aws s3 ls s3://your-bucket-name/iceberg-warehouse/
+   aws s3 ls s3://data-s3-bucket/iceberg-warehouse/
    
    # Verify Iceberg dependencies are loaded
    kubectl describe sparkapplication spark-s3-iceberg-test -n batch-analytics

@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 readonly NAMESPACE="batch-analytics"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
-BUCKET_NAME="${AWS_S3_BUCKET:-data-lake-warehouse}"
+BUCKET_NAME="${AWS_S3_BUCKET:-data-s3-bucket}"
 AWS_REGION="${AWS_DEFAULT_REGION:-us-east-1}"
 
 echo -e "${BLUE}=== AWS S3 Access Configuration Setup ===${NC}"

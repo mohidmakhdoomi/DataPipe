@@ -443,7 +443,7 @@ CREATE TABLE s3_cdc_events (
 )
 PARTITIONED BY (year, month, day, hour)
 STORED AS PARQUET
-LOCATION 's3://datapipe-ingestion-123/cdc-events/'
+LOCATION 's3://data-s3-bucket/cdc-events/'
 ```
 
 ## Error Handling

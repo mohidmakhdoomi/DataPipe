@@ -244,7 +244,7 @@ show_next_steps() {
     echo "   kubectl logs -f <driver-pod-name> -n $NAMESPACE"
     echo
     echo "3. Verify S3 bucket contents:"
-    echo "   aws s3 ls s3://<s3_bucket>/iceberg-warehouse/ --recursive"
+    echo "   aws s3 ls s3://data-s3-bucket/iceberg-warehouse/ --recursive"
     echo
     echo "4. Once job completes successfully, proceed to Task 6:"
     echo "   Create Iceberg tables for e-commerce data"
