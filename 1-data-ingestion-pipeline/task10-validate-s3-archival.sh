@@ -126,9 +126,8 @@ test_s3_data_flow() {
         local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
         
         log "Checking S3 path: $(echo "$s3_path" | awk -F "${S3_BUCKET}/" '{print $2}')"
-        local aws_out=$(aws s3 ls "$s3_path" --recursive --region us-east-1 2>/dev/null)
-        local test_out=$(echo "$aws_out" | head -20)
-        log "$test_out"
+        local aws_out=$(aws s3 ls "$s3_path" --recursive --region us-east-1 2>/dev/null | head -20)
+        log "$aws_out"
         if [[ -n "$aws_out" ]] && (echo "$aws_out" | grep -q ".parquet"); then
             log "✅ Parquet files found in S3"            
             return 0
