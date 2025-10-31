@@ -92,6 +92,8 @@ main() {
 
     bash task4-setup-snowflake.sh
 
+    bash task5-setup-iceberg.sh
+
     stop_monitoring
 
     log "========== SUCCESS - Batch Analytics Pipeline deployment completed =========="

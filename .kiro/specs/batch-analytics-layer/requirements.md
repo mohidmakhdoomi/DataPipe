@@ -4,21 +4,41 @@
 
 This document outlines the requirements for a comprehensive batch analytics layer that processes data from AWS S3 using Apache Iceberg, Spark batch processing, and loads results into Snowflake for business intelligence. The system includes dbt transformations for creating business-ready data marts and ensures eventual consistency with the speed layer.
 
+The data being processed originates from the following PostgreSQL e-commerce database tables:
+- **users**: Customer information including email, names, and timestamps
+- **products**: Product catalog with names, descriptions, pricing, and inventory
+- **orders**: Order records with user references, status, amounts, and shipping details  
+- **order_items**: Individual line items linking orders to products with quantities and pricing
+
+This transactional data flows through the data ingestion pipeline via Change Data Capture (CDC) to S3 as Parquet files, which are then processed by this batch analytics layer to create comprehensive business intelligence and reporting capabilities.
+
 The pipeline will be designed for local development and deployment using Docker Desktop on Windows with Kubernetes (kind provisioner), while connecting to real cloud services (AWS S3 and Snowflake) for storage and data warehousing.
+
+## Glossary
+
+- **PostgreSQL Source Tables**: The original transactional database tables that feed the analytics pipeline
+- **users table**: Contains customer records with id, email, first_name, last_name, created_at, updated_at
+- **products table**: Contains product catalog with id, name, description, price, stock_quantity, category, timestamps
+- **orders table**: Contains order records with id, user_id, status, total_amount, shipping_address, timestamps
+- **order_items table**: Contains order line items with id, order_id, product_id, quantity, unit_price, created_at
+- **Batch Analytics Layer**: The comprehensive analytics system processing S3 data through Spark and Iceberg
+- **Iceberg**: Apache table format providing ACID transactions and schema evolution for data lake
+- **Lambda Architecture**: Architecture pattern with speed layer (real-time) and batch layer (comprehensive accuracy)
 
 ## Requirements
 
 ### Requirement 1: Data Lake Processing with Iceberg
 
-**User Story:** As a data engineer, I want to process data from S3 using Apache Iceberg table format, so that I can leverage ACID transactions and schema evolution for reliable batch processing.
+**User Story:** As a data engineer, I want to process e-commerce data from S3 using Apache Iceberg table format, so that I can leverage ACID transactions and schema evolution for reliable batch processing of PostgreSQL source data.
 
 #### Acceptance Criteria
 
 1. WHEN batch processing is required THEN Spark SHALL read data from S3 using Iceberg table format
-2. WHEN data is processed THEN Iceberg SHALL provide ACID transaction capabilities
-3. WHEN schemas evolve THEN Iceberg SHALL handle schema evolution without data rewrites
-4. WHEN time travel is needed THEN Iceberg SHALL support snapshot isolation and rollback
-5. WHEN data compaction is required THEN Iceberg SHALL optimize file layouts automatically
+2. WHEN PostgreSQL source data is processed THEN the system SHALL handle users, products, orders, and order_items table structures
+3. WHEN data is processed THEN Iceberg SHALL provide ACID transaction capabilities
+4. WHEN schemas evolve THEN Iceberg SHALL handle schema evolution without data rewrites for PostgreSQL table changes
+5. WHEN time travel is needed THEN Iceberg SHALL support snapshot isolation and rollback
+6. WHEN data compaction is required THEN Iceberg SHALL optimize file layouts automatically
 
 ### Requirement 2: Comprehensive Data Warehousing
 
@@ -52,9 +72,8 @@ The pipeline will be designed for local development and deployment using Docker 
 
 1. WHEN reconciliation is performed THEN the system SHALL compare ClickHouse and Snowflake data
 2. WHEN data discrepancies are found THEN the system SHALL alert and provide detailed reports
-3. WHEN UUID conversion is needed THEN the system SHALL handle ClickHouse UUID to Snowflake STRING conversion
-4. WHEN consistency validation runs THEN it SHALL check user sessions and transaction data
-5. WHEN reconciliation completes THEN the system SHALL document convergence status and timing
+3. WHEN consistency validation runs THEN it SHALL check user sessions and transaction data
+4. WHEN reconciliation completes THEN the system SHALL document convergence status and timing
 
 ### Requirement 5: Local Development Environment
 
@@ -66,7 +85,7 @@ The pipeline will be designed for local development and deployment using Docker 
 2. WHEN using Kubernetes THEN the system SHALL use kind provisioner with Spark Operator
 3. WHEN connecting to cloud services THEN the system SHALL connect to real AWS S3 and Snowflake instances
 4. WHEN Spark batch jobs run THEN they SHALL execute on Kubernetes with proper resource allocation
-5. WHEN running locally THEN the system SHALL require no more than 5Gi RAM for operation
+5. WHEN running locally THEN the system SHALL require no more than 18Gi RAM for operation
 
 ### Requirement 6: E-commerce Business Intelligence
 

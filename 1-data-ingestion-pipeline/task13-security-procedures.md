@@ -517,7 +517,7 @@ kubectl patch secret schema-registry-auth -n data-ingestion \
 kubectl exec -n data-ingestion deployment/kafka-connect -- aws sts get-caller-identity
 
 # Test S3 bucket access
-kubectl exec -n data-ingestion deployment/kafka-connect -- aws s3 ls s3://your-bucket/
+kubectl exec -n data-ingestion deployment/kafka-connect -- aws s3 ls s3://data-s3-bucket/
 ```
 
 **Solution:**

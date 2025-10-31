@@ -27,37 +27,37 @@ aws configure --profile myprofile
 
 ### List Available Tables
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --list-tables
+python s3_parquet_query.py --bucket data-s3-bucket --list-tables
 ```
 
 ### Query All Records from Users Table
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --days 7 --limit 100
+python s3_parquet_query.py --bucket data-s3-bucket --table users --days 7 --limit 100
 ```
 
 ### Get Only Deleted Records
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --deleted-only --days 30
+python s3_parquet_query.py --bucket data-s3-bucket --table users --deleted-only --days 30
 ```
 
 ### Get User Change History
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --user-id "550e8400-e29b-41d4-a716-446655440000" --days 30
+python s3_parquet_query.py --bucket data-s3-bucket --table users --user-id "550e8400-e29b-41d4-a716-446655440000" --days 30
 ```
 
 ### Get Operation Summary
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --summary --days 7
+python s3_parquet_query.py --bucket data-s3-bucket --table users --summary --days 7
 ```
 
 ### Select Specific Columns
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --columns "user_id,email,__op,__deleted,__ts_ms" --limit 50
+python s3_parquet_query.py --bucket data-s3-bucket --table users --columns "user_id,email,__op,__ts_ms" --limit 50
 ```
 
 ### Use AWS Profile
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --profile myprofile --days 1
+python s3_parquet_query.py --bucket data-s3-bucket --table users --profile myprofile --days 1
 ```
 
 ## Command Line Options
@@ -82,7 +82,6 @@ The CDC records in S3 contain these key fields:
 
 ### CDC Metadata Fields
 - `__op`: Operation type (`c`=create, `u`=update, `d`=delete, `r`=read/snapshot)
-- `__deleted`: Boolean indicating if record was deleted
 - `__ts_ms`: Timestamp in milliseconds when change occurred
 
 ### Partition Fields
@@ -92,22 +91,22 @@ The CDC records in S3 contain these key fields:
 
 ### Find All Users Deleted Today
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --deleted-only --days 1
+python s3_parquet_query.py --bucket data-s3-bucket --table users --deleted-only --days 1
 ```
 
 ### Track a User's Journey
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --user-id "your-user-id" --days 30
+python s3_parquet_query.py --bucket data-s3-bucket --table users --user-id "your-user-id" --days 30
 ```
 
 ### Monitor Data Quality
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --summary --days 7
+python s3_parquet_query.py --bucket data-s3-bucket --table users --summary --days 7
 ```
 
 ### Export Specific Data
 ```bash
-python s3_parquet_query.py --bucket datapipe-ingestion-123 --table users --columns "user_id,email,tier,__op" --days 7 > user_changes.txt
+python s3_parquet_query.py --bucket data-s3-bucket --table users --columns "user_id,email,tier,__op" --days 7 > user_changes.txt
 ```
 
 ## Troubleshooting

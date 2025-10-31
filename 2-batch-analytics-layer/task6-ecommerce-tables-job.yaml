@@ -1,0 +1,736 @@
+# Task 6: Spark Job to Create Iceberg Tables for E-commerce Data
+# This job creates comprehensive e-commerce tables with proper schemas and sample data
+
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: ecommerce-tables-job
+  namespace: batch-analytics
+  labels:
+    app: iceberg
+    component: ecommerce-tables
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: spark:3.5.7-hadoop-aws-iceberg-snowflake
+  imagePullPolicy: Never
+  mainApplicationFile: local:///opt/spark/scripts/ecommerce_tables.py
+  sparkVersion: 3.5.7
+  restartPolicy:
+    type: Never
+  
+  driver:
+    cores: 1
+    memory: "3g"
+    serviceAccount: spark-driver-sa
+    podSecurityContext:
+      fsGroup: 185
+      fsGroupChangePolicy: "OnRootMismatch"
+    env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_ACCESS_KEY_ID
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_SECRET_ACCESS_KEY
+    - name: AWS_DEFAULT_REGION
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_DEFAULT_REGION
+    - name: AWS_S3_BUCKET
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_S3_BUCKET
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsGroup: 185
+      runAsUser: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+    - name: event-log-volume
+      mountPath: /var/spark-events
+    - name: ecommerce-tables-script
+      mountPath: /opt/spark/scripts
+    - name: ecommerce-config
+      mountPath: /opt/spark/conf/ecommerce
+  
+  executor:
+    cores: 2
+    instances: 2
+    memory: "4g"
+    podSecurityContext:
+      fsGroup: 185
+      fsGroupChangePolicy: "OnRootMismatch"
+    env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_ACCESS_KEY_ID
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_SECRET_ACCESS_KEY
+    - name: AWS_DEFAULT_REGION
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_DEFAULT_REGION
+    - name: AWS_S3_BUCKET
+      valueFrom:
+        secretKeyRef:
+          name: aws-s3-credentials
+          key: AWS_S3_BUCKET
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsGroup: 185
+      runAsUser: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    volumeMounts:
+    - name: event-log-volume
+      mountPath: /var/spark-events
+    - name: ecommerce-tables-script
+      mountPath: /opt/spark/scripts
+    - name: ecommerce-config
+      mountPath: /opt/spark/conf/ecommerce
+  
+  volumes:
+  - name: event-log-volume
+    persistentVolumeClaim:
+      claimName: spark-history-pvc
+  - name: ecommerce-tables-script
+    configMap:
+      name: ecommerce-tables-script
+  - name: ecommerce-config
+    configMap:
+      name: ecommerce-tables-config
+  
+  sparkConf:
+    "spark.eventLog.enabled": "true"
+    "spark.eventLog.dir": "file:///var/spark-events"
+
+    "spark.kubernetes.executor.securityContext.fsGroup": "185"
+    "spark.kubernetes.driver.securityContext.fsGroup": "185"
+
+    # Iceberg Extensions
+    "spark.sql.extensions": "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    "spark.sql.catalog.spark_catalog": "org.apache.iceberg.spark.SparkSessionCatalog"
+    "spark.sql.catalog.spark_catalog.type": "hive"
+    "spark.sql.catalog.iceberg": "org.apache.iceberg.spark.SparkCatalog"
+    "spark.sql.catalog.iceberg.type": "hadoop"
+    
+    # S3 Configuration
+    "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.EnvironmentVariableCredentialsProvider"
+    "spark.hadoop.fs.s3a.endpoint": "s3.amazonaws.com"
+    "spark.hadoop.fs.s3a.path.style.access": "false"
+    "spark.hadoop.fs.s3a.connection.maximum": "200"
+    "spark.hadoop.fs.s3a.threads.max": "64"
+    "spark.hadoop.fs.s3a.multipart.size": "104857600"
+    "spark.hadoop.fs.s3a.multipart.threshold": "134217728"
+    "spark.hadoop.fs.s3a.fast.upload": "true"
+    "spark.hadoop.fs.s3a.fast.upload.buffer": "disk"
+    "spark.hadoop.fs.s3a.server-side-encryption-algorithm": "AES256"
+    
+    # Performance Settings
+    "spark.sql.adaptive.enabled": "true"
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+    "spark.sql.adaptive.skewJoin.enabled": "true"
+    "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
+    
+    # Memory Settings
+    "spark.executor.memoryFraction": "0.8"
+    "spark.sql.shuffle.partitions": "200"
+---
+# ConfigMap containing the Python script for e-commerce table creation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecommerce-tables-script
+  namespace: batch-analytics
+  labels:
+    app: iceberg
+    component: ecommerce-tables-script
+data:
+  ecommerce_tables.py: |
+    #!/usr/bin/env python3
+    """
+    E-commerce Iceberg Tables Creation Script
+    
+    This script:
+    1. Creates comprehensive e-commerce Iceberg tables with proper schemas
+    2. Sets up partitioning strategies for optimal query performance
+    3. Configures table properties for compression and ACID transactions
+    4. Inserts sample data for testing and validation
+    5. Validates table creation and data insertion
+    """
+    
+    import os
+    import sys
+    from datetime import datetime, date
+    from decimal import Decimal
+    from pyspark.sql import SparkSession
+    from pyspark.sql.functions import *
+    from pyspark.sql.types import *
+    import logging
+    
+    # Configure logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    
+    def create_spark_session():
+        """Create Spark session with Iceberg configuration"""
+        logger.info("Creating Spark session with Iceberg configuration...")
+        
+        spark = SparkSession.builder \
+            .appName("EcommerceTablesCreation") \
+            .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
+            .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog") \
+            .config("spark.sql.catalog.spark_catalog.type", "hive") \
+            .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog") \
+            .config("spark.sql.catalog.iceberg.type", "hadoop") \
+            .config("spark.sql.catalog.iceberg.warehouse", f"s3a://{os.getenv('AWS_S3_BUCKET')}/iceberg-warehouse/") \
+            .getOrCreate()
+        
+        logger.info(f"Spark session created successfully. Version: {spark.version}")
+        return spark
+    
+    def create_user_events_table(spark):
+        """Create user_events table with comprehensive schema"""
+        logger.info("Creating user_events table...")
+        
+        try:
+            create_table_sql = """
+            CREATE TABLE IF NOT EXISTS iceberg.ecommerce.user_events (
+                -- Core identifiers
+                event_id string,
+                user_id string,
+                session_id string,
+                
+                -- Event details
+                event_type string,
+                timestamp timestamp,
+                
+                -- Device and browser context
+                device_type string,
+                browser string,
+                ip_address string,
+                
+                -- Event-specific fields
+                page_url string,
+                product_id string,
+                search_query string,
+                transaction_id string,
+                
+                -- User enrichment
+                user_tier string,
+                
+                -- Properties as JSON string
+                properties string,
+                
+                -- Processing metadata
+                processing_time timestamp,
+                
+                -- Partitioning columns
+                date date,
+                hour int
+            ) USING iceberg
+            PARTITIONED BY (date, hour)
+            TBLPROPERTIES (
+                'write.target-file-size-bytes'='134217728',
+                'write.parquet.compression-codec'='snappy',
+                'write.metadata.compression-codec'='gzip',
+                'commit.retry.num-retries'='4',
+                'history.expire.max-snapshot-age-ms'='432000000',
+                'history.expire.min-snapshots-to-keep'='100',
+                'write.merge.mode'='copy-on-write',
+                'write.delete.mode'='copy-on-write',
+                'write.update.mode'='copy-on-write'
+            )
+            """
+            
+            spark.sql(create_table_sql)
+            logger.info("✅ user_events table created successfully")
+            
+            # Verify table creation
+            spark.sql("DESCRIBE TABLE iceberg.ecommerce.user_events").show(truncate=False)
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to create user_events table: {str(e)}")
+            return False
+    
+    def create_transactions_table(spark):
+        """Create transactions table with financial data types"""
+        logger.info("Creating transactions table...")
+        
+        try:
+            create_table_sql = """
+            CREATE TABLE IF NOT EXISTS iceberg.ecommerce.transactions (
+                -- Core identifiers
+                transaction_id string,
+                user_id string,
+                product_id string,
+                
+                -- Transaction details
+                quantity int,
+                unit_price decimal(10,2),
+                total_amount decimal(10,2),
+                discount_amount decimal(10,2),
+                tax_amount decimal(10,2),
+                
+                -- Transaction status and payment
+                status string,
+                payment_method string,
+                
+                -- User context
+                user_tier string,
+                
+                -- Timestamps
+                created_at timestamp,
+                
+                -- Partitioning column
+                date date
+            ) USING iceberg
+            PARTITIONED BY (date)
+            TBLPROPERTIES (
+                'write.target-file-size-bytes'='134217728',
+                'write.parquet.compression-codec'='snappy',
+                'write.metadata.compression-codec'='gzip',
+                'commit.retry.num-retries'='4',
+                'history.expire.max-snapshot-age-ms'='432000000',
+                'history.expire.min-snapshots-to-keep'='100',
+                'write.merge.mode'='copy-on-write',
+                'write.delete.mode'='copy-on-write',
+                'write.update.mode'='copy-on-write'
+            )
+            """
+            
+            spark.sql(create_table_sql)
+            logger.info("✅ transactions table created successfully")
+            
+            # Verify table creation
+            spark.sql("DESCRIBE TABLE iceberg.ecommerce.transactions").show(truncate=False)
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to create transactions table: {str(e)}")
+            return False
+    
+    def create_products_table(spark):
+        """Create products reference table"""
+        logger.info("Creating products table...")
+        
+        try:
+            create_table_sql = """
+            CREATE TABLE IF NOT EXISTS iceberg.ecommerce.products (
+                -- Core identifiers
+                product_id string,
+                
+                -- Product details
+                name string,
+                category string,
+                subcategory string,
+                brand string,
+                price decimal(10,2),
+                description string,
+                
+                -- Metadata
+                created_at timestamp,
+                updated_at timestamp
+            ) USING iceberg
+            TBLPROPERTIES (
+                'write.target-file-size-bytes'='134217728',
+                'write.parquet.compression-codec'='snappy',
+                'write.metadata.compression-codec'='gzip',
+                'commit.retry.num-retries'='4',
+                'history.expire.max-snapshot-age-ms'='432000000',
+                'history.expire.min-snapshots-to-keep'='100'
+            )
+            """
+            
+            spark.sql(create_table_sql)
+            logger.info("✅ products table created successfully")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to create products table: {str(e)}")
+            return False
+    
+    def create_user_sessions_table(spark):
+        """Create user_sessions table for batch processing results"""
+        logger.info("Creating user_sessions table...")
+        
+        try:
+            create_table_sql = """
+            CREATE TABLE IF NOT EXISTS iceberg.ecommerce.user_sessions (
+                -- Core identifiers
+                session_id string,
+                user_id string,
+                user_tier string,
+                
+                -- Session timing
+                session_start timestamp,
+                session_end timestamp,
+                session_duration_minutes decimal(8,2),
+                
+                -- Activity metrics
+                page_views int,
+                product_views int,
+                searches int,
+                add_to_cart_events int,
+                purchases int,
+                
+                -- Financial metrics
+                total_spent decimal(10,2),
+                items_purchased int,
+                
+                -- Session context
+                device_type string,
+                browser string,
+                
+                -- Conversion flags
+                converted_to_purchase boolean,
+                
+                -- Processing metadata
+                loaded_at timestamp,
+                batch_id string,
+                
+                -- Partitioning column
+                date date
+            ) USING iceberg
+            PARTITIONED BY (date)
+            TBLPROPERTIES (
+                'write.target-file-size-bytes'='134217728',
+                'write.parquet.compression-codec'='snappy',
+                'write.metadata.compression-codec'='gzip',
+                'commit.retry.num-retries'='4',
+                'history.expire.max-snapshot-age-ms'='432000000',
+                'history.expire.min-snapshots-to-keep'='100'
+            )
+            """
+            
+            spark.sql(create_table_sql)
+            logger.info("✅ user_sessions table created successfully")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to create user_sessions table: {str(e)}")
+            return False
+    
+    def insert_sample_data(spark):
+        """Insert comprehensive sample data for testing"""
+        logger.info("Inserting sample data...")
+        
+        try:
+            # Sample user events data
+            logger.info("Inserting sample user events...")
+            events_data = [
+                # User 1 - Gold tier - Complete purchase journey
+                ("evt_001", "user_001", "sess_001", "page_view", datetime(2024, 10, 27, 10, 0, 0), 
+                 "desktop", "chrome", "192.168.1.1", "/home", None, None, None, "gold", 
+                 '{"referrer": "google", "campaign": "summer_sale"}', datetime.now(), 
+                 date(2024, 10, 27), 10),
+                ("evt_002", "user_001", "sess_001", "product_view", datetime(2024, 10, 27, 10, 5, 0), 
+                 "desktop", "chrome", "192.168.1.1", "/product/laptop-123", "prod_123", None, None, "gold", 
+                 '{"category": "electronics", "price": 999.99}', datetime.now(), 
+                 date(2024, 10, 27), 10),
+                ("evt_003", "user_001", "sess_001", "add_to_cart", datetime(2024, 10, 27, 10, 10, 0), 
+                 "desktop", "chrome", "192.168.1.1", "/cart", "prod_123", None, None, "gold", 
+                 '{"quantity": 1, "price": 999.99}', datetime.now(), 
+                 date(2024, 10, 27), 10),
+                ("evt_004", "user_001", "sess_001", "purchase", datetime(2024, 10, 27, 10, 15, 0), 
+                 "desktop", "chrome", "192.168.1.1", "/checkout/success", "prod_123", None, "txn_001", "gold", 
+                 '{"amount": 999.99, "payment_method": "credit_card"}', datetime.now(), 
+                 date(2024, 10, 27), 10),
+                
+                # User 2 - Silver tier - Search and browse
+                ("evt_005", "user_002", "sess_002", "search", datetime(2024, 10, 27, 11, 0, 0), 
+                 "mobile", "safari", "192.168.1.2", "/search", None, "gaming laptop", None, "silver", 
+                 '{"query": "gaming laptop", "results_count": 25}', datetime.now(), 
+                 date(2024, 10, 27), 11),
+                ("evt_006", "user_002", "sess_002", "product_view", datetime(2024, 10, 27, 11, 5, 0), 
+                 "mobile", "safari", "192.168.1.2", "/product/laptop-456", "prod_456", None, None, "silver", 
+                 '{"category": "electronics", "price": 1299.99}', datetime.now(), 
+                 date(2024, 10, 27), 11),
+                
+                # User 3 - Bronze tier - Quick purchase
+                ("evt_007", "user_003", "sess_003", "product_view", datetime(2024, 10, 27, 14, 30, 0), 
+                 "tablet", "firefox", "192.168.1.3", "/product/mouse-789", "prod_789", None, None, "bronze", 
+                 '{"category": "accessories", "price": 49.99}', datetime.now(), 
+                 date(2024, 10, 27), 14),
+                ("evt_008", "user_003", "sess_003", "purchase", datetime(2024, 10, 27, 14, 35, 0), 
+                 "tablet", "firefox", "192.168.1.3", "/checkout/success", "prod_789", None, "txn_002", "bronze", 
+                 '{"amount": 99.98, "payment_method": "paypal", "quantity": 2}', datetime.now(), 
+                 date(2024, 10, 27), 14)
+            ]
+            
+            events_schema = StructType([
+                StructField("event_id", StringType(), True),
+                StructField("user_id", StringType(), True),
+                StructField("session_id", StringType(), True),
+                StructField("event_type", StringType(), True),
+                StructField("timestamp", TimestampType(), True),
+                StructField("device_type", StringType(), True),
+                StructField("browser", StringType(), True),
+                StructField("ip_address", StringType(), True),
+                StructField("page_url", StringType(), True),
+                StructField("product_id", StringType(), True),
+                StructField("search_query", StringType(), True),
+                StructField("transaction_id", StringType(), True),
+                StructField("user_tier", StringType(), True),
+                StructField("properties", StringType(), True),
+                StructField("processing_time", TimestampType(), True),
+                StructField("date", DateType(), True),
+                StructField("hour", IntegerType(), True)
+            ])
+            
+            events_df = spark.createDataFrame(events_data, events_schema)
+            events_df.writeTo("iceberg.ecommerce.user_events").append()
+            logger.info("✅ Sample user events inserted successfully")
+            
+            # Sample transactions data
+            logger.info("Inserting sample transactions...")
+            transactions_data = [
+                ("txn_001", "user_001", "prod_123", 1, Decimal("999.99"), Decimal("999.99"), 
+                 Decimal("0.00"), Decimal("79.99"), "completed", "credit_card", "gold", 
+                 datetime(2024, 10, 27, 10, 15, 0), date(2024, 10, 27)),
+                ("txn_002", "user_003", "prod_789", 2, Decimal("49.99"), Decimal("99.98"), 
+                 Decimal("10.00"), Decimal("7.20"), "completed", "paypal", "bronze", 
+                 datetime(2024, 10, 27, 14, 35, 0), date(2024, 10, 27)),
+                ("txn_003", "user_004", "prod_456", 1, Decimal("299.99"), Decimal("299.99"), 
+                 Decimal("30.00"), Decimal("21.60"), "pending", "credit_card", "silver", 
+                 datetime(2024, 10, 27, 16, 45, 0), date(2024, 10, 27))
+            ]
+            
+            transactions_schema = StructType([
+                StructField("transaction_id", StringType(), True),
+                StructField("user_id", StringType(), True),
+                StructField("product_id", StringType(), True),
+                StructField("quantity", IntegerType(), True),
+                StructField("unit_price", DecimalType(10, 2), True),
+                StructField("total_amount", DecimalType(10, 2), True),
+                StructField("discount_amount", DecimalType(10, 2), True),
+                StructField("tax_amount", DecimalType(10, 2), True),
+                StructField("status", StringType(), True),
+                StructField("payment_method", StringType(), True),
+                StructField("user_tier", StringType(), True),
+                StructField("created_at", TimestampType(), True),
+                StructField("date", DateType(), True)
+            ])
+            
+            transactions_df = spark.createDataFrame(transactions_data, transactions_schema)
+            transactions_df.writeTo("iceberg.ecommerce.transactions").append()
+            logger.info("✅ Sample transactions inserted successfully")
+            
+            # Sample products data
+            logger.info("Inserting sample products...")
+            products_data = [
+                ("prod_123", "Gaming Laptop Pro", "Electronics", "Laptops", "TechBrand", 
+                 Decimal("999.99"), "High-performance gaming laptop with RTX graphics", 
+                 datetime(2024, 1, 15, 9, 0, 0), datetime(2024, 10, 1, 12, 0, 0)),
+                ("prod_456", "Gaming Laptop Elite", "Electronics", "Laptops", "TechBrand", 
+                 Decimal("1299.99"), "Premium gaming laptop with advanced cooling", 
+                 datetime(2024, 2, 1, 10, 0, 0), datetime(2024, 9, 15, 14, 30, 0)),
+                ("prod_789", "Wireless Gaming Mouse", "Electronics", "Accessories", "GameGear", 
+                 Decimal("49.99"), "Ergonomic wireless gaming mouse with RGB lighting", 
+                 datetime(2024, 3, 10, 11, 0, 0), datetime(2024, 10, 20, 16, 0, 0)),
+                ("prod_101", "Mechanical Keyboard", "Electronics", "Accessories", "KeyMaster", 
+                 Decimal("299.99"), "RGB mechanical keyboard with cherry switches", 
+                 datetime(2024, 4, 5, 13, 0, 0), datetime(2024, 10, 15, 10, 30, 0))
+            ]
+            
+            products_schema = StructType([
+                StructField("product_id", StringType(), True),
+                StructField("name", StringType(), True),
+                StructField("category", StringType(), True),
+                StructField("subcategory", StringType(), True),
+                StructField("brand", StringType(), True),
+                StructField("price", DecimalType(10, 2), True),
+                StructField("description", StringType(), True),
+                StructField("created_at", TimestampType(), True),
+                StructField("updated_at", TimestampType(), True)
+            ])
+            
+            products_df = spark.createDataFrame(products_data, products_schema)
+            products_df.writeTo("iceberg.ecommerce.products").append()
+            logger.info("✅ Sample products inserted successfully")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to insert sample data: {str(e)}")
+            return False
+    
+    def validate_tables(spark):
+        """Validate table creation and data insertion"""
+        logger.info("Validating table creation and data...")
+        
+        try:
+            # Check user_events table
+            events_count = spark.sql("SELECT COUNT(*) as count FROM iceberg.ecommerce.user_events").collect()[0]['count']
+            logger.info(f"✅ user_events table: {events_count} records")
+            
+            # Check transactions table
+            transactions_count = spark.sql("SELECT COUNT(*) as count FROM iceberg.ecommerce.transactions").collect()[0]['count']
+            logger.info(f"✅ transactions table: {transactions_count} records")
+            
+            # Check products table
+            products_count = spark.sql("SELECT COUNT(*) as count FROM iceberg.ecommerce.products").collect()[0]['count']
+            logger.info(f"✅ products table: {products_count} records")
+            
+            # Show sample data from each table
+            logger.info("Sample data from user_events:")
+            spark.sql("SELECT event_id, user_id, event_type, user_tier, date FROM iceberg.ecommerce.user_events LIMIT 5").show()
+            
+            logger.info("Sample data from transactions:")
+            spark.sql("SELECT transaction_id, user_id, total_amount, status, user_tier FROM iceberg.ecommerce.transactions LIMIT 5").show()
+            
+            logger.info("Sample data from products:")
+            spark.sql("SELECT product_id, name, category, price FROM iceberg.ecommerce.products LIMIT 5").show()
+            
+            # Test partitioning
+            logger.info("Testing partitioning...")
+            partitions = spark.sql("SELECT date, hour, COUNT(*) as events FROM iceberg.ecommerce.user_events GROUP BY date, hour ORDER BY date, hour").collect()
+            for partition in partitions:
+                logger.info(f"Partition {partition['date']} hour {partition['hour']}: {partition['events']} events")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Table validation failed: {str(e)}")
+            return False
+    
+    def test_table_operations(spark):
+        """Test basic table operations"""
+        logger.info("Testing table operations...")
+        
+        try:
+            # Test table properties
+            logger.info("Checking table properties...")
+            properties = spark.sql("SHOW TBLPROPERTIES iceberg.ecommerce.user_events").collect()
+            logger.info("Table properties:")
+            for prop in properties:
+                logger.info(f"  {prop.key}: {prop.value}")
+            
+            # Test schema evolution capability
+            logger.info("Testing schema evolution...")
+            spark.sql("ALTER TABLE iceberg.ecommerce.user_events ADD COLUMN test_column string")
+            logger.info("✅ Schema evolution test successful")
+            
+            # Remove test column
+            spark.sql("ALTER TABLE iceberg.ecommerce.user_events DROP COLUMN test_column")
+            logger.info("✅ Column removal test successful")
+            
+            # Test snapshots
+            logger.info("Checking table snapshots...")
+            snapshots = spark.sql("SELECT * FROM iceberg.ecommerce.user_events.snapshots").collect()
+            logger.info(f"✅ Found {len(snapshots)} snapshots")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Table operations test failed: {str(e)}")
+            return False
+    
+    def main():
+        """Main execution function"""
+        logger.info("🚀 Starting E-commerce Iceberg Tables Creation")
+        
+        # Test results tracking
+        tests = []
+        
+        try:
+            # Create Spark session
+            spark = create_spark_session()
+            tests.append(("Spark Session Creation", True))
+            
+            # Create tables
+            user_events_result = create_user_events_table(spark)
+            tests.append(("User Events Table Creation", user_events_result))
+            
+            transactions_result = create_transactions_table(spark)
+            tests.append(("Transactions Table Creation", transactions_result))
+            
+            products_result = create_products_table(spark)
+            tests.append(("Products Table Creation", products_result))
+            
+            user_sessions_result = create_user_sessions_table(spark)
+            tests.append(("User Sessions Table Creation", user_sessions_result))
+            
+            # Insert sample data
+            sample_data_result = insert_sample_data(spark)
+            tests.append(("Sample Data Insertion", sample_data_result))
+            
+            # Validate tables
+            validation_result = validate_tables(spark)
+            tests.append(("Table Validation", validation_result))
+            
+            # Test table operations
+            operations_result = test_table_operations(spark)
+            tests.append(("Table Operations Test", operations_result))
+            
+            # Print test summary
+            logger.info("\n" + "="*60)
+            logger.info("🎯 E-COMMERCE TABLES CREATION SUMMARY")
+            logger.info("="*60)
+            
+            passed = 0
+            failed = 0
+            
+            for test_name, result in tests:
+                status = "✅ PASSED" if result else "❌ FAILED"
+                logger.info(f"{test_name:.<40} {status}")
+                if result:
+                    passed += 1
+                else:
+                    failed += 1
+            
+            logger.info("-"*60)
+            logger.info(f"Total Tests: {len(tests)} | Passed: {passed} | Failed: {failed}")
+            
+            if failed == 0:
+                logger.info("🎉 ALL TESTS PASSED! E-commerce tables created successfully.")
+                success = True
+            else:
+                logger.error(f"❌ {failed} tests failed. Please check the logs above.")
+                success = False
+            
+            logger.info("="*60)
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"❌ Fatal error in main execution: {str(e)}")
+            return False
+        
+        finally:
+            if 'spark' in locals():
+                spark.stop()
+                logger.info("Spark session stopped")
+    
+    if __name__ == "__main__":
+        success = main()
+        sys.exit(0 if success else 1)

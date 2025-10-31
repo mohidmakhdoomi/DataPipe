@@ -15,8 +15,9 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-NAMESPACE="batch-analytics"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly NAMESPACE="batch-analytics"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
 echo -e "${BLUE}🚀 Task 4: Setting up Snowflake connection and authentication${NC}"
 echo "=================================================================="

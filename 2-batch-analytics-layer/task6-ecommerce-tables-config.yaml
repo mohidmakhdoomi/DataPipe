@@ -1,0 +1,239 @@
+# Task 6: Create Iceberg Tables for E-commerce Data
+# This configuration defines the comprehensive e-commerce table schemas with proper partitioning
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecommerce-tables-config
+  namespace: batch-analytics
+  labels:
+    app: iceberg
+    component: ecommerce-tables
+data:
+  # E-commerce table schemas with business logic
+  ecommerce-schemas.sql: |
+    -- User Events Table with Enhanced Schema
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.user_events (
+        -- Core identifiers
+        event_id string,
+        user_id string,
+        session_id string,
+        
+        -- Event details
+        event_type string,
+        timestamp timestamp,
+        
+        -- Device and browser context
+        device_type string,
+        browser string,
+        ip_address string,
+        
+        -- Event-specific fields
+        page_url string,
+        product_id string,
+        search_query string,
+        transaction_id string,
+        
+        -- User enrichment
+        user_tier string,
+        
+        -- Properties as JSON string
+        properties string,
+        
+        -- Processing metadata
+        processing_time timestamp,
+        
+        -- Partitioning columns
+        date date,
+        hour int
+    ) USING iceberg
+    PARTITIONED BY (date, hour)
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip',
+        'commit.retry.num-retries'='4',
+        'history.expire.max-snapshot-age-ms'='432000000',
+        'history.expire.min-snapshots-to-keep'='100',
+        'write.merge.mode'='copy-on-write',
+        'write.delete.mode'='copy-on-write',
+        'write.update.mode'='copy-on-write'
+    );
+    
+    -- Transactions Table with Financial Data
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.transactions (
+        -- Core identifiers
+        transaction_id string,
+        user_id string,
+        product_id string,
+        
+        -- Transaction details
+        quantity int,
+        unit_price decimal(10,2),
+        total_amount decimal(10,2),
+        discount_amount decimal(10,2),
+        tax_amount decimal(10,2),
+        
+        -- Transaction status and payment
+        status string,
+        payment_method string,
+        
+        -- User context
+        user_tier string,
+        
+        -- Timestamps
+        created_at timestamp,
+        
+        -- Partitioning column
+        date date
+    ) USING iceberg
+    PARTITIONED BY (date)
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip',
+        'commit.retry.num-retries'='4',
+        'history.expire.max-snapshot-age-ms'='432000000',
+        'history.expire.min-snapshots-to-keep'='100',
+        'write.merge.mode'='copy-on-write',
+        'write.delete.mode'='copy-on-write',
+        'write.update.mode'='copy-on-write'
+    );
+    
+    -- Products Table for Reference Data
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.products (
+        -- Core identifiers
+        product_id string,
+        
+        -- Product details
+        name string,
+        category string,
+        subcategory string,
+        brand string,
+        price decimal(10,2),
+        description string,
+        
+        -- Metadata
+        created_at timestamp,
+        updated_at timestamp
+    ) USING iceberg
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip',
+        'commit.retry.num-retries'='4',
+        'history.expire.max-snapshot-age-ms'='432000000',
+        'history.expire.min-snapshots-to-keep'='100'
+    );
+    
+    -- User Sessions Table (Derived from Batch Processing)
+    CREATE TABLE IF NOT EXISTS iceberg.ecommerce.user_sessions (
+        -- Core identifiers
+        session_id string,
+        user_id string,
+        user_tier string,
+        
+        -- Session timing
+        session_start timestamp,
+        session_end timestamp,
+        session_duration_minutes decimal(8,2),
+        
+        -- Activity metrics
+        page_views int,
+        product_views int,
+        searches int,
+        add_to_cart_events int,
+        purchases int,
+        
+        -- Financial metrics
+        total_spent decimal(10,2),
+        items_purchased int,
+        
+        -- Session context
+        device_type string,
+        browser string,
+        
+        -- Conversion flags
+        converted_to_purchase boolean,
+        
+        -- Processing metadata
+        loaded_at timestamp,
+        batch_id string,
+        
+        -- Partitioning column
+        date date
+    ) USING iceberg
+    PARTITIONED BY (date)
+    TBLPROPERTIES (
+        'write.target-file-size-bytes'='134217728',
+        'write.parquet.compression-codec'='snappy',
+        'write.metadata.compression-codec'='gzip',
+        'commit.retry.num-retries'='4',
+        'history.expire.max-snapshot-age-ms'='432000000',
+        'history.expire.min-snapshots-to-keep'='100'
+    );
+    
+  # Sample data for testing table creation
+  sample-data.sql: |
+    -- Sample user events data
+    INSERT INTO iceberg.ecommerce.user_events VALUES
+    ('evt_001', 'user_001', 'sess_001', 'page_view', TIMESTAMP '2024-10-27 10:00:00', 
+     'desktop', 'chrome', '192.168.1.1', '/home', NULL, NULL, NULL, 'gold', 
+     '{"referrer": "google", "campaign": "summer_sale"}', CURRENT_TIMESTAMP(), 
+     DATE '2024-10-27', 10),
+    ('evt_002', 'user_001', 'sess_001', 'product_view', TIMESTAMP '2024-10-27 10:05:00', 
+     'desktop', 'chrome', '192.168.1.1', '/product/laptop-123', 'prod_123', NULL, NULL, 'gold', 
+     '{"category": "electronics", "price": 999.99}', CURRENT_TIMESTAMP(), 
+     DATE '2024-10-27', 10),
+    ('evt_003', 'user_001', 'sess_001', 'add_to_cart', TIMESTAMP '2024-10-27 10:10:00', 
+     'desktop', 'chrome', '192.168.1.1', '/cart', 'prod_123', NULL, NULL, 'gold', 
+     '{"quantity": 1, "price": 999.99}', CURRENT_TIMESTAMP(), 
+     DATE '2024-10-27', 10),
+    ('evt_004', 'user_001', 'sess_001', 'purchase', TIMESTAMP '2024-10-27 10:15:00', 
+     'desktop', 'chrome', '192.168.1.1', '/checkout/success', 'prod_123', NULL, 'txn_001', 'gold', 
+     '{"amount": 999.99, "payment_method": "credit_card"}', CURRENT_TIMESTAMP(), 
+     DATE '2024-10-27', 10),
+    ('evt_005', 'user_002', 'sess_002', 'search', TIMESTAMP '2024-10-27 11:00:00', 
+     'mobile', 'safari', '192.168.1.2', '/search', NULL, 'gaming laptop', NULL, 'silver', 
+     '{"query": "gaming laptop", "results_count": 25}', CURRENT_TIMESTAMP(), 
+     DATE '2024-10-27', 11);
+    
+    -- Sample transactions data
+    INSERT INTO iceberg.ecommerce.transactions VALUES
+    ('txn_001', 'user_001', 'prod_123', 1, 999.99, 999.99, 0.00, 79.99, 
+     'completed', 'credit_card', 'gold', TIMESTAMP '2024-10-27 10:15:00', DATE '2024-10-27'),
+    ('txn_002', 'user_003', 'prod_456', 2, 49.99, 99.98, 10.00, 7.20, 
+     'completed', 'paypal', 'bronze', TIMESTAMP '2024-10-27 14:30:00', DATE '2024-10-27'),
+    ('txn_003', 'user_004', 'prod_789', 1, 299.99, 299.99, 30.00, 21.60, 
+     'pending', 'credit_card', 'silver', TIMESTAMP '2024-10-27 16:45:00', DATE '2024-10-27');
+    
+    -- Sample products data
+    INSERT INTO iceberg.ecommerce.products VALUES
+    ('prod_123', 'Gaming Laptop Pro', 'Electronics', 'Laptops', 'TechBrand', 999.99, 
+     'High-performance gaming laptop with RTX graphics', 
+     TIMESTAMP '2024-01-15 09:00:00', TIMESTAMP '2024-10-01 12:00:00'),
+    ('prod_456', 'Wireless Mouse', 'Electronics', 'Accessories', 'TechBrand', 49.99, 
+     'Ergonomic wireless mouse with precision tracking', 
+     TIMESTAMP '2024-02-01 10:00:00', TIMESTAMP '2024-09-15 14:30:00'),
+    ('prod_789', 'Mechanical Keyboard', 'Electronics', 'Accessories', 'KeyMaster', 299.99, 
+     'RGB mechanical keyboard with cherry switches', 
+     TIMESTAMP '2024-03-10 11:00:00', TIMESTAMP '2024-10-20 16:00:00');
+---
+# Service for table management operations
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-tables-service
+  namespace: batch-analytics
+  labels:
+    app: iceberg
+    component: ecommerce-tables
+spec:
+  selector:
+    app: iceberg
+    component: ecommerce-tables
+  ports:
+  - name: spark-ui
+    port: 4040
+    targetPort: 4040
+  type: ClusterIP
