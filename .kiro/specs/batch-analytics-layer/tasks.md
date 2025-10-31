@@ -231,7 +231,7 @@ Upon completion of all tasks, the batch layer should demonstrate:
 - **dbt Runner**: 1Gi RAM, 0.5 CPU
 - **Storage**: S3 for data lake, Snowflake for data warehouse
 
-## PostgreSQL E-commerce Business Logic Implementation
+## E-commerce Business Logic Implementation
 
 ### Customer Tier Analytics (Based on PostgreSQL Order History)
 - **Bronze Tier** (60% of customers): New customers and low-value purchasers
