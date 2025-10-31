@@ -320,7 +320,8 @@ CREATE TABLE raw.users (
     __source_ts_ms TIMESTAMP_NTZ,
     __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    batch_id STRING
+    batch_id STRING,
+    file_name STRING
 )
 CLUSTER BY (TO_DATE(created_at));
 
@@ -341,7 +342,8 @@ CREATE TABLE raw.products (
     __source_ts_ms TIMESTAMP_NTZ,
     __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    batch_id STRING
+    batch_id STRING,
+    file_name STRING
 )
 CLUSTER BY (TO_DATE(created_at), category);
 
@@ -361,7 +363,8 @@ CREATE TABLE raw.orders (
     __source_ts_ms TIMESTAMP_NTZ,
     __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    batch_id STRING
+    batch_id STRING,
+    file_name STRING
 )
 CLUSTER BY (TO_DATE(created_at), status);
 
@@ -380,7 +383,8 @@ CREATE TABLE raw.order_items (
     __source_ts_ms TIMESTAMP_NTZ,
     __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    batch_id STRING
+    batch_id STRING,
+    file_name STRING
 )
 CLUSTER BY (TO_DATE(created_at));
 ```

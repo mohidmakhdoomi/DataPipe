@@ -72,9 +72,8 @@ The pipeline will be designed for local development and deployment using Docker 
 
 1. WHEN reconciliation is performed THEN the system SHALL compare ClickHouse and Snowflake data
 2. WHEN data discrepancies are found THEN the system SHALL alert and provide detailed reports
-3. WHEN UUID conversion is needed THEN the system SHALL handle ClickHouse UUID to Snowflake STRING conversion
-4. WHEN consistency validation runs THEN it SHALL check user sessions and transaction data
-5. WHEN reconciliation completes THEN the system SHALL document convergence status and timing
+3. WHEN consistency validation runs THEN it SHALL check user sessions and transaction data
+4. WHEN reconciliation completes THEN the system SHALL document convergence status and timing
 
 ### Requirement 5: Local Development Environment
 
@@ -86,7 +85,7 @@ The pipeline will be designed for local development and deployment using Docker 
 2. WHEN using Kubernetes THEN the system SHALL use kind provisioner with Spark Operator
 3. WHEN connecting to cloud services THEN the system SHALL connect to real AWS S3 and Snowflake instances
 4. WHEN Spark batch jobs run THEN they SHALL execute on Kubernetes with proper resource allocation
-5. WHEN running locally THEN the system SHALL require no more than 5Gi RAM for operation
+5. WHEN running locally THEN the system SHALL require no more than 18Gi RAM for operation
 
 ### Requirement 6: E-commerce Business Intelligence
 
