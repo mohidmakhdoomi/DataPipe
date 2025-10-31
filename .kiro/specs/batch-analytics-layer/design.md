@@ -201,14 +201,16 @@ The Iceberg tables mirror the PostgreSQL e-commerce tables (users, products, ord
 ```sql
 -- Users table (mirrors PostgreSQL users table)
 CREATE TABLE iceberg.ecommerce.users (
-    id bigint,
+    id long,
     email string,
     first_name string,
     last_name string,
     created_at timestamp,
     updated_at timestamp,
-    _cdc_operation string,
-    _cdc_timestamp timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
     date date
 ) USING iceberg
 PARTITIONED BY (date)
@@ -219,7 +221,7 @@ TBLPROPERTIES (
 
 -- Products table (mirrors PostgreSQL products table)
 CREATE TABLE iceberg.ecommerce.products (
-    id bigint,
+    id long,
     name string,
     description string,
     price decimal(10,2),
@@ -227,8 +229,10 @@ CREATE TABLE iceberg.ecommerce.products (
     category string,
     created_at timestamp,
     updated_at timestamp,
-    _cdc_operation string,
-    _cdc_timestamp timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
     date date
 ) USING iceberg
 PARTITIONED BY (date)
@@ -239,15 +243,17 @@ TBLPROPERTIES (
 
 -- Orders table (mirrors PostgreSQL orders table)
 CREATE TABLE iceberg.ecommerce.orders (
-    id bigint,
+    id long,
     user_id bigint,
     status string,
     total_amount decimal(10,2),
     shipping_address string,
     created_at timestamp,
     updated_at timestamp,
-    _cdc_operation string,
-    _cdc_timestamp timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
     date date
 ) USING iceberg
 PARTITIONED BY (date)
@@ -258,14 +264,16 @@ TBLPROPERTIES (
 
 -- Order items table (mirrors PostgreSQL order_items table)
 CREATE TABLE iceberg.ecommerce.order_items (
-    id bigint,
-    order_id bigint,
-    product_id bigint,
+    id long,
+    order_id long,
+    product_id long,
     quantity int,
     unit_price decimal(10,2),
     created_at timestamp,
-    _cdc_operation string,
-    _cdc_timestamp timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
     date date
 ) USING iceberg
 PARTITIONED BY (date)
@@ -307,8 +315,10 @@ CREATE TABLE raw.users (
     updated_at TIMESTAMP_NTZ,
     
     -- CDC metadata fields
-    _cdc_operation STRING,  -- INSERT, UPDATE, DELETE
-    _cdc_timestamp TIMESTAMP_NTZ,
+    __op STRING,  -- INSERT, UPDATE, DELETE
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     batch_id STRING
 )
@@ -326,8 +336,10 @@ CREATE TABLE raw.products (
     updated_at TIMESTAMP_NTZ,
     
     -- CDC metadata fields
-    _cdc_operation STRING,
-    _cdc_timestamp TIMESTAMP_NTZ,
+    __op STRING,
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     batch_id STRING
 )
@@ -344,8 +356,10 @@ CREATE TABLE raw.orders (
     updated_at TIMESTAMP_NTZ,
     
     -- CDC metadata fields
-    _cdc_operation STRING,
-    _cdc_timestamp TIMESTAMP_NTZ,
+    __op STRING,
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     batch_id STRING
 )
@@ -361,8 +375,10 @@ CREATE TABLE raw.order_items (
     created_at TIMESTAMP_NTZ,
     
     -- CDC metadata fields
-    _cdc_operation STRING,
-    _cdc_timestamp TIMESTAMP_NTZ,
+    __op STRING,
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     batch_id STRING
 )
