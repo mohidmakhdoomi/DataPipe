@@ -52,7 +52,7 @@ python s3_parquet_query.py --bucket data-s3-bucket --table users --summary --day
 
 ### Select Specific Columns
 ```bash
-python s3_parquet_query.py --bucket data-s3-bucket --table users --columns "user_id,email,__op,__deleted,__ts_ms" --limit 50
+python s3_parquet_query.py --bucket data-s3-bucket --table users --columns "user_id,email,__op,__ts_ms" --limit 50
 ```
 
 ### Use AWS Profile
@@ -82,7 +82,6 @@ The CDC records in S3 contain these key fields:
 
 ### CDC Metadata Fields
 - `__op`: Operation type (`c`=create, `u`=update, `d`=delete, `r`=read/snapshot)
-- `__deleted`: Boolean indicating if record was deleted
 - `__ts_ms`: Timestamp in milliseconds when change occurred
 
 ### Partition Fields

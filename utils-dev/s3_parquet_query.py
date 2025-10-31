@@ -161,7 +161,7 @@ class S3ParquetQuery:
         """Get all deleted records for a table"""
         return self.query_table(
             table=table,
-            filters={'__deleted': 'true'},
+            filters={'__op': 'd'},
             days_back=days_back
         )
     
