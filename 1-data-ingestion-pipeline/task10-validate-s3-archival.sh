@@ -107,7 +107,12 @@ test_s3_data_flow() {
     
     if kubectl --context "kind-$NAMESPACE" exec -n ${NAMESPACE} ${POSTGRES_POD} -- \
        psql -U postgres -d ecommerce -c \
-       "INSERT INTO users (email, first_name, last_name) VALUES ('$test_email', 'S3Test', 'Validation') RETURNING id;" >> "${LOG_DIR}/validate.log" 2>&1; then
+       "INSERT INTO users (email, first_name, last_name)
+       SELECT
+           'task10-s3-validation-$(date +%s)' || subquery.uuid || '@example.com',
+            'S3Test' || subquery.uuid,
+            'Validation' || subquery.uuid
+            FROM (SELECT generate_series(15, 9000) as uuid) AS subquery;" >> "${LOG_FILE}" 2>&1; then
         log "✅ Test record inserted successfully"
         
         # Wait for CDC and S3 processing
@@ -121,18 +126,16 @@ test_s3_data_flow() {
         local s3_path="s3://${S3_BUCKET}/topics/postgres.public.users/year=${year}/month=${month}/day=${day}/hour=${hour}/"
         
         log "Checking S3 path: $(echo "$s3_path" | awk -F "${S3_BUCKET}/" '{print $2}')"
-        local aws_out=$(aws s3 ls "$s3_path" --recursive --region us-east-1)
-        if echo "$aws_out" | grep -q ".parquet"; then
-            log "✅ Parquet files found in S3"
-            
-            # List the files
-            log $(echo "$aws_out" | head -20)
-            
+        local aws_out=$(aws s3 ls "$s3_path" --recursive --region us-east-1 2>/dev/null)
+        local test_out=$(echo "$aws_out" | head -20)
+        log "$test_out"
+        if [[ -n "$aws_out" ]] && (echo "$aws_out" | grep -q ".parquet"); then
+            log "✅ Parquet files found in S3"            
             return 0
         else
             log "⚠️  No Parquet files found in expected S3 path"
             log "Checking broader S3 structure..."
-            aws s3 ls "s3://${S3_BUCKET}/topics/postgres.public.users/" --recursive --region us-east-1 | head -20 | tee -a "${LOG_FILE}"
+            aws s3 ls "s3://${S3_BUCKET}/topics/postgres.public.users/" --recursive --region us-east-1 2>/dev/null | head -20 | tee -a "${LOG_FILE}"
             return 0
         fi
     else
