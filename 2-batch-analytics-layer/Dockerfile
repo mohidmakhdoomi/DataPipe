@@ -11,8 +11,6 @@ ENV HADOOP_AWS_NAME=hadoop-aws
 ENV HADOOP_AWS_VERSION=3.3.4
 ENV AWS_BUNDLE_NAME=aws-java-sdk-bundle
 ENV AWS_BUNDLE_VERSION=1.12.262
-# ENV AWS_ANALYTICS_NAME=analyticsaccelerator-s3 # needed for hadoop-aws 3.4.2 not earlier
-# ENV AWS_ANALYTICS_VERSION=1.2.1
 ENV WILDFLY_SSL_NAME=wildfly-openssl
 ENV WILDFLY_SSL_VERSION=1.0.7.Final
 
@@ -33,8 +31,6 @@ RUN set -ex; \
     https://repo1.maven.org/maven2/org/apache/hadoop/${HADOOP_AWS_NAME}/${HADOOP_AWS_VERSION}/${HADOOP_AWS_NAME}-${HADOOP_AWS_VERSION}.jar; \
     curl -L -o ${AWS_BUNDLE_NAME}-${AWS_BUNDLE_VERSION}.jar \
     https://repo1.maven.org/maven2/com/amazonaws/${AWS_BUNDLE_NAME}/${AWS_BUNDLE_VERSION}/${AWS_BUNDLE_NAME}-${AWS_BUNDLE_VERSION}.jar; \
-    # curl -L -o ${AWS_ANALYTICS_NAME}-${AWS_ANALYTICS_VERSION}.jar \
-    # https://repo1.maven.org/maven2/software/amazon/s3/analyticsaccelerator/${AWS_ANALYTICS_NAME}/${AWS_ANALYTICS_VERSION}/${AWS_ANALYTICS_NAME}-${AWS_ANALYTICS_VERSION}.jar; \
     curl -L -o ${WILDFLY_SSL_NAME}-${WILDFLY_SSL_VERSION}.jar \
     https://repo1.maven.org/maven2/org/wildfly/openssl/${WILDFLY_SSL_NAME}/${WILDFLY_SSL_VERSION}/${WILDFLY_SSL_NAME}-${WILDFLY_SSL_VERSION}.jar; \
     curl -L -o ${ICEBERG_NAME}-${ICEBERG_VERSION}.jar \
