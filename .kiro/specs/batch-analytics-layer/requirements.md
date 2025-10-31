@@ -2,61 +2,67 @@
 
 ## Introduction
 
-This document outlines the requirements for a comprehensive batch analytics layer that processes e-commerce data from AWS S3 using Apache Iceberg, Spark batch processing, and loads results into Snowflake for business intelligence. The system includes dbt transformations for creating business-ready data marts and ensures eventual consistency with the speed layer.
+This document outlines the requirements for a comprehensive batch analytics layer that processes data from AWS S3 using Apache Iceberg, Spark batch processing, and loads results into Snowflake for business intelligence. The system includes dbt transformations for creating business-ready data marts and ensures eventual consistency with the speed layer.
 
-The source data originates from a PostgreSQL database containing e-commerce transactional data that has been ingested into S3 through a data ingestion pipeline. The PostgreSQL schema includes four core tables: users (customer information), products (catalog data), orders (transaction headers), and order_items (transaction line items).
+The data being processed originates from the following PostgreSQL e-commerce database tables:
+- **users**: Customer information including email, names, and timestamps
+- **products**: Product catalog with names, descriptions, pricing, and inventory
+- **orders**: Order records with user references, status, amounts, and shipping details  
+- **order_items**: Individual line items linking orders to products with quantities and pricing
+
+This transactional data flows through the data ingestion pipeline via Change Data Capture (CDC) to S3 as Parquet files, which are then processed by this batch analytics layer to create comprehensive business intelligence and reporting capabilities.
 
 The pipeline will be designed for local development and deployment using Docker Desktop on Windows with Kubernetes (kind provisioner), while connecting to real cloud services (AWS S3 and Snowflake) for storage and data warehousing.
 
 ## Glossary
 
-- **Batch_Analytics_System**: The comprehensive batch processing system that transforms PostgreSQL-sourced data from S3 into business intelligence insights
-- **Source_PostgreSQL_Schema**: The original e-commerce database schema containing users, products, orders, and order_items tables
-- **Users_Table**: Customer information table with id, email, first_name, last_name, and timestamps
-- **Products_Table**: Product catalog table with id, name, description, price, stock_quantity, category, and timestamps
-- **Orders_Table**: Transaction header table with id, user_id, status, total_amount, shipping_address, and timestamps
-- **Order_Items_Table**: Transaction line items table with id, order_id, product_id, quantity, unit_price, and timestamps
-- **Iceberg_Tables**: Apache Iceberg format tables stored in S3 for ACID transactions and schema evolution
-- **Snowflake_Warehouse**: Cloud data warehouse with 3-layer architecture (Raw, Staging, Marts)
-- **dbt_Transformations**: SQL-based transformations that create business-ready data models from raw PostgreSQL data
+- **PostgreSQL Source Tables**: The original transactional database tables that feed the analytics pipeline
+- **users table**: Contains customer records with id, email, first_name, last_name, created_at, updated_at
+- **products table**: Contains product catalog with id, name, description, price, stock_quantity, category, timestamps
+- **orders table**: Contains order records with id, user_id, status, total_amount, shipping_address, timestamps
+- **order_items table**: Contains order line items with id, order_id, product_id, quantity, unit_price, created_at
+- **Batch Analytics Layer**: The comprehensive analytics system processing S3 data through Spark and Iceberg
+- **Iceberg**: Apache table format providing ACID transactions and schema evolution for data lake
+- **Lambda Architecture**: Architecture pattern with speed layer (real-time) and batch layer (comprehensive accuracy)
 
 ## Requirements
 
-### Requirement 1: PostgreSQL Data Lake Processing with Iceberg
+### Requirement 1: Data Lake Processing with Iceberg
 
-**User Story:** As a data engineer, I want to process PostgreSQL-sourced e-commerce data from S3 using Apache Iceberg table format, so that I can leverage ACID transactions and schema evolution for reliable batch processing of users, products, orders, and order_items data.
-
-#### Acceptance Criteria
-
-1. WHEN batch processing is required THEN the Batch_Analytics_System SHALL read PostgreSQL-sourced data from S3 using Iceberg table format
-2. WHEN processing e-commerce data THEN Iceberg_Tables SHALL maintain referential integrity between Users_Table, Products_Table, Orders_Table, and Order_Items_Table
-3. WHEN data is processed THEN Iceberg SHALL provide ACID transaction capabilities for all PostgreSQL table transformations
-4. WHEN PostgreSQL schemas evolve THEN Iceberg SHALL handle schema evolution without data rewrites
-5. WHEN time travel is needed THEN Iceberg SHALL support snapshot isolation and rollback for all e-commerce tables
-
-### Requirement 2: PostgreSQL-Based Data Warehousing
-
-**User Story:** As a business analyst, I want PostgreSQL-sourced e-commerce data loaded into Snowflake with a 3-layer architecture, so that I can perform complex analytical queries on customer, product, and transaction data for business intelligence reporting.
+**User Story:** As a data engineer, I want to process e-commerce data from S3 using Apache Iceberg table format, so that I can leverage ACID transactions and schema evolution for reliable batch processing of PostgreSQL source data.
 
 #### Acceptance Criteria
 
-1. WHEN PostgreSQL data is loaded THEN the Snowflake_Warehouse SHALL implement a 3-layer architecture (Raw, Staging, Marts) for users, products, orders, and order_items
-2. WHEN raw e-commerce data arrives THEN it SHALL be loaded into the Raw schema preserving original PostgreSQL table structures with metadata tracking
-3. WHEN data cleaning is needed THEN the Staging schema SHALL provide validated Users_Table, Products_Table, Orders_Table, and Order_Items_Table with proper data types
-4. WHEN business analytics are required THEN the Marts schema SHALL provide denormalized fact and dimension tables from PostgreSQL source data
-5. WHEN query performance is critical THEN e-commerce tables SHALL use clustering keys on user_id, order_id, and product_id for optimization
+1. WHEN batch processing is required THEN Spark SHALL read data from S3 using Iceberg table format
+2. WHEN PostgreSQL source data is processed THEN the system SHALL handle users, products, orders, and order_items table structures
+3. WHEN data is processed THEN Iceberg SHALL provide ACID transaction capabilities
+4. WHEN schemas evolve THEN Iceberg SHALL handle schema evolution without data rewrites for PostgreSQL table changes
+5. WHEN time travel is needed THEN Iceberg SHALL support snapshot isolation and rollback
+6. WHEN data compaction is required THEN Iceberg SHALL optimize file layouts automatically
 
-### Requirement 3: PostgreSQL-Based dbt Transformations and Business Logic
+### Requirement 2: Comprehensive Data Warehousing
 
-**User Story:** As a data analyst, I want dbt transformations to create business-ready data marts from PostgreSQL e-commerce data, so that I can access clean, modeled customer, product, and transaction data for reporting and analysis.
+**User Story:** As a business analyst, I want processed data loaded into Snowflake with a 3-layer architecture, so that I can perform complex analytical queries and business intelligence reporting.
 
 #### Acceptance Criteria
 
-1. WHEN transformations are needed THEN dbt_Transformations SHALL perform SQL-based transformations on PostgreSQL-sourced tables in Snowflake
-2. WHEN business logic is applied THEN dbt SHALL implement customer lifetime value calculations using Users_Table and Orders_Table relationships
-3. WHEN e-commerce analytics are required THEN dbt SHALL create fact tables joining Orders_Table with Order_Items_Table and Products_Table
-4. WHEN data quality is required THEN dbt SHALL validate referential integrity between user_id, order_id, and product_id foreign keys
-5. WHEN incremental updates are required THEN dbt SHALL support incremental processing based on PostgreSQL timestamp fields (created_at, updated_at)
+1. WHEN data is loaded THEN Snowflake SHALL implement a 3-layer architecture (Raw, Staging, Marts)
+2. WHEN raw data arrives THEN it SHALL be loaded into the Raw schema with metadata tracking
+3. WHEN data cleaning is needed THEN the Staging schema SHALL provide validated and typed data
+4. WHEN business analytics are required THEN the Marts schema SHALL provide business-ready data models
+5. WHEN query performance is critical THEN tables SHALL use clustering keys for optimization
+
+### Requirement 3: dbt Transformations and Business Logic
+
+**User Story:** As a data analyst, I want dbt transformations to create business-ready data marts, so that I can access clean, modeled data for reporting and analysis.
+
+#### Acceptance Criteria
+
+1. WHEN transformations are needed THEN dbt SHALL perform SQL-based transformations in Snowflake
+2. WHEN business logic is applied THEN dbt SHALL implement user tier analytics and session management
+3. WHEN data quality is required THEN dbt SHALL include comprehensive testing and validation
+4. WHEN documentation is needed THEN dbt SHALL generate automated documentation and lineage
+5. WHEN incremental updates are required THEN dbt SHALL support incremental model processing
 
 ### Requirement 4: Lambda Architecture Reconciliation
 
@@ -82,29 +88,29 @@ The pipeline will be designed for local development and deployment using Docker 
 4. WHEN Spark batch jobs run THEN they SHALL execute on Kubernetes with proper resource allocation
 5. WHEN running locally THEN the system SHALL require no more than 5Gi RAM for operation
 
-### Requirement 6: PostgreSQL-Based E-commerce Business Intelligence
+### Requirement 6: E-commerce Business Intelligence
 
-**User Story:** As a business stakeholder, I want comprehensive e-commerce analytics and KPIs derived from PostgreSQL transactional data, so that I can make data-driven decisions about customer behavior and business performance using actual user, product, and order data.
-
-#### Acceptance Criteria
-
-1. WHEN business metrics are calculated THEN the system SHALL provide customer lifetime value analytics using Users_Table and Orders_Table total_amount aggregations
-2. WHEN product analysis is needed THEN the system SHALL calculate product performance metrics using Products_Table price, stock_quantity, and Order_Items_Table sales data
-3. WHEN order behavior is analyzed THEN the system SHALL provide order status analysis using Orders_Table status transitions and shipping patterns
-4. WHEN customer segmentation is required THEN the system SHALL segment customers based on Users_Table demographics and Orders_Table purchase behavior
-5. WHEN inventory insights are needed THEN the system SHALL analyze Products_Table stock_quantity trends and Order_Items_Table demand patterns
-
-### Requirement 7: PostgreSQL Data Quality and Governance
-
-**User Story:** As a data governance officer, I want comprehensive data quality checks and governance controls for PostgreSQL-sourced e-commerce data, so that I can ensure data accuracy and compliance in the batch layer processing of customer, product, and transaction information.
+**User Story:** As a business stakeholder, I want comprehensive e-commerce analytics and KPIs, so that I can make data-driven decisions about customer behavior and business performance.
 
 #### Acceptance Criteria
 
-1. WHEN PostgreSQL data is processed THEN the system SHALL validate Users_Table email uniqueness and Products_Table price constraints (>= 0)
-2. WHEN business rules are violated THEN the system SHALL flag Orders_Table with invalid status values or negative total_amount
-3. WHEN referential integrity is checked THEN the system SHALL validate Orders_Table user_id references Users_Table and Order_Items_Table references both Orders_Table and Products_Table
-4. WHEN data lineage is required THEN the system SHALL track PostgreSQL table transformations from S3 ingestion through Snowflake marts
-5. WHEN audit trails are needed THEN the system SHALL log all PostgreSQL schema changes and data transformations with timestamp tracking
+1. WHEN business metrics are calculated THEN the system SHALL provide user lifetime value analytics
+2. WHEN conversion analysis is needed THEN the system SHALL calculate funnel conversion rates
+3. WHEN user behavior is analyzed THEN the system SHALL provide tier-based behavioral analysis
+4. WHEN product performance is measured THEN the system SHALL provide product analytics and recommendations
+5. WHEN daily reporting is required THEN the system SHALL generate comprehensive business KPI dashboards
+
+### Requirement 7: Data Quality and Governance
+
+**User Story:** As a data governance officer, I want comprehensive data quality checks and governance controls, so that I can ensure data accuracy and compliance in the batch layer.
+
+#### Acceptance Criteria
+
+1. WHEN data is processed THEN the system SHALL implement comprehensive data quality validation
+2. WHEN business rules are violated THEN the system SHALL flag and report violations
+3. WHEN referential integrity is checked THEN the system SHALL validate relationships between entities
+4. WHEN data lineage is required THEN the system SHALL track data flow from source to marts
+5. WHEN audit trails are needed THEN the system SHALL log all data transformations and access
 
 ### Requirement 8: Performance and Scalability
 
