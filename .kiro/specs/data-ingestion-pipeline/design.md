@@ -86,8 +86,8 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP(3) DEFAULT NOW(),
+    updated_at TIMESTAMP(3) DEFAULT NOW()
 );
 
 CREATE TABLE products (
@@ -97,8 +97,8 @@ CREATE TABLE products (
     price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
     stock_quantity INTEGER DEFAULT 0 CHECK (stock_quantity >= 0),
     category VARCHAR(100),
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP(3) DEFAULT NOW(),
+    updated_at TIMESTAMP(3) DEFAULT NOW()
 );
 
 CREATE TABLE orders (
@@ -107,8 +107,8 @@ CREATE TABLE orders (
     status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')),
     total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
     shipping_address TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP(3) DEFAULT NOW(),
+    updated_at TIMESTAMP(3) DEFAULT NOW()
 );
 
 CREATE TABLE order_items (
@@ -117,7 +117,7 @@ CREATE TABLE order_items (
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price >= 0),
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP(3) DEFAULT NOW()
 );
 
 -- Trigger for updated_at timestamps
@@ -420,7 +420,7 @@ authentication:
 -- Flattened structure for efficient querying
 CREATE TABLE s3_cdc_events (
     -- Event metadata
-    event_timestamp TIMESTAMP,
+    event_timestamp TIMESTAMP(3),
     operation_type STRING,  -- c, u, d, r
     table_name STRING,
     

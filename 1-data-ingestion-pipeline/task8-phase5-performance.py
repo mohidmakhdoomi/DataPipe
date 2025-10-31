@@ -68,7 +68,7 @@ def setup_database():
                 id SERIAL PRIMARY KEY,
                 data TEXT,
                 source_timestamp BIGINT,  -- For latency measurement
-                created_at TIMESTAMP DEFAULT NOW()
+                created_at TIMESTAMP(3) DEFAULT NOW()
             )
         """)
 
