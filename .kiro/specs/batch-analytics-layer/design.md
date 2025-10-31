@@ -4,6 +4,8 @@
 
 This document describes the design for a comprehensive batch analytics layer that processes data from AWS S3 using Apache Iceberg, Spark batch processing, and loads results into Snowflake for business intelligence. The system includes dbt transformations for creating business-ready data marts and ensures eventual consistency with the speed layer through Lambda reconciliation.
 
+The data being processed originates from PostgreSQL e-commerce database tables (users, products, orders, order_items) that flow through the data ingestion pipeline via Change Data Capture (CDC) to S3 as Parquet files, which are then processed by this batch analytics layer to create comprehensive business intelligence and reporting capabilities.
+
 The architecture follows Lambda Architecture principles with focus on accuracy and completeness:
 - **Data Lake Processing**: Apache Iceberg on S3 for ACID transactions and schema evolution
 - **Batch Processing**: Spark batch jobs for large-scale data transformation
@@ -24,7 +26,7 @@ graph TB
     
     subgraph "Batch Processing Layer"
         SPARK[Spark Batch<br/>Kubernetes Operator<br/>Large-scale ETL]
-        RECON[Lambda Reconciliation<br/>UUID Conversion<br/>Consistency Validation]
+        RECON[Lambda Reconciliation<br/>Data Consistency<br/>Validation & Alerts]
     end
     
     subgraph "Data Warehouse Layer"
@@ -61,16 +63,16 @@ graph TB
 ### Data Flow Architecture
 
 #### Batch Processing Flow
-1. **Data Lake Reading**: Spark reads Parquet files from S3 using Iceberg table format
-2. **Data Transformation**: Complex aggregations and business logic applied at scale
-3. **Quality Validation**: Comprehensive data quality checks and business rule validation
+1. **Data Lake Reading**: Spark reads PostgreSQL-sourced Parquet files from S3 using Iceberg table format
+2. **Data Transformation**: Complex aggregations and business logic applied to e-commerce data at scale
+3. **Quality Validation**: Comprehensive data quality checks and business rule validation for PostgreSQL table structures
 4. **Warehouse Loading**: Processed data loaded into Snowflake Raw schema with metadata
-5. **dbt Transformations**: SQL-based transformations create Staging and Marts schemas
+5. **dbt Transformations**: SQL-based transformations create Staging and Marts schemas from e-commerce source data
 
 #### Reconciliation Flow
 1. **Data Extraction**: Extract comparable datasets from ClickHouse and Snowflake
-2. **UUID Conversion**: Handle ClickHouse UUID to Snowflake STRING conversion
-3. **Consistency Validation**: Compare user sessions, transactions, and business metrics
+2. **Data Alignment**: Align PostgreSQL integer IDs between speed and batch layers
+3. **Consistency Validation**: Compare business metrics and transaction data
 4. **Discrepancy Reporting**: Alert on data inconsistencies with detailed analysis
 5. **Convergence Tracking**: Monitor eventual consistency convergence timing
 
@@ -117,50 +119,59 @@ object BatchAnalyticsApp extends App {
   
   import spark.implicits._
   
-  // Read from Iceberg tables
-  val userEvents = spark.read
+  // Read from Iceberg tables (PostgreSQL source data)
+  val users = spark.read
     .format("iceberg")
-    .load("iceberg.ecommerce.user_events")
+    .load("iceberg.ecommerce.users")
     .filter(col("date") >= lit(args(0))) // Process specific date range
   
-  val transactions = spark.read
+  val products = spark.read
     .format("iceberg")
-    .load("iceberg.ecommerce.transactions")
+    .load("iceberg.ecommerce.products")
+    .filter(col("date") >= lit(args(0)))
+    
+  val orders = spark.read
+    .format("iceberg")
+    .load("iceberg.ecommerce.orders")
+    .filter(col("date") >= lit(args(0)))
+    
+  val orderItems = spark.read
+    .format("iceberg")
+    .load("iceberg.ecommerce.order_items")
     .filter(col("date") >= lit(args(0)))
   
-  // Complex business logic transformations
-  val userSessions = calculateUserSessions(userEvents)
-  val dailyMetrics = calculateDailyMetrics(userEvents, transactions)
-  val userTierAnalytics = calculateUserTierAnalytics(userEvents, transactions)
+  // Complex business logic transformations from e-commerce data
+  val customerMetrics = calculateCustomerMetrics(users, orders, orderItems)
+  val productAnalytics = calculateProductAnalytics(products, orderItems)
+  val dailyBusinessMetrics = calculateDailyBusinessMetrics(users, orders, orderItems, products)
   
-  // Write to Snowflake
-  writeToSnowflake(userSessions, "raw.user_sessions")
-  writeToSnowflake(dailyMetrics, "raw.daily_metrics")
-  writeToSnowflake(userTierAnalytics, "raw.user_tier_analytics")
+  // Write to Snowflake Raw tables (PostgreSQL mirror tables are loaded via direct ingestion)
+  // Spark processes and writes derived analytics to staging for dbt consumption
+  writeToSnowflake(users, "raw.users")
+  writeToSnowflake(products, "raw.products") 
+  writeToSnowflake(orders, "raw.orders")
+  writeToSnowflake(orderItems, "raw.order_items")
   
   spark.stop()
 }
 
-def calculateUserSessions(events: DataFrame): DataFrame = {
-  events
-    .groupBy("session_id", "user_id", "user_tier")
+def calculateCustomerMetrics(users: DataFrame, orders: DataFrame, orderItems: DataFrame): DataFrame = {
+  // Join users with their orders and order items for customer analytics
+  val customerOrders = users
+    .join(orders, users("id") === orders("user_id"), "left")
+    .join(orderItems, orders("id") === orderItems("order_id"), "left")
+  
+  customerOrders
+    .groupBy("id", "email", "first_name", "last_name")
     .agg(
-      min("timestamp").as("session_start"),
-      max("timestamp").as("session_end"),
-      ((max(unix_timestamp(col("timestamp"))) - min(unix_timestamp(col("timestamp")))) / 60).as("session_duration_minutes"),
-      countWhen(col("event_type") === "page_view").as("page_views"),
-      countWhen(col("event_type") === "product_view").as("product_views"),
-      countWhen(col("event_type") === "search").as("searches"),
-      countWhen(col("event_type") === "add_to_cart").as("add_to_cart_events"),
-      countWhen(col("event_type") === "purchase").as("purchases"),
-      sum(when(col("event_type") === "purchase", 
-        coalesce(col("properties.amount").cast("double"), lit(0.0))
-      ).otherwise(0.0)).as("total_spent"),
-      first("device_type").as("device_type"),
-      first("browser").as("browser"),
-      (countWhen(col("event_type") === "purchase") > 0).as("converted_to_purchase")
+      count("order_id").as("total_orders"),
+      sum("total_amount").as("total_spent"),
+      avg("total_amount").as("avg_order_value"),
+      max("orders.created_at").as("last_order_date"),
+      min("orders.created_at").as("first_order_date"),
+      countDistinct("product_id").as("unique_products_purchased"),
+      sum("quantity").as("total_items_purchased")
     )
-    .withColumn("items_purchased", col("purchases"))
     .withColumn("loaded_at", current_timestamp())
     .withColumn("batch_id", lit(java.util.UUID.randomUUID().toString))
 }
@@ -185,47 +196,84 @@ iceberg:
 ```
 
 **Table Definitions**:
+The Iceberg tables mirror the PostgreSQL e-commerce tables (users, products, orders, order_items) that have been ingested via CDC and stored as Parquet files in S3.
+
 ```sql
--- User events table with proper partitioning
-CREATE TABLE iceberg.ecommerce.user_events (
-    event_id string,
-    user_id string,
-    session_id string,
-    event_type string,
-    timestamp timestamp,
-    device_type string,
-    browser string,
-    ip_address string,
-    page_url string,
-    product_id string,
-    search_query string,
-    transaction_id string,
-    user_tier string,
-    properties string,
-    processing_time timestamp,
-    date date,
-    hour int
+-- Users table (mirrors PostgreSQL users table)
+CREATE TABLE iceberg.ecommerce.users (
+    id long,
+    email string,
+    first_name string,
+    last_name string,
+    created_at timestamp,
+    updated_at timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
+    date date
 ) USING iceberg
-PARTITIONED BY (date, hour)
+PARTITIONED BY (date)
 TBLPROPERTIES (
     'write.target-file-size-bytes'='134217728',
     'write.parquet.compression-codec'='snappy'
 );
 
--- Transactions table
-CREATE TABLE iceberg.ecommerce.transactions (
-    transaction_id string,
-    user_id string,
-    product_id string,
+-- Products table (mirrors PostgreSQL products table)
+CREATE TABLE iceberg.ecommerce.products (
+    id long,
+    name string,
+    description string,
+    price decimal(10,2),
+    stock_quantity int,
+    category string,
+    created_at timestamp,
+    updated_at timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
+    date date
+) USING iceberg
+PARTITIONED BY (date)
+TBLPROPERTIES (
+    'write.target-file-size-bytes'='134217728',
+    'write.parquet.compression-codec'='snappy'
+);
+
+-- Orders table (mirrors PostgreSQL orders table)
+CREATE TABLE iceberg.ecommerce.orders (
+    id long,
+    user_id bigint,
+    status string,
+    total_amount decimal(10,2),
+    shipping_address string,
+    created_at timestamp,
+    updated_at timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
+    date date
+) USING iceberg
+PARTITIONED BY (date)
+TBLPROPERTIES (
+    'write.target-file-size-bytes'='134217728',
+    'write.parquet.compression-codec'='snappy'
+);
+
+-- Order items table (mirrors PostgreSQL order_items table)
+CREATE TABLE iceberg.ecommerce.order_items (
+    id long,
+    order_id long,
+    product_id long,
     quantity int,
     unit_price decimal(10,2),
-    total_amount decimal(10,2),
-    discount_amount decimal(10,2),
-    tax_amount decimal(10,2),
-    status string,
-    payment_method string,
-    user_tier string,
     created_at timestamp,
+    __op string,
+    __ts_ms timestamp,
+    __source_ts_ms timestamp,
+    __source_lsn long,
     date date
 ) USING iceberg
 PARTITIONED BY (date)
@@ -254,240 +302,312 @@ snowflake:
 
 **Raw Schema - Direct Data Ingestion**:
 ```sql
--- Raw events table (mirrors ClickHouse structure with UUID->STRING conversion)
+-- Raw schema mirrors PostgreSQL source table structures
 CREATE SCHEMA raw;
 
-CREATE TABLE raw.user_events (
-    event_id STRING,  -- Converted from ClickHouse UUID
-    user_id STRING,   -- Converted from ClickHouse UUID
-    session_id STRING, -- Converted from ClickHouse UUID
-    event_type STRING,
-    timestamp TIMESTAMP_NTZ,
-    device_type STRING,
-    browser STRING,
-    ip_address STRING,
+-- Raw users table (mirrors PostgreSQL users table)
+CREATE TABLE raw.users (
+    id NUMBER,
+    email STRING,
+    first_name STRING,
+    last_name STRING,
+    created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
     
-    -- Event-specific fields
-    page_url STRING,
-    product_id STRING,
-    search_query STRING,
-    transaction_id STRING, -- Converted from ClickHouse UUID
-    
-    -- User enrichment
-    user_tier STRING,
-    
-    -- Properties as JSON
-    properties VARIANT,
-    
-    -- Metadata fields
+    -- CDC metadata fields
+    __op STRING,  -- INSERT, UPDATE, DELETE
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     batch_id STRING,
     file_name STRING
 )
-CLUSTER BY (TO_DATE(timestamp), user_tier);
+CLUSTER BY (TO_DATE(created_at));
 
--- Raw transactions table
-CREATE TABLE raw.transactions (
-    transaction_id STRING,
-    user_id STRING,
-    product_id STRING,
+-- Raw products table (mirrors PostgreSQL products table)
+CREATE TABLE raw.products (
+    id NUMBER,
+    name STRING,
+    description STRING,
+    price NUMBER(10,2),
+    stock_quantity NUMBER,
+    category STRING,
+    created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
+    
+    -- CDC metadata fields
+    __op STRING,
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
+    loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    batch_id STRING,
+    file_name STRING
+)
+CLUSTER BY (TO_DATE(created_at), category);
+
+-- Raw orders table (mirrors PostgreSQL orders table)
+CREATE TABLE raw.orders (
+    id NUMBER,
+    user_id NUMBER,
+    status STRING,
+    total_amount NUMBER(10,2),
+    shipping_address STRING,
+    created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
+    
+    -- CDC metadata fields
+    __op STRING,
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
+    loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    batch_id STRING,
+    file_name STRING
+)
+CLUSTER BY (TO_DATE(created_at), status);
+
+-- Raw order_items table (mirrors PostgreSQL order_items table)
+CREATE TABLE raw.order_items (
+    id NUMBER,
+    order_id NUMBER,
+    product_id NUMBER,
     quantity NUMBER,
     unit_price NUMBER(10,2),
-    total_amount NUMBER(10,2),
-    discount_amount NUMBER(10,2),
-    tax_amount NUMBER(10,2),
-    status STRING,
-    payment_method STRING,
-    user_tier STRING,
     created_at TIMESTAMP_NTZ,
     
-    -- Metadata
+    -- CDC metadata fields
+    __op STRING,
+    __ts_ms TIMESTAMP_NTZ,
+    __source_ts_ms TIMESTAMP_NTZ,
+    __source_lsn NUMBER,
     loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    batch_id STRING
+    batch_id STRING,
+    file_name STRING
 )
-CLUSTER BY (TO_DATE(created_at), user_tier);
-
--- Raw user sessions from batch processing
-CREATE TABLE raw.user_sessions (
-    session_id STRING,
-    user_id STRING,
-    user_tier STRING,
-    session_start TIMESTAMP_NTZ,
-    session_end TIMESTAMP_NTZ,
-    session_duration_minutes NUMBER,
-    page_views NUMBER,
-    product_views NUMBER,
-    searches NUMBER,
-    add_to_cart_events NUMBER,
-    purchases NUMBER,
-    total_spent NUMBER(10,2),
-    items_purchased NUMBER,
-    device_type STRING,
-    browser STRING,
-    converted_to_purchase BOOLEAN,
-    loaded_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    batch_id STRING
-)
-CLUSTER BY (TO_DATE(session_start), user_tier);
+CLUSTER BY (TO_DATE(created_at));
 ```
 
 **Staging Schema - Data Quality and Business Rules**:
 ```sql
 CREATE SCHEMA staging;
 
--- Staging events with data quality checks
-CREATE TABLE staging.events_cleaned (
-    event_id STRING,
-    user_id STRING,
-    session_id STRING,
-    event_type STRING,
-    timestamp TIMESTAMP_NTZ,
-    device_type STRING,
-    browser STRING,
-    ip_address STRING,
-    
-    -- Event-specific fields (properly typed)
-    page_url STRING,
-    product_id STRING,
-    search_query STRING,
-    transaction_id STRING,
-    user_tier STRING,
-    
-    -- Parsed properties
-    properties_parsed VARIANT,
+-- Staging users with data quality checks and enrichment
+CREATE TABLE staging.users_enhanced (
+    id NUMBER,
+    email STRING,
+    first_name STRING,
+    last_name STRING,
+    full_name STRING,  -- Derived field
+    created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
     
     -- Data quality flags
-    is_valid BOOLEAN,
-    validation_errors VARIANT,
+    is_valid_email BOOLEAN,
+    is_complete_profile BOOLEAN,
     
-    -- Business rule flags
-    is_bot_traffic BOOLEAN,
-    is_test_user BOOLEAN,
+    -- Business enrichment
+    customer_tier STRING,  -- bronze, silver, gold, platinum based on order history
+    days_since_registration NUMBER,
+    
+    -- Metadata
+    processed_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+)
+CLUSTER BY (TO_DATE(created_at), customer_tier);
+
+-- Staging products with enrichment and categorization
+CREATE TABLE staging.products_enhanced (
+    id NUMBER,
+    name STRING,
+    description STRING,
+    price NUMBER(10,2),
+    stock_quantity NUMBER,
+    category STRING,
+    created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
+    
+    -- Business enrichment
+    price_tier STRING,  -- budget, mid-range, premium based on price
+    is_in_stock BOOLEAN,
+    is_popular BOOLEAN,  -- Based on order frequency
+    
+    -- Data quality flags
+    has_complete_info BOOLEAN,
     
     processed_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
 )
-CLUSTER BY (TO_DATE(timestamp), event_type, user_tier);
+CLUSTER BY (TO_DATE(created_at), category);
 
--- Staging user sessions with business logic
-CREATE TABLE staging.user_sessions_enhanced (
-    session_id STRING,
-    user_id STRING,
-    user_tier STRING,
-    session_start TIMESTAMP_NTZ,
-    session_end TIMESTAMP_NTZ,
-    session_duration_minutes NUMBER,
+-- Staging orders with business logic and validation
+CREATE TABLE staging.orders_enhanced (
+    id NUMBER,
+    user_id NUMBER,
+    status STRING,
+    total_amount NUMBER(10,2),
+    shipping_address STRING,
+    created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
     
-    -- Activity metrics
-    page_views NUMBER,
-    product_views NUMBER,
-    searches NUMBER,
-    add_to_cart_events NUMBER,
-    purchases NUMBER,
+    -- Derived business metrics
+    order_size_category STRING,  -- small, medium, large based on total_amount
+    days_to_fulfillment NUMBER,  -- For completed orders
+    is_repeat_customer BOOLEAN,
+    
+    -- Data quality flags
+    is_valid_order BOOLEAN,
+    has_shipping_address BOOLEAN,
+    
+    processed_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+)
+CLUSTER BY (TO_DATE(created_at), status);
+
+-- Staging order items with product enrichment
+CREATE TABLE staging.order_items_enhanced (
+    id NUMBER,
+    order_id NUMBER,
+    product_id NUMBER,
+    quantity NUMBER,
+    unit_price NUMBER(10,2),
+    line_total NUMBER(10,2),  -- quantity * unit_price
+    created_at TIMESTAMP_NTZ,
+    
+    -- Product context (joined from products)
+    product_name STRING,
+    product_category STRING,
     
     -- Business metrics
-    total_spent NUMBER(10,2),
-    items_purchased NUMBER,
-    avg_order_value NUMBER(10,2),
-    
-    -- Session context
-    device_type STRING,
-    browser STRING,
-    
-    -- Conversion metrics
-    converted_to_purchase BOOLEAN,
-    conversion_time_minutes NUMBER,
-    
-    -- Business flags
-    is_high_value_session BOOLEAN,
-    is_bounce_session BOOLEAN,
+    discount_amount NUMBER(10,2),  -- Difference from catalog price
+    margin_amount NUMBER(10,2),
     
     processed_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
 )
-CLUSTER BY (TO_DATE(session_start), user_tier);
+CLUSTER BY (TO_DATE(created_at), product_category);
 ```
 
 **Marts Schema - Business-Ready Data Models**:
 ```sql
 CREATE SCHEMA marts;
 
--- Daily business metrics with comprehensive KPIs
-CREATE TABLE marts.daily_metrics (
+-- Daily business metrics derived from e-commerce transactions
+CREATE TABLE marts.daily_business_metrics (
     date DATE,
-    user_tier STRING,
     
-    -- Traffic metrics
-    unique_users NUMBER,
-    sessions NUMBER,
-    page_views NUMBER,
-    avg_session_duration_minutes NUMBER(5,2),
+    -- Customer metrics
+    new_customers NUMBER,
+    returning_customers NUMBER,
+    total_active_customers NUMBER,
     
-    -- E-commerce metrics
-    product_views NUMBER,
-    searches NUMBER,
-    add_to_cart_events NUMBER,
-    purchases NUMBER,
-    revenue NUMBER(10,2),
+    -- Order metrics
+    total_orders NUMBER,
+    completed_orders NUMBER,
+    cancelled_orders NUMBER,
+    avg_order_value NUMBER(10,2),
     
-    -- Conversion rates
-    session_to_purchase_rate NUMBER(5,4),
-    view_to_cart_rate NUMBER(5,4),
-    cart_to_purchase_rate NUMBER(5,4),
+    -- Revenue metrics
+    total_revenue NUMBER(10,2),
+    revenue_from_new_customers NUMBER(10,2),
+    revenue_from_returning_customers NUMBER(10,2),
+    
+    -- Product metrics
+    total_items_sold NUMBER,
+    unique_products_sold NUMBER,
     
     -- Business KPIs
+    customer_acquisition_rate NUMBER(5,4),
+    order_completion_rate NUMBER(5,4),
+    average_items_per_order NUMBER(5,2),
+    
+    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+)
+CLUSTER BY (date);
+
+-- Customer tier analytics based on purchase behavior
+CREATE TABLE marts.customer_tier_analytics (
+    date DATE,
+    customer_tier STRING,  -- bronze, silver, gold, platinum
+    
+    -- Customer counts
+    total_customers NUMBER,
+    new_customers NUMBER,
+    active_customers NUMBER,  -- Made purchase in period
+    
+    -- Purchase behavior
+    total_orders NUMBER,
+    avg_orders_per_customer NUMBER(5,2),
     avg_order_value NUMBER(10,2),
-    revenue_per_user NUMBER(10,2),
+    total_revenue NUMBER(10,2),
+    
+    -- Engagement metrics
+    repeat_purchase_rate NUMBER(5,4),
+    avg_days_between_orders NUMBER(5,1),
     customer_lifetime_value NUMBER(10,2),
     
     created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
 )
-CLUSTER BY (date, user_tier);
-
--- User tier performance analytics
-CREATE TABLE marts.user_tier_analytics (
-    date DATE,
-    user_tier STRING,
-    
-    -- User behavior metrics
-    avg_events_per_session NUMBER(5,2),
-    avg_products_viewed_per_session NUMBER(5,2),
-    avg_searches_per_session NUMBER(5,2),
-    
-    -- Purchase behavior
-    purchase_frequency NUMBER(5,4),
-    avg_purchase_amount NUMBER(10,2),
-    repeat_purchase_rate NUMBER(5,4),
-    
-    -- Engagement metrics
-    bounce_rate NUMBER(5,4),
-    time_to_purchase_minutes NUMBER(8,2),
-    
-    created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
-)
-CLUSTER BY (date, user_tier);
+CLUSTER BY (date, customer_tier);
 
 -- Product performance analytics
 CREATE TABLE marts.product_performance (
     date DATE,
-    product_id STRING,
+    product_id NUMBER,
+    product_name STRING,
+    category STRING,
     
-    -- View metrics
-    views NUMBER,
-    unique_viewers NUMBER,
-    avg_view_duration_seconds NUMBER(8,2),
-    
-    -- Conversion metrics
-    add_to_carts NUMBER,
-    purchases NUMBER,
-    view_to_cart_rate NUMBER(5,4),
-    cart_to_purchase_rate NUMBER(5,4),
-    
-    -- Revenue metrics
-    revenue NUMBER(10,2),
+    -- Sales metrics
+    units_sold NUMBER,
+    total_revenue NUMBER(10,2),
     avg_selling_price NUMBER(10,2),
+    
+    -- Customer metrics
+    unique_customers NUMBER,
+    repeat_customers NUMBER,  -- Customers who bought this product before
+    
+    -- Performance indicators
+    revenue_rank_in_category NUMBER,
+    units_rank_in_category NUMBER,
+    is_top_performer BOOLEAN,  -- Top 20% in category by revenue
+    
+    -- Inventory insights
+    current_stock_level NUMBER,
+    days_of_inventory_remaining NUMBER,
     
     created_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
 )
-CLUSTER BY (date, product_id);
+CLUSTER BY (date, category);
+
+-- Customer lifetime value and segmentation
+CREATE TABLE marts.customer_analytics (
+    customer_id NUMBER,
+    email STRING,
+    full_name STRING,
+    
+    -- Registration info
+    registration_date DATE,
+    days_since_registration NUMBER,
+    
+    -- Purchase history
+    first_order_date DATE,
+    last_order_date DATE,
+    total_orders NUMBER,
+    total_spent NUMBER(10,2),
+    avg_order_value NUMBER(10,2),
+    
+    -- Behavioral metrics
+    avg_days_between_orders NUMBER(5,1),
+    favorite_category STRING,
+    total_items_purchased NUMBER,
+    
+    -- Segmentation
+    customer_tier STRING,
+    is_active BOOLEAN,  -- Purchased in last 90 days
+    is_at_risk BOOLEAN,  -- No purchase in 180+ days but was active
+    predicted_ltv NUMBER(10,2),
+    
+    -- Last updated
+    last_updated TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+)
+CLUSTER BY (customer_tier, is_active);
 ```
 
 ### dbt Core (Data Transformation)
@@ -500,17 +620,19 @@ dbt_project/
 ├── models/
 │   ├── staging/
 │   │   ├── _staging__sources.yml
-│   │   ├── stg_events_cleaned.sql
-│   │   ├── stg_user_sessions_enhanced.sql
-│   │   └── stg_transactions_validated.sql
+│   │   ├── stg_users_enhanced.sql
+│   │   ├── stg_products_enhanced.sql
+│   │   ├── stg_orders_enhanced.sql
+│   │   └── stg_order_items_enhanced.sql
 │   ├── intermediate/
-│   │   ├── int_user_behavior_metrics.sql
-│   │   ├── int_conversion_funnels.sql
-│   │   └── int_product_analytics.sql
+│   │   ├── int_customer_metrics.sql
+│   │   ├── int_product_analytics.sql
+│   │   └── int_order_analytics.sql
 │   └── marts/
-│       ├── mart_daily_metrics.sql
-│       ├── mart_user_tier_analytics.sql
-│       └── mart_product_performance.sql
+│       ├── mart_daily_business_metrics.sql
+│       ├── mart_customer_tier_analytics.sql
+│       ├── mart_product_performance.sql
+│       └── mart_customer_analytics.sql
 ├── tests/
 │   ├── generic/
 │   └── singular/
@@ -520,90 +642,100 @@ dbt_project/
 └── docs/
 ```
 
-**Example dbt Model - Daily Metrics**:
+**Example dbt Model - Daily Business Metrics**:
 ```sql
--- models/marts/mart_daily_metrics.sql
+-- models/marts/mart_daily_business_metrics.sql
 {{ config(
     materialized='incremental',
-    unique_key=['date', 'user_tier'],
-    cluster_by=['date', 'user_tier'],
+    unique_key='date',
+    cluster_by='date',
     on_schema_change='fail'
 ) }}
 
-WITH daily_sessions AS (
+WITH daily_orders AS (
     SELECT 
-        DATE(session_start) as date,
-        user_tier,
-        COUNT(DISTINCT session_id) as sessions,
-        COUNT(DISTINCT user_id) as unique_users,
-        SUM(page_views) as page_views,
-        AVG(session_duration_minutes) as avg_session_duration_minutes,
-        SUM(product_views) as product_views,
-        SUM(searches) as searches,
-        SUM(add_to_cart_events) as add_to_cart_events,
-        SUM(purchases) as purchases,
-        SUM(total_spent) as revenue,
-        SUM(CASE WHEN converted_to_purchase THEN 1 ELSE 0 END) as converting_sessions
-    FROM {{ ref('stg_user_sessions_enhanced') }}
+        DATE(created_at) as date,
+        COUNT(*) as total_orders,
+        COUNT(CASE WHEN status IN ('delivered', 'shipped') THEN 1 END) as completed_orders,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_orders,
+        SUM(total_amount) as total_revenue,
+        AVG(total_amount) as avg_order_value,
+        COUNT(DISTINCT user_id) as active_customers
+    FROM {{ ref('stg_orders_enhanced') }}
     {% if is_incremental() %}
-        WHERE DATE(session_start) > (SELECT MAX(date) FROM {{ this }})
+        WHERE DATE(created_at) > (SELECT MAX(date) FROM {{ this }})
     {% endif %}
-    GROUP BY 1, 2
+    GROUP BY 1
 ),
 
-conversion_metrics AS (
+daily_customers AS (
     SELECT 
-        date,
-        user_tier,
-        sessions,
-        unique_users,
-        page_views,
-        avg_session_duration_minutes,
-        product_views,
-        searches,
-        add_to_cart_events,
-        purchases,
-        revenue,
-        
-        -- Conversion rates
-        CASE WHEN sessions > 0 
-            THEN converting_sessions::FLOAT / sessions 
-            ELSE 0 END as session_to_purchase_rate,
-        CASE WHEN product_views > 0 
-            THEN add_to_cart_events::FLOAT / product_views 
-            ELSE 0 END as view_to_cart_rate,
-        CASE WHEN add_to_cart_events > 0 
-            THEN purchases::FLOAT / add_to_cart_events 
-            ELSE 0 END as cart_to_purchase_rate,
-        
-        -- Business KPIs
-        CASE WHEN purchases > 0 
-            THEN revenue / purchases 
-            ELSE 0 END as avg_order_value,
-        CASE WHEN unique_users > 0 
-            THEN revenue / unique_users 
-            ELSE 0 END as revenue_per_user
-    FROM daily_sessions
+        DATE(o.created_at) as date,
+        COUNT(DISTINCT CASE WHEN u.created_at::DATE = o.created_at::DATE THEN o.user_id END) as new_customers,
+        COUNT(DISTINCT CASE WHEN u.created_at::DATE < o.created_at::DATE THEN o.user_id END) as returning_customers,
+        SUM(CASE WHEN u.created_at::DATE = o.created_at::DATE THEN o.total_amount ELSE 0 END) as revenue_from_new_customers,
+        SUM(CASE WHEN u.created_at::DATE < o.created_at::DATE THEN o.total_amount ELSE 0 END) as revenue_from_returning_customers
+    FROM {{ ref('stg_orders_enhanced') }} o
+    JOIN {{ ref('stg_users_enhanced') }} u ON o.user_id = u.id
+    {% if is_incremental() %}
+        WHERE DATE(o.created_at) > (SELECT MAX(date) FROM {{ this }})
+    {% endif %}
+    GROUP BY 1
+),
+
+daily_items AS (
+    SELECT 
+        DATE(oi.created_at) as date,
+        SUM(oi.quantity) as total_items_sold,
+        COUNT(DISTINCT oi.product_id) as unique_products_sold,
+        AVG(oi.quantity) as avg_items_per_order
+    FROM {{ ref('stg_order_items_enhanced') }} oi
+    {% if is_incremental() %}
+        WHERE DATE(oi.created_at) > (SELECT MAX(date) FROM {{ this }})
+    {% endif %}
+    GROUP BY 1
 )
 
 SELECT 
-    *,
-    {{ calculate_customer_lifetime_value('user_tier', 'revenue_per_user') }} as customer_lifetime_value,
+    o.date,
+    COALESCE(c.new_customers, 0) as new_customers,
+    COALESCE(c.returning_customers, 0) as returning_customers,
+    o.active_customers as total_active_customers,
+    o.total_orders,
+    o.completed_orders,
+    o.cancelled_orders,
+    o.avg_order_value,
+    o.total_revenue,
+    COALESCE(c.revenue_from_new_customers, 0) as revenue_from_new_customers,
+    COALESCE(c.revenue_from_returning_customers, 0) as revenue_from_returning_customers,
+    COALESCE(i.total_items_sold, 0) as total_items_sold,
+    COALESCE(i.unique_products_sold, 0) as unique_products_sold,
+    
+    -- Business KPIs
+    CASE WHEN o.active_customers > 0 
+        THEN c.new_customers::FLOAT / o.active_customers 
+        ELSE 0 END as customer_acquisition_rate,
+    CASE WHEN o.total_orders > 0 
+        THEN o.completed_orders::FLOAT / o.total_orders 
+        ELSE 0 END as order_completion_rate,
+    COALESCE(i.avg_items_per_order, 0) as average_items_per_order,
+    
     CURRENT_TIMESTAMP() as created_at
-FROM conversion_metrics
+FROM daily_orders o
+LEFT JOIN daily_customers c ON o.date = c.date
+LEFT JOIN daily_items i ON o.date = i.date
 ```
 
 **dbt Tests**:
 ```sql
--- tests/singular/test_daily_metrics_completeness.sql
+-- tests/singular/test_daily_business_metrics_completeness.sql
 SELECT 
     date,
-    user_tier,
     COUNT(*) as record_count
-FROM {{ ref('mart_daily_metrics') }}
+FROM {{ ref('mart_daily_business_metrics') }}
 WHERE date >= CURRENT_DATE - 7
-GROUP BY 1, 2
-HAVING record_count != 1  -- Should have exactly one record per date/tier combination
+GROUP BY 1
+HAVING record_count != 1  -- Should have exactly one record per date
 ```
 
 ### Lambda Reconciliation
@@ -623,31 +755,28 @@ object LambdaReconciliation extends App {
     withinTolerance: Boolean
   )
   
-  def reconcileUserSessions(date: String): Seq[ReconciliationResult] = {
-    // Extract from ClickHouse (speed layer)
+  def reconcileBusinessMetrics(date: String): Seq[ReconciliationResult] = {
+    // Extract from ClickHouse (speed layer) - real-time aggregated metrics
     val speedLayerData = extractFromClickHouse(s"""
       SELECT 
-        user_tier,
-        COUNT(DISTINCT session_id) as sessions,
-        SUM(page_views) as page_views,
-        SUM(purchases) as purchases,
-        SUM(total_spent) as revenue
-      FROM user_sessions_realtime 
-      WHERE toDate(session_start) = '$date'
-      GROUP BY user_tier
+        COUNT(DISTINCT user_id) as active_customers,
+        COUNT(*) as total_orders,
+        SUM(total_amount) as total_revenue,
+        AVG(total_amount) as avg_order_value
+      FROM orders_realtime 
+      WHERE toDate(created_at) = '$date'
+      AND status IN ('delivered', 'shipped', 'processing')
     """)
     
-    // Extract from Snowflake (batch layer)
+    // Extract from Snowflake (batch layer) - processed PostgreSQL data
     val batchLayerData = extractFromSnowflake(s"""
       SELECT 
-        user_tier,
-        SUM(sessions) as sessions,
-        SUM(page_views) as page_views,
-        SUM(purchases) as purchases,
-        SUM(revenue) as revenue
-      FROM marts.daily_metrics 
+        total_active_customers as active_customers,
+        completed_orders + (total_orders - completed_orders - cancelled_orders) as total_orders,
+        total_revenue,
+        avg_order_value
+      FROM marts.daily_business_metrics 
       WHERE date = '$date'
-      GROUP BY user_tier
     """)
     
     // Compare and generate reconciliation results
@@ -656,8 +785,7 @@ object LambdaReconciliation extends App {
     for {
       speedRow <- speedLayerData
       batchRow <- batchLayerData
-      if speedRow.getString("user_tier") == batchRow.getString("user_tier")
-      metric <- Seq("sessions", "page_views", "purchases", "revenue")
+      metric <- Seq("active_customers", "total_orders", "total_revenue", "avg_order_value")
     } yield {
       val speedValue = speedRow.getDouble(metric)
       val batchValue = batchRow.getDouble(metric)
@@ -666,7 +794,7 @@ object LambdaReconciliation extends App {
       
       ReconciliationResult(
         date = date,
-        metric = s"${speedRow.getString("user_tier")}_$metric",
+        metric = metric,
         speedLayerValue = speedValue,
         batchLayerValue = batchValue,
         difference = difference,
@@ -676,9 +804,9 @@ object LambdaReconciliation extends App {
     }
   }
   
-  def handleUUIDConversion(clickhouseUUID: String): String = {
-    // Convert ClickHouse UUID format to Snowflake STRING format
-    clickhouseUUID.toLowerCase()
+  def alignPostgreSQLIds(speedLayerId: Long, batchLayerId: Long): Boolean = {
+    // Ensure PostgreSQL integer IDs match between speed and batch layers
+    speedLayerId == batchLayerId
   }
 }
 ```
@@ -691,24 +819,31 @@ object LambdaReconciliation extends App {
 ```sql
 -- macros/data_quality/test_business_rules.sql
 {% macro test_business_rules() %}
-    -- Test that user tier transitions are valid
+    -- Test that customer tier values are valid
     SELECT *
-    FROM {{ ref('stg_user_sessions_enhanced') }}
-    WHERE user_tier NOT IN ('bronze', 'silver', 'gold', 'platinum', 'unknown')
+    FROM {{ ref('stg_users_enhanced') }}
+    WHERE customer_tier NOT IN ('bronze', 'silver', 'gold', 'platinum')
     
     UNION ALL
     
-    -- Test that session duration is reasonable
+    -- Test that order amounts are positive
     SELECT *
-    FROM {{ ref('stg_user_sessions_enhanced') }}
-    WHERE session_duration_minutes < 0 OR session_duration_minutes > 1440  -- Max 24 hours
+    FROM {{ ref('stg_orders_enhanced') }}
+    WHERE total_amount < 0
     
     UNION ALL
     
-    -- Test that purchase amounts are positive
+    -- Test that product prices are positive
     SELECT *
-    FROM {{ ref('stg_user_sessions_enhanced') }}
-    WHERE total_spent < 0
+    FROM {{ ref('stg_products_enhanced') }}
+    WHERE price < 0
+    
+    UNION ALL
+    
+    -- Test that order item quantities are positive
+    SELECT *
+    FROM {{ ref('stg_order_items_enhanced') }}
+    WHERE quantity <= 0 OR unit_price < 0
 {% endmacro %}
 ```
 
@@ -779,8 +914,11 @@ spark.sql.shuffle.partitions=200
 **Snowflake Optimization**:
 ```sql
 -- Optimize clustering for query performance
-ALTER TABLE marts.daily_metrics 
-CLUSTER BY (date, user_tier);
+ALTER TABLE marts.daily_business_metrics 
+CLUSTER BY (date);
+
+ALTER TABLE marts.customer_tier_analytics
+CLUSTER BY (date, customer_tier);
 
 -- Optimize warehouse for batch loads
 ALTER WAREHOUSE COMPUTE_WH SET 

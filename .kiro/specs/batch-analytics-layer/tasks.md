@@ -89,20 +89,24 @@ Phase 4: Production (Tasks 13-16)
 
 
 
-  - Create `user_events` table with date and hour partitioning
-  - Create `transactions` table with date partitioning
-  - Configure proper data types: strings for UUIDs, decimals for pricing
-  - Set up table properties: compression (Snappy), file size targets
-  - Test table creation and basic data insertion
-  - _Requirements: 1.4, e-commerce schema_
+  - Create `users` table mirroring PostgreSQL users table structure with CDC metadata
+  - Create `products` table with product catalog fields and CDC tracking
+  - Create `orders` table with order records and CDC metadata fields
+  - Create `order_items` table with line item details and CDC tracking
+  - Configure date partitioning and proper data types for PostgreSQL integer IDs
+  - Set up table properties: compression (Snappy), file size targets, ACID transactions
+  - Test table creation and basic data insertion with PostgreSQL source data
+  - _Requirements: 1.1, 1.2, PostgreSQL e-commerce schema_
 
-- [ ] 7. Implement Spark batch processing jobs
-  - Create Spark batch applications for data transformation
-  - Configure Iceberg integration for reading S3 data efficiently
-  - Implement complex aggregations and business logic transformations
-  - Set up job parameterization for date ranges and configuration
-  - Test batch job execution with sample data
-  - _Requirements: 1.1, 4.1, data processing_
+- [ ] 7. Implement Spark batch processing jobs for e-commerce data
+  - Create Spark batch applications for processing users, products, orders, order_items
+  - Configure Iceberg integration for reading PostgreSQL-sourced Parquet files from S3
+  - Implement customer analytics: lifetime value, tier calculation, purchase behavior
+  - Implement product analytics: performance metrics, category analysis, inventory insights
+  - Implement order analytics: conversion funnels, business KPIs, daily metrics
+  - Set up job parameterization for date ranges and incremental processing
+  - Test batch job execution with PostgreSQL e-commerce sample data
+  - _Requirements: 1.1, 6.1, 6.2, 6.3, data processing_
 
 - [ ] 8. Optimize batch processing performance
   - Tune Spark batch job configurations for large datasets
@@ -114,8 +118,8 @@ Phase 4: Production (Tasks 13-16)
 
 **Acceptance Criteria:**
 - [ ] Iceberg tables created with proper partitioning and ACID capabilities
-- [ ] Spark batch jobs reading from Iceberg tables efficiently
-- [ ] Complex business logic transformations implemented and tested
+- [ ] Spark batch jobs reading PostgreSQL-sourced data from Iceberg tables efficiently
+- [ ] E-commerce business logic transformations implemented and tested
 - [ ] Performance optimized for large-scale data processing
 
 ### Phase 3: Data Warehousing - Snowflake and dbt Integration
@@ -128,36 +132,40 @@ Phase 4: Production (Tasks 13-16)
   - Test Spark to Snowflake data loading with sample datasets
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 10. Implement Raw schema for direct data ingestion
-  - Create `raw.user_events` table mirroring ClickHouse structure
-  - Create `raw.transactions` table with metadata tracking
-  - Create `raw.user_sessions` table from batch processing
-  - Add metadata fields: loaded_at, batch_id, file_name
-  - Configure clustering by date and user_tier for performance
-  - Test raw data loading from Spark batch jobs
+- [ ] 10. Implement Raw schema for PostgreSQL e-commerce data ingestion
+  - Create `raw.users` table mirroring PostgreSQL users table with CDC metadata
+  - Create `raw.products` table mirroring PostgreSQL products table structure
+  - Create `raw.orders` table mirroring PostgreSQL orders table with status tracking
+  - Create `raw.order_items` table mirroring PostgreSQL order_items table structure
+  - Add metadata fields: loaded_at, batch_id, file_name, __op, __ts_ms, __source_ts_ms, __source_lsn
+  - Configure clustering by date and relevant business keys for performance
+  - Test raw data loading from Spark batch jobs with PostgreSQL source data
   - _Requirements: 2.2, data ingestion_
 
 - [ ] 11. Implement Staging schema with data quality checks
-  - Create `staging.events_cleaned` table with validation flags
-  - Create `staging.user_sessions_enhanced` with business logic
-  - Add data quality fields: is_valid, validation_errors
-  - Implement business rule validation and quality checks
-  - Configure data quality monitoring and alerting
+  - Create `staging.users_enhanced` with customer tier calculation and profile validation
+  - Create `staging.products_enhanced` with price tier categorization and stock validation
+  - Create `staging.orders_enhanced` with order size categorization and business validation
+  - Create `staging.order_items_enhanced` with product context and margin calculations
+  - Add data quality fields: is_valid_email, is_complete_profile, has_complete_info
+  - Implement business rule validation and referential integrity checks
+  - Configure data quality monitoring and alerting for e-commerce data
   - Test staging transformations with data quality validation
   - _Requirements: 7.1, 7.2, 7.3, data quality_
 
-- [ ] 12. Implement Marts schema with business-ready models
-  - Create `marts.daily_metrics` table with comprehensive KPIs
-  - Create `marts.user_tier_analytics` for behavioral analysis
-  - Create `marts.product_performance` for product analytics
-  - Apply clustering keys for optimal query performance
-  - Configure incremental updates and data freshness monitoring
-  - Test business intelligence queries and performance
-  - _Requirements: 6.1, 6.2, 6.3, 6.4, business intelligence_
+- [ ] 12. Implement Marts schema with e-commerce business-ready models
+  - Create `marts.daily_business_metrics` with comprehensive e-commerce KPIs
+  - Create `marts.customer_tier_analytics` for customer behavioral analysis and segmentation
+  - Create `marts.product_performance` for product analytics and inventory insights
+  - Create `marts.customer_analytics` for customer lifetime value and purchase behavior
+  - Apply clustering keys for optimal query performance on e-commerce queries
+  - Configure incremental updates and data freshness monitoring for business metrics
+  - Test e-commerce business intelligence queries and performance
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, e-commerce business intelligence_
 
 **Acceptance Criteria:**
 - [ ] 3-layer Snowflake architecture deployed with proper clustering
-- [ ] UUID->STRING conversion working correctly in ETL pipeline
+- [ ] PostgreSQL integer ID handling working correctly in ETL pipeline
 - [ ] Data quality checks implemented and catching business rule violations
 - [ ] Business-ready data marts providing comprehensive e-commerce analytics
 
@@ -166,11 +174,11 @@ Phase 4: Production (Tasks 13-16)
 - [ ] 13. Implement dbt Core project for e-commerce transformations
   - Set up dbt project structure with e-commerce specific organization
   - Create staging models for raw data cleaning with schema validation
-  - Implement business logic for user tier analytics and session management
-  - Build marts models with e-commerce metrics and conversion tracking
+  - Implement business logic for customer tier analytics and purchase behavior analysis
+  - Build marts models with e-commerce metrics: customer lifetime value, product performance
   - Create comprehensive documentation and data lineage
   - Test dbt transformations and incremental model updates
-  - _Requirements: 3.1, 3.2, 3.3, 3.4_
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, transformations_
 
 - [ ] 14. Configure dbt testing and data quality validation
   - Implement dbt tests for data quality and integrity validation
@@ -180,36 +188,36 @@ Phase 4: Production (Tasks 13-16)
   - Create data quality dashboards and monitoring
   - _Requirements: 7.1, 7.2, 7.4, data quality_
 
-- [ ] 15. Implement Lambda reconciliation with UUID handling
+- [ ] 15. Implement Lambda reconciliation for e-commerce data
   - Create reconciliation jobs to compare ClickHouse and Snowflake data
-  - Implement UUID->STRING conversion logic for consistent comparison
-  - Set up automated consistency validation for e-commerce entities
-  - Configure alerting for data discrepancies in sessions and transactions
+  - Implement PostgreSQL integer ID alignment logic for consistent comparison
+  - Set up automated consistency validation for users, products, orders, order_items
+  - Configure alerting for data discrepancies in customer metrics and order transactions
   - Test eventual consistency convergence with realistic data volumes
   - Document reconciliation procedures for production operations
   - _Requirements: 4.1, 4.2, 4.3, 4.4, Lambda consistency_
 
-- [ ] 16. Validate batch layer end-to-end functionality
+- [ ] 16. Validate e-commerce batch layer end-to-end functionality
   - Test complete batch processing pipeline from S3 to Snowflake
   - Verify data accuracy and completeness across all transformations
-  - Validate dbt transformations and business logic correctness
-  - Test Lambda reconciliation and consistency validation
+  - Validate dbt transformations and e-commerce business logic correctness
+  - Test Lambda reconciliation and consistency validation for entities
   - Document batch layer performance characteristics and SLAs
   - _Requirements: 8.2, 8.4, end-to-end validation_
 
 **Acceptance Criteria:**
 - [ ] dbt project operational with comprehensive e-commerce transformations
 - [ ] Data quality testing catching and flagging business rule violations
-- [ ] Lambda reconciliation working with UUID conversion handling
-- [ ] End-to-end batch processing validated with accurate business metrics
+- [ ] Lambda reconciliation working with PostgreSQL integer ID alignment
+- [ ] End-to-end batch processing validated with accurate e-commerce metrics
 
 ## Success Criteria
 
 Upon completion of all tasks, the batch layer should demonstrate:
 
-- **Data Lake Processing**: Efficient processing of large datasets with Iceberg ACID transactions
+- **Data Lake Processing**: Efficient processing of PostgreSQL e-commerce datasets with Iceberg ACID transactions
 - **3-Layer Architecture**: Clean separation of Raw, Staging, and Marts with proper data quality
-- **Business Intelligence**: Comprehensive e-commerce analytics and KPIs
+- **E-commerce Business Intelligence**: Comprehensive e-commerce analytics and KPIs
 - **Data Quality**: Robust validation and monitoring across all transformation stages
 - **Lambda Consistency**: Automated reconciliation ensuring eventual consistency
 - **Performance**: Optimized query performance with proper clustering and indexing
@@ -225,25 +233,26 @@ Upon completion of all tasks, the batch layer should demonstrate:
 
 ## E-commerce Business Logic Implementation
 
-### User Tier Analytics
-- **Bronze Tier** (60% of users): Standard behavior patterns and metrics
-- **Silver Tier** (25% of users): 1.3x activity multiplier, enhanced engagement
-- **Gold Tier** (12% of users): 1.6x activity, higher discount probability
-- **Platinum Tier** (3% of users): 1.9x activity, premium treatment and analytics
+### Customer Tier Analytics (Based on PostgreSQL Order History)
+- **Bronze Tier** (60% of customers): New customers and low-value purchasers
+- **Silver Tier** (25% of customers): Regular customers with moderate purchase history
+- **Gold Tier** (12% of customers): High-value customers with frequent purchases
+- **Platinum Tier** (3% of customers): VIP customers with highest lifetime value
 
-### Conversion Funnel Analysis
-The batch layer calculates comprehensive conversion funnels:
-1. **PAGE_VIEW** → **PRODUCT_VIEW** (view-to-product rate)
-2. **PRODUCT_VIEW** → **ADD_TO_CART** (product-to-cart rate)
-3. **ADD_TO_CART** → **CHECKOUT_START** (cart-to-checkout rate)
-4. **CHECKOUT_START** → **PURCHASE** (checkout-to-purchase rate)
+### E-commerce Conversion Funnel Analysis
+The batch layer processes transactional data to calculate:
+1. **Customer Metrics**: Lifetime value, purchase frequency, average order value
+2. **Product Analytics**: Sales performance, inventory turnover, category analysis
+3. **Order Analytics**: Conversion rates, fulfillment metrics, revenue trends
+4. **Business KPIs**: Daily/monthly revenue, customer acquisition, retention rates
 
 ### Business KPIs and Metrics
-- **Customer Lifetime Value** (CLV) by user tier
-- **Average Order Value** (AOV) and trends
-- **Revenue per User** (RPU) and segmentation
-- **Session-based conversion rates** and optimization
-- **Product performance** analytics and recommendations
+- **Customer Lifetime Value** (CLV) calculated from orders and order_items
+- **Average Order Value** (AOV) from order total_amount analysis
+- **Revenue per Customer** segmented by customer tier
+- **Product Performance** metrics from order_items and products joins
+- **Order Fulfillment** analytics from order status tracking
+- **Inventory Insights** from products stock_quantity analysis
 
 ## dbt Project Structure
 
@@ -252,19 +261,26 @@ dbt_project/
 ├── dbt_project.yml
 ├── models/
 │   ├── staging/
-│   │   ├── stg_events_cleaned.sql
-│   │   ├── stg_user_sessions_enhanced.sql
-│   │   └── stg_transactions_validated.sql
+│   │   ├── _staging__sources.yml
+│   │   ├── stg_users_enhanced.sql
+│   │   ├── stg_products_enhanced.sql
+│   │   ├── stg_orders_enhanced.sql
+│   │   └── stg_order_items_enhanced.sql
 │   ├── intermediate/
-│   │   ├── int_user_behavior_metrics.sql
-│   │   ├── int_conversion_funnels.sql
-│   │   └── int_product_analytics.sql
+│   │   ├── int_customer_metrics.sql
+│   │   ├── int_product_analytics.sql
+│   │   └── int_order_analytics.sql
 │   └── marts/
-│       ├── mart_daily_metrics.sql
-│       ├── mart_user_tier_analytics.sql
-│       └── mart_product_performance.sql
+│       ├── mart_daily_business_metrics.sql
+│       ├── mart_customer_tier_analytics.sql
+│       ├── mart_product_performance.sql
+│       └── mart_customer_analytics.sql
 ├── tests/
+│   ├── generic/
+│   └── singular/
 ├── macros/
+│   ├── business_logic/
+│   └── data_quality/
 └── docs/
 ```
 
@@ -273,10 +289,10 @@ dbt_project/
 The reconciliation process ensures eventual consistency between speed and batch layers:
 
 1. **Data Extraction**: Extract comparable datasets from both layers
-2. **UUID Conversion**: Handle ClickHouse UUID to Snowflake STRING conversion
-3. **Metric Comparison**: Compare user sessions, transactions, and business KPIs
+2. **ID Alignment**: Handle PostgreSQL integer ID alignment between ClickHouse and Snowflake
+3. **Metric Comparison**: Compare customer metrics, order transactions, and business KPIs
 4. **Discrepancy Analysis**: Identify and analyze data inconsistencies
-5. **Alerting**: Notify data engineering team of significant discrepancies
+5. **Alerting**: Notify data engineering team of significant discrepancies in e-commerce metrics
 6. **Convergence Tracking**: Monitor time to consistency convergence
 
 ## Implementation Notes
@@ -286,5 +302,7 @@ The reconciliation process ensures eventual consistency between speed and batch 
 - All Spark batch jobs should be optimized for large-scale data processing
 - Snowflake warehouse sizing should be optimized for cost and performance
 - dbt models should follow incremental processing patterns where appropriate
-- Lambda reconciliation should handle edge cases and data type conversions
-- All transformations should be thoroughly tested with realistic data volumes
+- Lambda reconciliation should handle PostgreSQL integer ID alignment and data type conversions
+- All transformations should be thoroughly tested with realistic e-commerce data volumes
+- Focus on PostgreSQL source table structures: users, products, orders, order_items
+- Ensure CDC metadata fields (__op, __ts_ms, __source_ts_ms, __source_lsn) are preserved throughout pipeline
