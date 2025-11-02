@@ -136,7 +136,7 @@ def benchmark_performance(target_rate, duration):
                 SELECT
                     subquery.uuid,
                     subquery.uuid + 1000,
-                    {batch_size_order_items} + 10 - subquery.uuid,
+                    33,
                     {batch_size_order_items} + 1.11 - subquery.uuid
                     FROM (SELECT generate_series(1, {batch_size_order_items}) as uuid) AS subquery;
                 """
