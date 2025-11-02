@@ -94,9 +94,10 @@ data:
         id SERIAL PRIMARY KEY,
         order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
         product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-        quantity INTEGER NOT NULL CHECK (quantity > 0),
+        quantity INTEGER NOT NULL CHECK (quantity > 0 AND quantity < 50),
         unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price >= 0),
-        created_at TIMESTAMP(3) DEFAULT NOW()
+        created_at TIMESTAMP(3) DEFAULT NOW(),
+        updated_at TIMESTAMP(3) DEFAULT NOW()
     );
     ALTER TABLE order_items REPLICA IDENTITY FULL;
     
@@ -131,7 +132,90 @@ data:
         RETURN NEW;
     END;
     $$ language 'plpgsql';
-    
+
+    -- Create function to prevent uncancelling orders
+    CREATE OR REPLACE FUNCTION handle_order_uncancellation()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        IF OLD.status = 'cancelled' AND NEW.status IS DISTINCT FROM OLD.status THEN
+            RAISE EXCEPTION 'Cannot change the order status once it has been set to "cancelled"';
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE 'plpgsql';
+
+    -- Create function to handle stock reduction when order items are inserted or updated
+    CREATE OR REPLACE FUNCTION handle_order_item_stock_change()
+    RETURNS TRIGGER AS $$
+    DECLARE
+        order_status VARCHAR(50);
+        current_stock INTEGER;
+        new_quantity INTEGER := 0;
+        product_id_to_update INTEGER;
+    BEGIN
+        -- Get the status of the related order
+        SELECT status INTO order_status FROM orders WHERE id = COALESCE(NEW.order_id, OLD.order_id);
+
+        -- Only proceed if the order is NOT cancelled
+        IF order_status IS DISTINCT FROM 'cancelled' THEN
+            -- Determine the relevant product ID for both INSERT and UPDATE
+            product_id_to_update := COALESCE(NEW.product_id, OLD.product_id);
+
+            SELECT stock_quantity INTO current_stock FROM products WHERE id = product_id_to_update;
+
+            -- Handle both INSERT and UPDATE operations
+            IF TG_OP = 'INSERT' THEN
+                new_quantity := NEW.quantity;
+            ELSIF TG_OP = 'UPDATE' THEN
+                -- Adjust for the difference in quantity during an update
+                new_quantity := (NEW.quantity - OLD.quantity);
+            END IF;
+
+            IF (current_stock - new_quantity)  < 25 THEN
+                current_stock := 150;
+            ELSE
+                current_stock := current_stock - new_quantity;
+            END IF;
+
+            UPDATE products
+            SET stock_quantity = current_stock
+            WHERE id = product_id_to_update;
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE 'plpgsql';
+
+    -- Create function to restock items when an order is cancelled
+    CREATE OR REPLACE FUNCTION handle_order_cancellation()
+    RETURNS TRIGGER AS $$
+    DECLARE
+        item RECORD;
+    BEGIN
+        -- Check if the status changed to 'cancelled' from a non-cancelled status
+        IF NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM NEW.status THEN
+            -- Loop through all items in the cancelled order and restock them
+            FOR item IN SELECT product_id, quantity FROM order_items WHERE order_id = NEW.id LOOP
+                UPDATE products
+                SET stock_quantity = stock_quantity + item.quantity
+                WHERE id = item.product_id;
+            END LOOP;
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE 'plpgsql';
+
+    -- Trigger to execute the function before update on orders
+    CREATE TRIGGER trigger_order_prevent_uncancellation BEFORE UPDATE ON orders
+        FOR EACH ROW EXECUTE FUNCTION handle_order_uncancellation();
+
+    -- Trigger to execute the function after insert or update on order_items
+    CREATE TRIGGER trigger_order_item_stock_change AFTER INSERT OR UPDATE ON order_items
+        FOR EACH ROW EXECUTE FUNCTION handle_order_item_stock_change();
+
+    -- Trigger to execute the function after update on orders
+    CREATE TRIGGER trigger_order_cancellation_restock AFTER UPDATE ON orders
+        FOR EACH ROW EXECUTE FUNCTION handle_order_cancellation();
+
     -- Create triggers for updated_at
     CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -140,6 +224,9 @@ data:
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     
     CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+    CREATE TRIGGER update_order_items_updated_at BEFORE UPDATE ON orders
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ---
 apiVersion: apps/v1

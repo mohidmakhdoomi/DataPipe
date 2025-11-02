@@ -115,9 +115,10 @@ CREATE TABLE order_items (
     id SERIAL PRIMARY KEY,
     order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    quantity INTEGER NOT NULL CHECK (quantity > 0 AND quantity < 50),
     unit_price DECIMAL(10,2) NOT NULL CHECK (unit_price >= 0),
-    created_at TIMESTAMP(3) DEFAULT NOW()
+    created_at TIMESTAMP(3) DEFAULT NOW(),
+    updated_at TIMESTAMP(3) DEFAULT NOW()
 );
 
 -- Trigger for updated_at timestamps
@@ -128,6 +129,79 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+-- Trigger for preventing uncancelling orders
+CREATE OR REPLACE FUNCTION handle_order_uncancellation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.status = 'cancelled' AND NEW.status IS DISTINCT FROM OLD.status THEN
+        RAISE EXCEPTION 'Cannot change the order status once it has been set to "cancelled"';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+
+-- Trigger for handling stock reduction when order items are inserted or updated
+CREATE OR REPLACE FUNCTION handle_order_item_stock_change()
+RETURNS TRIGGER AS $$
+DECLARE
+    order_status VARCHAR(50);
+    current_stock INTEGER;
+    new_quantity INTEGER := 0;
+    product_id_to_update INTEGER;
+BEGIN
+    SELECT status INTO order_status FROM orders WHERE id = COALESCE(NEW.order_id, OLD.order_id);
+
+    IF order_status IS DISTINCT FROM 'cancelled' THEN
+        product_id_to_update := COALESCE(NEW.product_id, OLD.product_id);
+
+        SELECT stock_quantity INTO current_stock FROM products WHERE id = product_id_to_update;
+
+        IF TG_OP = 'INSERT' THEN
+            new_quantity := NEW.quantity;
+        ELSIF TG_OP = 'UPDATE' THEN
+            new_quantity := (NEW.quantity - OLD.quantity);
+        END IF;
+
+        IF (current_stock - new_quantity)  < 25 THEN
+            current_stock := 150;
+        ELSE
+            current_stock := current_stock - new_quantity;
+        END IF;
+
+        UPDATE products
+        SET stock_quantity = current_stock
+        WHERE id = product_id_to_update;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+
+-- Trigger for restocking items when an order is cancelled
+CREATE OR REPLACE FUNCTION handle_order_cancellation()
+RETURNS TRIGGER AS $$
+DECLARE
+    item RECORD;
+BEGIN
+    IF NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM NEW.status THEN
+        FOR item IN SELECT product_id, quantity FROM order_items WHERE order_id = NEW.id LOOP
+            UPDATE products
+            SET stock_quantity = stock_quantity + item.quantity
+            WHERE id = item.product_id;
+        END LOOP;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
+
+CREATE TRIGGER trigger_order_prevent_uncancellation BEFORE UPDATE ON orders
+    FOR EACH ROW EXECUTE FUNCTION handle_order_uncancellation();
+
+CREATE TRIGGER trigger_order_item_stock_change AFTER INSERT OR UPDATE ON order_items
+    FOR EACH ROW EXECUTE FUNCTION handle_order_item_stock_change();
+
+CREATE TRIGGER trigger_order_cancellation_restock AFTER UPDATE ON orders
+    FOR EACH ROW EXECUTE FUNCTION handle_order_cancellation();
 
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -270,6 +270,7 @@ CREATE TABLE iceberg.ecommerce.order_items (
     quantity int,
     unit_price decimal(10,2),
     created_at timestamp,
+    updated_at timestamp,
     __op string,
     __ts_ms timestamp,
     __source_ts_ms timestamp,
@@ -376,6 +377,7 @@ CREATE TABLE raw.order_items (
     quantity NUMBER,
     unit_price NUMBER(10,2),
     created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
     
     -- CDC metadata fields
     __op STRING,
@@ -471,6 +473,7 @@ CREATE TABLE staging.order_items_enhanced (
     unit_price NUMBER(10,2),
     line_total NUMBER(10,2),  -- quantity * unit_price
     created_at TIMESTAMP_NTZ,
+    updated_at TIMESTAMP_NTZ,
     
     -- Product context (joined from products)
     product_name STRING,

@@ -18,9 +18,9 @@ The pipeline will be designed for local development and deployment using Docker 
 
 - **PostgreSQL Source Tables**: The original transactional database tables that feed the analytics pipeline
 - **users table**: Contains customer records with id, email, first_name, last_name, created_at, updated_at
-- **products table**: Contains product catalog with id, name, description, price, stock_quantity, category, timestamps
-- **orders table**: Contains order records with id, user_id, status, total_amount, shipping_address, timestamps
-- **order_items table**: Contains order line items with id, order_id, product_id, quantity, unit_price, created_at
+- **products table**: Contains product catalog with id, name, description, price, stock_quantity, category, created_at, updated_at
+- **orders table**: Contains order records with id, user_id, status, total_amount, shipping_address, created_at, updated_at
+- **order_items table**: Contains order line items with id, order_id, product_id, quantity, unit_price, created_at, updated_at
 - **Batch Analytics Layer**: The comprehensive analytics system processing S3 data through Spark and Iceberg
 - **Iceberg**: Apache table format providing ACID transactions and schema evolution for data lake
 - **Lambda Architecture**: Architecture pattern with speed layer (real-time) and batch layer (comprehensive accuracy)
