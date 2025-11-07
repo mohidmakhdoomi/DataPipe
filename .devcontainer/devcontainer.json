@@ -1,0 +1,40 @@
+{
+  "name": "spark-pyspark-dev",
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "dev",
+  "runServices": [
+    "spark-connect"
+  ],
+  "features": {
+
+ },
+  "workspaceFolder": "/workspace",
+  "overrideCommand": false,
+  "updateRemoteUserUID": true,
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "usernamehw.errorlens",
+        "yzhang.markdown-all-in-one",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.debugpy",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspace/.devcontainer/.venv/bin/python",
+        "python.analysis.typeCheckingMode": "basic",
+        "ruff.enable": true,
+        "python.testing.pytestEnabled": true,
+        "python.terminal.activateEnvironment": true
+      }
+    }
+  },
+
+  "postCreateCommand": "cd .devcontainer && uv sync --locked",
+  "mounts": [
+    "source=uv-cache,target=/root/.cache/uv,type=volume"
+  ]
+}

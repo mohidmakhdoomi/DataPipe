@@ -1,0 +1,11 @@
+[project]
+name = "spark-dev"
+version = "0.1.0"
+requires-python = ">=3.12, <3.13"
+dependencies = [
+    "grpcio>=1.76.0",
+    "grpcio-status>=1.76.0",
+    "pandas>=2.3.3",
+    "pyarrow>=22.0.0",
+    "pyspark==3.5.7",
+]

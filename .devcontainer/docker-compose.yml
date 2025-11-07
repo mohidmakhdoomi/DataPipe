@@ -1,0 +1,53 @@
+version: '3'
+services:
+
+  spark-connect:
+    build: ../2-batch-analytics-layer
+    container_name: spark-connect
+    command:
+      - /opt/spark/sbin/start-connect-server.sh
+      - --conf
+      - spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.EnvironmentVariableCredentialsProvider
+      - --conf 
+      - spark.ui.port=8088
+    env_file: devcontainer.env
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    ports:
+      - "15002:15002"
+      - "8088:8088"
+    volumes:
+      - ../data:/opt/spark/work-dir/data
+      - spark-warehouse:/opt/spark/warehouse
+      - spark-checkpoints:/tmp/spark-checkpoints
+    networks:
+      - spark_network
+
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: dev
+    command: sleep infinity
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+      - uv-cache:/root/.cache/uv
+      - spark-warehouse:/opt/spark/warehouse
+    env_file: devcontainer.env
+    environment:
+      PYSPARK_PYTHON: /workspace/.devcontainer/.venv/bin/python
+      SPARK_CONNECT_URL: sc://spark-connect:15002
+    depends_on: [ spark-connect ]
+    networks: [ spark_network ]
+
+networks:
+  spark_network:
+    driver: bridge
+    external: false
+
+volumes:
+  uv-cache:
+  spark-warehouse:
+  spark-checkpoints:
+  conf:

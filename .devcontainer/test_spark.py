@@ -1,0 +1,173 @@
+import os
+import sys
+from datetime import datetime, date
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, lit, current_timestamp
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType, DateType, DecimalType
+
+def main():
+	print("=== Spark S3 Iceberg Integration Test ===")
+	print(f"Test started at: {datetime.now()}")
+	
+	# Initialize Spark Session with S3 and Iceberg configuration
+	spark = SparkSession.builder \
+		.remote("sc://spark-connect:15002") \
+		.appName("S3IcebergIntegrationTest") \
+		.config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
+		.config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog") \
+		.config("spark.sql.catalog.iceberg.type", "hadoop") \
+		.config("spark.sql.catalog.iceberg.warehouse", f"s3a://{os.getenv('AWS_S3_BUCKET')}/iceberg-warehouse/") \
+		.getOrCreate()
+	
+	try:
+		# Test 1: Basic S3 connectivity
+		print("\n1. Testing basic S3 connectivity...")
+		bucket = os.getenv('AWS_S3_BUCKET')
+		test_path = f"s3a://{bucket}/test/spark-connectivity-test/"
+		
+		# Create a simple DataFrame
+		test_data = [(1, "test_user", "2024-01-01"), (2, "test_user2", "2024-01-02")]
+		test_df = spark.createDataFrame(test_data, ["id", "user", "date"])
+		
+		# Write to S3 as Parquet
+		print(f"Writing test data to: {test_path}")
+		test_df.write.mode("overwrite").parquet(test_path)
+		
+		# Read back from S3
+		print("Reading test data back from S3...")
+		read_df = spark.read.parquet(test_path)
+		read_df.show()
+		print("✓ Basic S3 read/write successful")
+		
+		# Test 2: Iceberg table creation
+		print("\n2. Testing Iceberg table creation...")
+		
+		# Create test events table schema
+		events_schema = StructType([
+			StructField("event_id", StringType(), False),
+			StructField("user_id", StringType(), False),
+			StructField("session_id", StringType(), False),
+			StructField("event_type", StringType(), False),
+			StructField("timestamp", TimestampType(), False),
+			StructField("user_tier", StringType(), True),
+			StructField("date", DateType(), False),
+			StructField("hour", IntegerType(), False)
+		])
+		
+		# Create sample events data
+		sample_events = [
+			("evt_001", "user_001", "sess_001", "page_view", datetime(2024, 1, 1, 10, 0, 0), "bronze", date(2024, 1, 1), 10),
+			("evt_002", "user_001", "sess_001", "product_view", datetime(2024, 1, 1, 10, 5, 0), "bronze", date(2024, 1, 1), 10),
+			("evt_003", "user_002", "sess_002", "page_view", datetime(2024, 1, 1, 11, 0, 0), "silver", date(2024, 1, 1), 11),
+			("evt_004", "user_002", "sess_002", "purchase", datetime(2024, 1, 1, 11, 15, 0), "silver", date(2024, 1, 1), 11)
+		]
+		
+		events_df = spark.createDataFrame(sample_events, events_schema)
+		
+		# Create Iceberg table
+		table_name = "iceberg.test_db.user_events_test"
+		print(f"Creating Iceberg table: {table_name}")
+		
+		# Drop table if exists (for testing)
+		spark.sql(f"DROP TABLE IF EXISTS {table_name}")
+		
+		# Create the table with partitioning
+		events_df.writeTo(table_name) \
+			.using("iceberg") \
+			.partitionedBy("date", "hour") \
+			.tableProperty("write.target-file-size-bytes", "134217728") \
+			.tableProperty("write.parquet.compression-codec", "snappy") \
+			.create()
+		
+		print("✓ Iceberg table created successfully")
+		
+		# Test 3: Iceberg table operations
+		print("\n3. Testing Iceberg table operations...")
+		
+		# Read from Iceberg table
+		print("Reading from Iceberg table...")
+		iceberg_df = spark.read.format("iceberg").load(table_name)
+		iceberg_df.show()
+		
+		# Test table metadata
+		print("Checking table metadata...")
+		spark.sql(f"DESCRIBE TABLE {table_name}").show()
+		
+		# Test partitioning with Iceberg-specific commands
+		print("Checking Iceberg table partitions...")
+		# Use Iceberg metadata tables to inspect partitions
+		spark.sql(f"SELECT * FROM {table_name}.partitions").show()
+		
+		# Alternative: Check data files and their partition values
+		print("Checking data files and partition info...")
+		spark.sql(f"SELECT file_path, partition FROM {table_name}.files").show()
+		
+		# Test append operation
+		print("Testing append operation...")
+		new_events = [
+			("evt_005", "user_003", "sess_003", "search", datetime(2024, 1, 2, 9, 0, 0), "gold", date(2024, 1, 2), 9)
+		]
+		new_events_df = spark.createDataFrame(new_events, events_schema)
+		new_events_df.writeTo(table_name).using("iceberg").append()
+		
+		# Verify append
+		print("Verifying append operation...")
+		final_df = spark.read.format("iceberg").load(table_name)
+		print(f"Total records after append: {final_df.count()}")
+		final_df.show()
+				
+		# Test partition filtering
+		print("Testing partition filtering...")
+		partition_filtered_df = spark.sql(f"""
+			SELECT * FROM {table_name} 
+			WHERE date = '2024-01-01' AND hour = 10
+		""")
+		print(f"Records for date=2024-01-01, hour=10: {partition_filtered_df.count()}")
+		partition_filtered_df.show()
+		
+		print("✓ Iceberg table operations and partitioning successful")
+		
+		# Test 4: Time travel (if supported)
+		print("\n4. Testing Iceberg time travel...")
+		try:
+			# Get table history
+			print("Table history:")
+			spark.sql(f"SELECT * FROM {table_name}.history").show()
+			
+			# Get snapshots
+			print("Table snapshots:")
+			spark.sql(f"SELECT * FROM {table_name}.snapshots").show()
+			
+			print("✓ Iceberg time travel features working")
+		except Exception as e:
+			print(f"Time travel test failed (may not be fully supported): {e}")
+		
+		# Test 5: Cleanup
+		print("\n5. Cleaning up test resources...")
+		
+		# Drop test table
+		spark.sql(f"DROP TABLE IF EXISTS {table_name}")
+		print("✓ Test table dropped")
+		
+		# Clean up S3 test data
+		try:
+			# Note: This requires additional S3 cleanup, which would typically be done
+			# by a separate cleanup job or lifecycle policy
+			print("Note: S3 test data cleanup should be handled by lifecycle policies")
+		except Exception as e:
+			print(f"S3 cleanup note: {e}")
+		
+		print("\n=== All Tests Completed Successfully ===")
+		print("S3 and Iceberg integration is working correctly!")
+		
+	except Exception as e:
+		print(f"\n❌ Test failed with error: {e}")
+		import traceback
+		traceback.print_exc()
+		sys.exit(1)
+	
+	finally:
+		spark.stop()
+
+if __name__ == "__main__":
+	main()
