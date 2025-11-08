@@ -50,4 +50,3 @@ volumes:
   uv-cache:
   spark-warehouse:
   spark-checkpoints:
-  conf:

@@ -6,7 +6,6 @@
     "spark-connect"
   ],
   "features": {
-
  },
   "workspaceFolder": "/workspace",
   "overrideCommand": false,
@@ -35,6 +34,7 @@
 
   "postCreateCommand": "cd .devcontainer && uv sync --locked",
   "mounts": [
-    "source=uv-cache,target=/root/.cache/uv,type=volume"
+    "source=uv-cache,target=/root/.cache/uv,type=volume",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,type=bind"
   ]
 }

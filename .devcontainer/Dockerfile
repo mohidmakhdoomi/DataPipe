@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
     apt-get update; \
     apt-get install -y --no-install-recommends \
       curl bash git ca-certificates procps \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y openssh-client && rm -rf /var/lib/apt/lists/*
 
 # uv package manager
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -40,6 +40,8 @@ ENV PYSPARK_PYTHON=/workspace/.devcontainer/.venv/bin/python \
     PYTHONDONTWRITEBYTECODE=1
 
 # [OPTIONAL] This line is for auto-activation in interactive shells
+RUN echo "alias ll='ls -al'" >> /root/.bashrc
+RUN echo "chmod 700 /root/.ssh && chmod 600 /root/.ssh/*" >> /root/.bashrc
 RUN echo "source /workspace/.devcontainer/.venv/bin/activate" >> /root/.bashrc
 
 WORKDIR /workspace

@@ -13,6 +13,7 @@ main() {
     uv lock
     local py_version=$(.venv/Scripts/python.exe --version | awk '{print $2}')
     sed -i "1s/.*/FROM python:${py_version}-slim/" Dockerfile
+    rm -rf .venv
     exit 0
 }
 
