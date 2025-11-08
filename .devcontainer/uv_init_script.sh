@@ -9,7 +9,7 @@ cd "$SCRIPT_DIR"
 main() {
     rm -rf .venv pyproject.toml uv.lock
     uv init --python "python>=3.12,<3.13" --name 'spark-dev' --bare --no-cache
-    uv add pyspark==3.5.7 grpcio grpcio-status pandas pyarrow --no-cache
+    uv add pyspark==3.5.7 grpcio grpcio-status pandas pyarrow boto3 botocore --no-cache
     uv lock
     local py_version=$(.venv/Scripts/python.exe --version | awk '{print $2}')
     sed -i "1s/.*/FROM python:${py_version}-slim/" Dockerfile
