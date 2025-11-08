@@ -2,7 +2,9 @@ version: '3'
 services:
 
   spark-connect:
-    build: ../2-batch-analytics-layer
+    build: 
+      context: ..
+      dockerfile: 2-batch-analytics-layer/Dockerfile
     container_name: spark-connect
     command:
       - /opt/spark/sbin/start-connect-server.sh
@@ -29,14 +31,15 @@ services:
       dockerfile: .devcontainer/Dockerfile
     container_name: dev
     command: sleep infinity
-    working_dir: /workspace
+    working_dir: /datapipe
     volumes:
-      - ..:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock 
+      - ..:/datapipe:cached
       - uv-cache:/root/.cache/uv
       - spark-warehouse:/opt/spark/warehouse
     env_file: devcontainer.env
     environment:
-      PYSPARK_PYTHON: /workspace/.devcontainer/.venv/bin/python
+      PYSPARK_PYTHON: /datapipe/.devcontainer/.venv/bin/python
       SPARK_CONNECT_URL: sc://spark-connect:15002
     depends_on: [ spark-connect ]
     networks: [ spark_network ]
