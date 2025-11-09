@@ -3,8 +3,8 @@ services:
 
   spark-connect:
     build: 
-      context: ..
-      dockerfile: 2-batch-analytics-layer/Dockerfile
+      context: ../2-batch-analytics-layer
+      dockerfile: Dockerfile
     container_name: spark-connect
     command:
       - /opt/spark/sbin/start-connect-server.sh
@@ -33,7 +33,6 @@ services:
     command: sleep infinity
     working_dir: /datapipe
     volumes:
-      - /var/run/docker.sock:/var/run/docker-host.sock 
       - ..:/datapipe:cached
       - uv-cache:/root/.cache/uv
       - spark-warehouse:/opt/spark/warehouse
