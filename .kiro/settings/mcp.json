@@ -7,7 +7,7 @@
         "--rm",
         "-i",
         "-v",
-        "/e/Projects/DataPipe:/app/DataPipe",
+        ".:/app/DataPipe",
         "code2prompt-mcp"
       ],
       "env": {},
@@ -62,9 +62,9 @@
         "--rm",
         "-i",
         "--env-file",
-        "E:/Projects/DataPipe/.kiro/settings/zen/.env",
+        ".kiro/settings/zen/.env",
         "-v",
-        "E:/Projects/DataPipe/.kiro/settings/zen/logs:/app/logs",
+        ".kiro/settings/zen/logs:/app/logs",
         "zen-mcp-server"
       ],
       "env": {},
