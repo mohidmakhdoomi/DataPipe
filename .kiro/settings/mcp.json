@@ -55,17 +55,17 @@
         "visualreasoning"
       ]
     },
-    "zen": {
+    "pal": {
       "command": "docker",
       "args": [
         "run",
         "--rm",
         "-i",
         "--env-file",
-        ".kiro/settings/zen/.env",
+        ".kiro/settings/pal/.env",
         "-v",
-        ".kiro/settings/zen/logs:/app/logs",
-        "zen-mcp-server"
+        ".kiro/settings/pal/logs:/app/logs",
+        "pal-mcp-server"
       ],
       "env": {},
       "disabled": false,
@@ -98,7 +98,7 @@
       "env": {},
       "disabled": false,
       "autoApprove": [
-        "get-library-docs",
+        "query-docs",
         "resolve-library-id"
       ]
     },

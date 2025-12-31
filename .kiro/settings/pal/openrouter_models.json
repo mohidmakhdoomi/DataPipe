@@ -1,7 +1,7 @@
 {
   "_README": {
     "description": "Model metadata for OpenRouter-backed providers.",
-    "documentation": "https://github.com/BeehiveInnovations/zen-mcp-server/blob/main/docs/custom_models.md",
+    "documentation": "https://github.com/BeehiveInnovations/pal-mcp-server/blob/main/docs/custom_models.md",
     "usage": "Models listed here are exposed through OpenRouter. Aliases are case-insensitive.",
     "field_notes": "Matches providers/shared/model_capabilities.py.",
     "field_descriptions": {
@@ -16,7 +16,7 @@
       "max_image_size_mb": "Maximum total size in MB for all images combined (capped at 40MB max for custom models)",
       "supports_temperature": "Whether the model accepts temperature parameter in API calls (set to false for O3/O4 reasoning models)",
       "temperature_constraint": "Type of temperature constraint: 'fixed' (fixed value), 'range' (continuous range), 'discrete' (specific values), or omit for default range",
-      "use_openai_response_api": "Set to true when the model must use the /responses endpoint (reasoning models like GPT-5 Pro). Leave false/omit for standard chat completions.",
+      "use_openai_response_api": "Set to true when the model must use the /responses endpoint (reasoning models like GPT-5.2 Pro). Leave false/omit for standard chat completions.",
       "default_reasoning_effort": "Default reasoning effort level for models that support it (e.g., 'low', 'medium', 'high'). Omit if not applicable.",
       "description": "Human-readable description of the model",
       "intelligence_score": "1-20 human rating used as the primary signal for auto-mode model ordering",
@@ -24,6 +24,23 @@
     }
   },
   "models": [
+    {
+      "model_name": "anthropic/claude-opus-4.5",
+      "aliases": [
+        "opus",
+        "opus4.5",
+        "claude-opus"
+      ],
+      "context_window": 200000,
+      "max_output_tokens": 64000,
+      "supports_extended_thinking": false,
+      "supports_json_mode": false,
+      "supports_function_calling": false,
+      "supports_images": true,
+      "max_image_size_mb": 5.0,
+      "description": "Claude Opus 4.5 - Anthropic's frontier reasoning model for complex software engineering and agentic workflows",
+      "intelligence_score": 18
+    },
     {
       "model_name": "anthropic/claude-sonnet-4.5",
       "aliases": [
@@ -43,8 +60,7 @@
     {
       "model_name": "anthropic/claude-opus-4.1",
       "aliases": [
-        "opus",
-        "claude-opus"
+        "opus4.1"
       ],
       "context_window": 200000,
       "max_output_tokens": 64000,
@@ -87,12 +103,30 @@
       "intelligence_score": 8
     },
     {
-      "model_name": "google/gemini-2.5-pro",
+      "model_name": "google/gemini-3-pro-preview",
       "aliases": [
         "pro",
         "gemini-pro",
         "gemini",
+        "gemini3",
         "pro-openrouter"
+      ],
+      "context_window": 1048576,
+      "max_output_tokens": 65536,
+      "supports_extended_thinking": true,
+      "supports_json_mode": true,
+      "supports_function_calling": true,
+      "supports_images": true,
+      "max_image_size_mb": 20.0,
+      "allow_code_generation": true,
+      "description": "Google's Gemini 3.0 Pro via OpenRouter with vision",
+      "intelligence_score": 18
+    },
+    {
+      "model_name": "google/gemini-2.5-pro",
+      "aliases": [
+        "gemini-2.5",
+        "pro-2.5-openrouter"
       ],
       "context_window": 1048576,
       "max_output_tokens": 65536,
@@ -297,8 +331,10 @@
       "intelligence_score": 16
     },
     {
-      "model_name": "openai/gpt-5-pro",
+      "model_name": "openai/gpt-5.2-pro",
       "aliases": [
+        "gpt5.2-pro",
+        "gpt5.2pro",
         "gpt5pro"
       ],
       "context_window": 400000,
@@ -313,7 +349,7 @@
       "use_openai_response_api": true,
       "default_reasoning_effort": "high",
       "allow_code_generation": true,
-      "description": "GPT-5 Pro - Advanced reasoning model with highest quality responses (text+image input, text output only)",
+      "description": "GPT-5.2 Pro - Advanced reasoning model with highest quality responses (text+image input, text output only)",
       "intelligence_score": 18
     },
     {
@@ -367,6 +403,75 @@
       "intelligence_score": 8
     },
     {
+      "model_name": "openai/gpt-5.2",
+      "aliases": [
+        "gpt5.2",
+        "gpt-5.2",
+        "5.2",
+        "gpt5.1",
+        "gpt-5.1",
+        "5.1"
+      ],
+      "context_window": 400000,
+      "max_output_tokens": 128000,
+      "supports_extended_thinking": true,
+      "supports_json_mode": true,
+      "supports_function_calling": true,
+      "supports_images": true,
+      "max_image_size_mb": 20.0,
+      "supports_temperature": true,
+      "temperature_constraint": "fixed",
+      "default_reasoning_effort": "medium",
+      "allow_code_generation": true,
+      "description": "GPT-5.2 (400K context, 128K output) - Flagship reasoning model with configurable thinking effort and vision support",
+      "intelligence_score": 18
+    },
+    {
+      "model_name": "openai/gpt-5.1-codex",
+      "aliases": [
+        "gpt5.1-codex",
+        "gpt-5.1-codex",
+        "gpt5.1code",
+        "gpt-5.1-code",
+        "codex-5.1"
+      ],
+      "context_window": 400000,
+      "max_output_tokens": 128000,
+      "supports_extended_thinking": true,
+      "supports_json_mode": true,
+      "supports_function_calling": true,
+      "supports_images": true,
+      "max_image_size_mb": 20.0,
+      "supports_temperature": true,
+      "temperature_constraint": "fixed",
+      "use_openai_response_api": true,
+      "default_reasoning_effort": "high",
+      "allow_code_generation": true,
+      "description": "GPT-5.1 Codex (400K context, 128K output) - Agentic coding specialization available through the Responses API",
+      "intelligence_score": 19
+    },
+    {
+      "model_name": "openai/gpt-5.1-codex-mini",
+      "aliases": [
+        "gpt5.1-codex-mini",
+        "gpt-5.1-codex-mini",
+        "codex-mini",
+        "5.1-codex-mini"
+      ],
+      "context_window": 400000,
+      "max_output_tokens": 128000,
+      "supports_extended_thinking": true,
+      "supports_json_mode": true,
+      "supports_function_calling": true,
+      "supports_images": true,
+      "max_image_size_mb": 20.0,
+      "supports_temperature": true,
+      "temperature_constraint": "fixed",
+      "allow_code_generation": true,
+      "description": "GPT-5.1 Codex mini (400K context, 128K output) - Cost-efficient Codex variant with streaming support",
+      "intelligence_score": 16
+    },
+    {
       "model_name": "x-ai/grok-4",
       "aliases": [
         "grok-4",
@@ -383,6 +488,24 @@
       "supports_temperature": true,
       "temperature_constraint": "range",
       "description": "xAI's Grok 4 via OpenRouter with vision and advanced reasoning",
+      "intelligence_score": 15
+    },
+    {
+      "model_name": "x-ai/grok-4.1-fast",
+      "aliases": [
+        "grok-4.1-fast-openrouter",
+        "grok-4.1-openrouter"
+      ],
+      "context_window": 2000000,
+      "max_output_tokens": 2000000,
+      "supports_extended_thinking": true,
+      "supports_json_mode": true,
+      "supports_function_calling": true,
+      "supports_images": true,
+      "max_image_size_mb": 20.0,
+      "supports_temperature": true,
+      "temperature_constraint": "range",
+      "description": "xAI's Grok 4.1 Fast Reasoning via OpenRouter (2M context) with vision and advanced reasoning",
       "intelligence_score": 15
     },
     {
